@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        //require strict types (null-save)
+        "strict": true,
+        // tell Typescript to generate ESM Syntax
+        "target": "esnext",
+        // tell Typescript to require ESM Syntax as input (include .js file imports)
+        "module": "nodenext",
+        // define where to put generated JS
+        "outDir": "../../dist-electron",
+        // ignore errors from dependencies
+        "skipLibCheck": true,
+        // MUI Congfigs
+        "lib": [
+            "es6",
+            "dom"
+        ],
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "strictNullChecks": true,
+        "allowSyntheticDefaultImports": true,
+    }
+}

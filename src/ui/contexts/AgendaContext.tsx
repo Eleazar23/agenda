@@ -1,0 +1,179 @@
+import React, { useState, createContext, useContext } from "react";
+
+type Props = {
+  children: React.ReactNode;
+};
+
+export type Cliente = {
+  nombre: string;
+  phone: string;
+};
+
+export type Servicio = {
+  rowIndex: number;
+  estilista: string;
+  servicio: string;
+  hora: string;
+  duracion: number;
+  cellID: string;
+};
+
+export type Cita = {
+  fecha: string;
+  cliente: Cliente;
+  servicios: [] | Array<Servicio>;
+};
+
+export type Modal = {
+  fecha: string;
+  cliente: Cliente;
+  servicio: Servicio
+}
+
+type AgendaData = {
+  minDuration: number;
+  isCitaOpen: boolean;
+  isBooking: boolean;
+  citas: [] | Array<Cita>;
+  cita: Cita;
+  currentPage: string;
+  modal: null | Modal
+};
+
+type AgendaContex = {
+  agendaData: AgendaData;
+  addService: React.Dispatch<React.SetStateAction<any>>;
+  updateService: (index: number, newServiceValue: null | string) => void;
+  setAgendaData: React.Dispatch<React.SetStateAction<AgendaData>>;
+  addCita: React.DispatchWithoutAction;
+  removeService: React.Dispatch<React.SetStateAction<any>>;
+  updateDuracion: (index: number, newValue: number) => void;
+};
+
+export const AgendaContext = createContext<AgendaContex | null>(null);
+
+const initialContextData = {
+  minDuration: 30,
+  isCitaOpen: false,
+  isBooking: false,
+  citas: [],
+  cita: {
+    fecha: "",
+    cliente: {
+      nombre: "",
+      phone: "",
+    },
+    servicios: [],
+  },
+  currentPage: "agenda",
+  modal: null
+  // modal: {
+  //   fecha: "",
+  //   cliente: {
+  //     nombre: "",
+  //     phone: "",
+  //   },
+  //   servicio: {
+  //     rowIndex: 0,
+  //     estilista: "",
+  //     servicio: "",
+  //     hora: "",
+  //     duracion: 0,
+  //     cellID: "",
+  //   }
+  // },
+};
+
+export const AgendaContextProvider = ({ children }: Props) => {
+  const [agendaData, setAgendaData] = useState<AgendaData>(initialContextData);
+
+  const updateService = (index: number, newServiceValue: null | string) => {
+    const { cita } = agendaData;
+    const { servicios } = cita;
+    let newServicios = servicios;
+    const serviceToUpdate = servicios[index];
+    const updatedService = { ...serviceToUpdate, servicio: newServiceValue ? newServiceValue : "" };
+    newServicios[index] = updatedService;
+    setAgendaData({
+      ...agendaData,
+      cita: { ...cita, servicios: newServicios },
+    });
+    console.log("updateService", agendaData.cita.servicios);
+  };
+
+  const updateDuracion = (index: number, newValue: number) => {
+    const { cita } = agendaData;
+    const { servicios } = cita;
+    let newServicios = servicios;
+    const serviceToUpdate = servicios[index];
+    const updatedService = { ...serviceToUpdate, duracion: newValue };
+    newServicios[index] = updatedService;
+    setAgendaData({
+      ...agendaData,
+      cita: { ...cita, servicios: newServicios },
+    });
+    console.log("updateService", agendaData.cita.servicios);
+  };
+
+  const addService = (servicio: Servicio) => {
+    const { servicios } = agendaData.cita;
+    const { rowIndex, estilista, hora, cellID, duracion } = servicio;
+    const newService = [
+      { cellID, rowIndex, estilista, servicio: "", hora, duracion },
+    ];
+    setAgendaData({
+      ...agendaData,
+      isBooking: true,
+      cita: { ...agendaData.cita, servicios: [...servicios, ...newService] },
+    });
+  };
+
+  const addCita = () => {
+    const { citas } = agendaData;
+    const { cita } = agendaData;
+    setAgendaData({
+      ...agendaData,
+      citas: [...citas, cita],
+      cita: initialContextData.cita,
+      isBooking: false,
+    });
+    console.log("addCita", agendaData);
+  };
+
+  const removeService = (service: Servicio) => {
+    const { servicios } = agendaData.cita;
+    const filteredServicios = servicios.filter(
+      (servicio) => servicio.cellID != service.cellID
+    );
+    setAgendaData({
+      ...agendaData,
+      cita: { ...agendaData.cita, servicios: filteredServicios },
+    });
+  };
+
+  return (
+    <AgendaContext.Provider
+      value={{
+        agendaData,
+        setAgendaData,
+        addService,
+        removeService,
+        addCita,
+        updateService,
+        updateDuracion,
+      }}
+    >
+      {children}
+    </AgendaContext.Provider>
+  );
+};
+
+export function useAgendaContext() {
+  const context = useContext(AgendaContext);
+  if (!context) {
+    throw new Error(
+      "useSideBarContext must be used within a AgendaContextProvider"
+    );
+  }
+  return context;
+}
