@@ -47,7 +47,7 @@ function PhoneInput({ valueContext, dispatchContext }: Props) {
       <TextField
         error={error}
         id="outlined-basic"
-        label="Telfono"
+        label="Teléfono"
         variant="filled"
         value={valueContext ? valueContext : value}
         onChange={handleChange}
