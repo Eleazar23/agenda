@@ -4,7 +4,6 @@ import { useAgendaContext } from "../../contexts/AgendaContext"
 
 const CitaCell = ({params}: any) => {
     const {agendaData, setAgendaData} = useAgendaContext()
-    const {isCitaOpen} = agendaData
 
   const estilista = params.column.colId
   const hr = params.data.hr
@@ -15,7 +14,7 @@ const CitaCell = ({params}: any) => {
 
 
   const handleClick = () =>{
-    console.log({params: {estilista, hr, rowIndex}, value: params.value})
+    // console.log({params: {estilista, hr, rowIndex}, value: params.value})
     setAgendaData({...agendaData, isCitaOpen:true, modal: {...value}})
   }
 

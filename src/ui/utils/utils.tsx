@@ -53,6 +53,13 @@ export const hrs12f = [
 "11:30 PM",
 ]
 
+
+export function getCurrentDate (dateString:string) {
+    const today = dayjs()
+    const cDate = dayjs(dateString)
+    return {today, currenDate: cDate}
+}
+
 export const getHrs = () =>{
     let hour = 0
     let minute = 0

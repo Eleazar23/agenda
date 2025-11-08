@@ -10,9 +10,9 @@ import type { CustomCellRendererProps } from "ag-grid-react";
 //   column: object<T>
 // };
 
-type Service = {
-  rowIndex: number, estilista:string, hora: string 
-}
+// type Service = {
+//   rowIndex: number, estilista:string, hora: string 
+// }
 
 const EmptyCell = ({params}: any) => {
   const estilista = params.column.colId;
@@ -22,7 +22,7 @@ const EmptyCell = ({params}: any) => {
   const cellID = `${rowIndex}-${estilista}`
   const [cellData, setCellData] = useState({cellID, rowIndex, estilista, hora: hr.label24});
   const { agendaData, addService, removeService } = useAgendaContext();
-  console.log('Empty Cell Params:', params)
+  // console.log('Empty Cell Params:', params)
 
   const handleClick = async () => {
     if (!isSelected) {

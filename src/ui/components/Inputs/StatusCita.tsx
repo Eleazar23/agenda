@@ -8,7 +8,7 @@ export default function StatusCita(props:any) {
   return (
     <Autocomplete
       options={statusOptions}
-      renderInput={(params) => <TextField {...params} label="Estado" variant='filled' />}
+      renderInput={(params) => <TextField {...params} label="Estado de la Cita" variant='filled' />}
       defaultValue={statusOptions[0]}
       {...props}
     />
