@@ -7,6 +7,12 @@ type Props = {
   serviceIndex: number;
 };
 
+const styles = {
+  textField: {
+    "& .MuiInputBase-input": { textTransform: "capitalize" },
+  },
+};
+
 const options = [
   "Corte de Cabello H",
   "Corte de Cabello M",
@@ -27,9 +33,9 @@ export default function SeriviceInput({ serviceIndex }: Props) {
   return (
     <Autocomplete
       options={options}
-      sx={{ width: "100%" }}
+      fullWidth
       renderInput={(params) => (
-        <TextField {...params} label="Servicio" variant="filled" />
+        <TextField {...params} sx={styles.textField} label="Servicio" variant="filled" />
       )}
       value={value}
       onChange={(event: any, newValue: null | string) => {

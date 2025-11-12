@@ -1,16 +1,50 @@
-import * as React from 'react';
-import TextField from '@mui/material/TextField';
-import Autocomplete from '@mui/material/Autocomplete';
+import * as React from "react";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import { capitalizeFirstLetter } from "../../utils/utils";
 
-const statusOptions = ["Pendiente","En proceso...", "Pagado"];
+type Props = {
+  ctxValue?: string;
+  ctxDispatch?: (inputName: string, value: string) => void;
+  readOnly?: boolean;
+};
 
-export default function StatusCita(props:any) {
+const options = ["sin confirmar","confirmado", "en proceso", "pagado", "cancelado", "no asistio", "finalizado"];
+
+const styles = {
+  textField: {
+    "& .MuiInputBase-input": { textTransform: "capitalize" },
+  },
+};
+
+export default function StatusCita({ ctxValue, ctxDispatch, readOnly }: Props) {
+  const [value, setValue] = React.useState<string>(ctxValue || "");
+
+  const handleChange = (event: any) => {
+    if (ctxDispatch) {
+      ctxDispatch("estado", event.target.value as string);
+    } else {
+      setValue(event.target.value as string);
+    }
+  };
+
   return (
-    <Autocomplete
-      options={statusOptions}
-      renderInput={(params) => <TextField {...params} label="Estado de la Cita" variant='filled' />}
-      defaultValue={statusOptions[0]}
-      {...props}
-    />
+    <FormControl variant="filled" fullWidth>
+      <InputLabel id="select-label">Estado de la Cita</InputLabel>
+      <Select
+        labelId="select-label"
+        id="select"
+        value={ctxValue || value}
+        onChange={handleChange}
+        sx={styles.textField}
+        inputProps={{ readOnly: readOnly }}
+        defaultValue={options[0]}
+      >
+        {options.map((option) => (
+          <MenuItem key={option} value={option}>
+            {capitalizeFirstLetter(option)}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
   );
 }

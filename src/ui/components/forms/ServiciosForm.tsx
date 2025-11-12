@@ -18,7 +18,7 @@ const ServiciosForm = ({estilista, hora, serviceIndex}:Servicio) => {
     return (
         <Grid container gap={1} size={12} wrap="nowrap" sx={{height:"100%"}}>
             <Grid size={3}>
-                <EstilistaInput estilista={estilista} />
+                <EstilistaInput  ctxValue={estilista} readOnly/>
             </Grid>
             <Grid size={4}>
                 <SeriviceInput serviceIndex={serviceIndex} />

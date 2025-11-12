@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
 import Dialog from "@mui/material/Dialog";
@@ -13,6 +13,7 @@ import StatusCita from "../Inputs/StatusCita";
 import PrecioInput from "../Inputs/PrecioInput";
 import HoraInput from "../Inputs/HoraInput";
 import MetodoPagoInput from "../Inputs/MetodoPagoInput";
+import EstilistaInput from "../Inputs/EstilistaInput";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialogContent-root": {
@@ -32,21 +33,37 @@ const CustomeInputField = styled(TextField)(() => ({
 export default function CitaModal() {
   const { agendaData, setAgendaData } = useAgendaContext();
   const { isCitaOpen, modal } = agendaData;
-  const [modalForm, setModalForm] = useState({
-    ...modal?.cliente,
-    ...modal?.servicio,
-  });
-  console.log({ modalForm, modal });
+  const [modalForm, setModalForm] = useState({ ...modal });
 
-  const handleClickOpen = () => {
-    // setOpen(true);
-    setAgendaData({ ...agendaData, isCitaOpen: true });
+  const handleCancelar = () => {
+    setModalForm({ ...modal });
+    setAgendaData({ ...agendaData, isCitaOpen: false });
   };
 
   const handleClose = () => {
-    // setOpen(false);
-    setAgendaData({ ...agendaData, isCitaOpen: false, modal: null });
+    setAgendaData({ ...agendaData, isCitaOpen: false });
   };
+
+  const handleGuardar = () => {
+    // Guardar los cambios realizados en el modal
+    setAgendaData({ ...agendaData, isCitaOpen: false, modal: modalForm });
+  };
+
+  const handleChange = (inputName: string, value: any) => {
+    const { servicio } = modalForm;
+    console.log({ modalForm, servicio, inputName, value });
+    setModalForm({
+      ...modalForm,
+      servicio: {
+        ...servicio,
+        [inputName]: value,
+      },
+    });
+  };
+
+  useEffect(() => {
+    setModalForm({ ...modal });
+  }, [modal]);
 
   return (
     <>
@@ -58,7 +75,7 @@ export default function CitaModal() {
         open={isCitaOpen}
       >
         <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-          {modal ? modal?.cliente.nombre : ""} - {modal?.cliente.phone}
+          {modal ? modal?.nombreCliente : ""} - {modal?.telefonoCliente}
         </DialogTitle>
         <IconButton
           aria-label="close"
@@ -83,11 +100,9 @@ export default function CitaModal() {
             >
               <Grid size={5} flexGrow={1}>
                 <Stack spacing={2}>
-                  <CustomeInputField
-                    id="outlined-basic"
-                    label="Estilista"
-                    variant="filled"
-                    value={modal?.servicio.estilista}
+                  <EstilistaInput
+                    ctxValue={modalForm?.servicio.estilista}
+                    ctxDispatch={handleChange}
                   />
                   <Grid container spacing={1}>
                     <Grid size={7}>
@@ -95,7 +110,7 @@ export default function CitaModal() {
                         id="outlined-basic"
                         label="Servicio"
                         variant="filled"
-                        value={modal?.servicio.servicio}
+                        value={modalForm?.servicio.servicio}
                         fullWidth
                       />
                     </Grid>
@@ -121,9 +136,16 @@ export default function CitaModal() {
                     </Grid>
                     <Grid size={6}>
                       <CustomeInputField
-                        id="outlined-basic"
+                        type="number"
+                        slotProps={{ htmlInput: { step: "30", min: "30" } }}
+                        defaultValue={modalForm.servicio.duracion}
+                        id="filled-basic-number-duracion"
                         variant="filled"
+                        name="duracion"
                         label="Duracion"
+                        onChange={(e) =>
+                          handleChange("duracion", e.target.value)
+                        }
                       />
                     </Grid>
                   </Grid>
@@ -136,19 +158,26 @@ export default function CitaModal() {
                 <Stack spacing={1}>
                   <Grid container spacing={2} flexGrow={1} direction={"column"}>
                     <Grid flexGrow={1}>
-                      <StatusCita fullWidth />
+                      <StatusCita
+                        ctxDispatch={handleChange}
+                        ctxValue={modalForm?.servicio.estado}
+                      />
                     </Grid>
                     <Grid flexGrow={1}>
-                      <MetodoPagoInput />
+                      <MetodoPagoInput ctxDispatch={handleChange} ctxValue={modalForm?.servicio.metododepago} />
                     </Grid>
                   </Grid>
                   <Divider flexItem />
                   <TextField
+                    name="notas"
                     label="Notas"
                     variant="filled"
                     fullWidth
                     multiline
                     rows={5}
+                    onChange={(e) =>
+                      handleChange("notas", e.target.value)
+                    }
                   />
                 </Stack>
               </Grid>
@@ -157,10 +186,10 @@ export default function CitaModal() {
         </DialogContent>
 
         <DialogActions>
-          <Button autoFocus onClick={handleClose}>
+          <Button autoFocus onClick={handleCancelar}>
             Cancelar
           </Button>
-          <Button autoFocus onClick={handleClose} variant="contained">
+          <Button autoFocus onClick={handleGuardar} variant="contained">
             Guardar
           </Button>
         </DialogActions>

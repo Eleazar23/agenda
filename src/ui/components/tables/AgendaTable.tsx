@@ -129,14 +129,14 @@ const AgendaTable = () => {
   };
 
   const updateRows = (cita: Cita) => {
-    const { cliente, fecha, servicios } = cita;
+    const { nombreCliente, telefonoCliente, fecha, servicios } = cita;
     let newRowsData = [...rowsData];
     const realServices = getRealServicesArray(servicios);
     realServices.forEach((servicio) => {
       const { rowIndex } = servicio;
       const { estilista } = servicio;
       let rowToModify = newRowsData[rowIndex];
-      rowToModify[estilista] = { cliente, fecha, servicio };
+      rowToModify[estilista] = { nombreCliente, telefonoCliente, fecha, servicio };
     });
     setRowsData(newRowsData);
   };

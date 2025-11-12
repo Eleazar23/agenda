@@ -53,6 +53,13 @@ export const hrs12f = [
 "11:30 PM",
 ]
 
+export function capitalizeFirstLetter(str:string) {
+  if (str.length === 0) {
+    return ""; // Handle empty strings
+  }
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 
 export function getCurrentDate (dateString:string) {
     const today = dayjs()

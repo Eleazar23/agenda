@@ -11,24 +11,30 @@ export type Cliente = {
 
 export type Servicio = {
   rowIndex: number;
+  cellID: string;
   estilista: string;
   servicio: string;
+  precio: string;
   hora: string;
   duracion: number;
-  cellID: string;
+  estado: string;
+  metododepago: string;
+  notas: string;
 };
 
 export type Cita = {
   fecha: string;
-  cliente: Cliente;
+  nombreCliente: string;
+  telefonoCliente: string;
   servicios: [] | Array<Servicio>;
 };
 
 export type Modal = {
   fecha: string;
-  cliente: Cliente;
-  servicio: Servicio
-}
+  nombreCliente: string;
+  telefonoCliente: string;
+  servicio: Servicio;
+};
 
 type AgendaData = {
   minDuration: number;
@@ -37,7 +43,7 @@ type AgendaData = {
   citas: [] | Array<Cita>;
   cita: Cita;
   currentPage: string;
-  modal: null | Modal
+  modal: Modal;
 };
 
 type AgendaContex = {
@@ -59,29 +65,28 @@ const initialContextData = {
   citas: [],
   cita: {
     fecha: "",
-    cliente: {
-      nombre: "",
-      phone: "",
-    },
+    nombreCliente: "",
+    telefonoCliente: "",
     servicios: [],
   },
   currentPage: "agenda",
-  modal: null
-  // modal: {
-  //   fecha: "",
-  //   cliente: {
-  //     nombre: "",
-  //     phone: "",
-  //   },
-  //   servicio: {
-  //     rowIndex: 0,
-  //     estilista: "",
-  //     servicio: "",
-  //     hora: "",
-  //     duracion: 0,
-  //     cellID: "",
-  //   }
-  // },
+  modal: {
+    fecha: "",
+    nombreCliente: "",
+    telefonoCliente: "",
+    servicio: {
+      rowIndex: 0,
+      cellID: "",
+      estilista: "",
+      servicio: "",
+      precio: "",
+      hora: "",
+      duracion: 30,
+      estado: "",
+      metododepago: "",
+      notas: "",
+    },
+  },
 };
 
 export const AgendaContextProvider = ({ children }: Props) => {
@@ -92,7 +97,10 @@ export const AgendaContextProvider = ({ children }: Props) => {
     const { servicios } = cita;
     let newServicios = servicios;
     const serviceToUpdate = servicios[index];
-    const updatedService = { ...serviceToUpdate, servicio: newServiceValue ? newServiceValue : "" };
+    const updatedService = {
+      ...serviceToUpdate,
+      servicio: newServiceValue ? newServiceValue : "",
+    };
     newServicios[index] = updatedService;
     setAgendaData({
       ...agendaData,
@@ -118,13 +126,22 @@ export const AgendaContextProvider = ({ children }: Props) => {
   const addService = (servicio: Servicio) => {
     const { servicios } = agendaData.cita;
     const { rowIndex, estilista, hora, cellID, duracion } = servicio;
-    const newService = [
-      { cellID, rowIndex, estilista, servicio: "", hora, duracion },
-    ];
+    const newService: Servicio = {
+      cellID,
+      rowIndex,
+      estilista,
+      servicio: "",
+      hora,
+      duracion,
+      precio: "",
+      estado: "sin confirmar",
+      notas: "",
+      metododepago: "efectivo",
+    };
     setAgendaData({
       ...agendaData,
       isBooking: true,
-      cita: { ...agendaData.cita, servicios: [...servicios, ...newService] },
+      cita: { ...agendaData.cita, servicios: [...servicios, newService] },
     });
   };
 
