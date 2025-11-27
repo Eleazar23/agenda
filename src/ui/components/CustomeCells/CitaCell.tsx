@@ -4,19 +4,19 @@ import { useAgendaContext } from "../../contexts/AgendaContext"
 
 const CitaCell = ({params}: any) => {
     const {agendaData, setAgendaData} = useAgendaContext()
-    const {isCitaOpen} = agendaData
 
-  const estilista = params.column.colId
-  const hr = params.data.hr
-  const rowIndex = params.node.rowIndex
+  // const estilista = params.column.colId
+  // const hr = params.data.hr
+  // const rowIndex = params.node.rowIndex
 
   const {value} = params
-  const {cliente, servicio} = value
+  const {servicio} = value
 
 
   const handleClick = () =>{
-    console.log({params: {estilista, hr, rowIndex}, value: params.value})
-    setAgendaData({...agendaData, isCitaOpen:true, modal: {...value}})
+    // console.log({params: {estilista, hr, rowIndex}, value: params.value})
+    console.log("Opening modal for:", value)
+    setAgendaData({...agendaData, isCitaOpen:true, modal: value})
   }
 
   return (
@@ -33,10 +33,10 @@ const CitaCell = ({params}: any) => {
           >
             <CardContent sx={{ height: '100%', display:'flex', flexDirection: 'column', padding:"0.5rem"}}>
               <Typography variant="body1" fontWeight="bold" component="div" color="white">
-                {cliente.nombre}
+                {value.nombreCliente}
               </Typography>
               <Typography variant="body1" component="div" color="white">
-                {cliente.phone}
+                {value.telefonoCliente}
               </Typography>
               <Typography variant="body2" color="white">
                 {servicio.servicio}

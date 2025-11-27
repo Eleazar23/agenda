@@ -1,15 +1,16 @@
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider, MobileTimePicker } from "@mui/x-date-pickers";
-import dayjs from "dayjs";
-import { Input, TextField } from "@mui/material";
+
+import { TextField } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 
 type Props = {
   serviceIndex: number
+  ctxValue?: number
+  ctxDispatch?: React.Dispatch<React.SetStateAction<any>>
+  readonly?: boolean
 };
 
-export default function DuracionInput({serviceIndex}:Props) {
+export default function DuracionInput({serviceIndex, ctxValue, ctxDispatch, readonly}:Props) {
   const {updateDuracion} = useAgendaContext()
   const minValue = "30";
   const [value, setValue] = useState(minValue);
@@ -32,7 +33,7 @@ export default function DuracionInput({serviceIndex}:Props) {
       const diff = intNewValue % Number(minValue);
       const minNew = intNewValue - diff;
       const maxNew = minNew * 2;
-      console.log("Module: ", intNewValue % 30);
+      // console.log("Module: ", intNewValue % 30);
       if (intNewValue < 30) {
         return setValue(minValue);
       }
@@ -43,7 +44,11 @@ export default function DuracionInput({serviceIndex}:Props) {
   };
 
   useEffect(()=>{
-    updateDuracion(serviceIndex, Number(value))
+    if (ctxDispatch){
+      ctxDispatch(Number(value))
+    } else {
+      updateDuracion(serviceIndex, Number(value))
+    }
   }, [value])
 
   return (
@@ -54,9 +59,10 @@ export default function DuracionInput({serviceIndex}:Props) {
         label="Duracion"
         slotProps={{ htmlInput: { step: "30", min: "30" } }}
         defaultValue={"30"}
-        sx={{ width: "100%" }}
+        fullWidth
+        disabled={readonly}
         onChange={handleChange}
-        value={value}
+        value={ctxValue || value}
       />
     </>
   );

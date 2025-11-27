@@ -6,29 +6,29 @@ import ClienteInput from "../Inputs/ClienteInput";
 const ClienteForm = () => {
   const { agendaData, setAgendaData } = useAgendaContext();
   const { cita } = agendaData;
-  const { cliente } = cita;
 
   const dispatchCliente = (value: string) =>{
     setAgendaData((prevData) => ({
       ...prevData,
-      cita: { ...cita, cliente: { ...cliente, nombre: value } },
+      cita: { ...cita, nombreCliente: value } ,
     }));
 
   }
 
   const dispatchPhone = (value : string) =>{
     console.log('PhoneValue', value)
-        setAgendaData({
-      ...agendaData,
-      cita: { ...cita, cliente: { ...cliente, phone: value } },
-    });
+        setAgendaData(prevData => ({
+      ...prevData,
+      cita: { ...cita, telefonoCliente: value },
+    })
+  );
   }
 
 
   return (
     <Grid container gap={1} sx={{ width: "100%" }}>
-      <ClienteInput contextValue={cliente.nombre} dispatchContext={dispatchCliente} />
-      <PhoneInput valueContext={cliente.phone} dispatchContext={dispatchPhone} />
+      <ClienteInput contextValue={cita.nombreCliente} dispatchContext={dispatchCliente} />
+      <PhoneInput valueContext={cita.telefonoCliente} dispatchContext={dispatchPhone} />
     </Grid>
   );
 };
