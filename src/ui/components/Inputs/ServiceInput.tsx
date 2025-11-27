@@ -7,7 +7,13 @@ type Props = {
   serviceIndex: number;
 };
 
-const options = [
+const styles = {
+  textField: {
+    "& .MuiInputBase-input": { textTransform: "capitalize" },
+  },
+};
+
+const options = [ // fix when mongo db working
   "Corte de Cabello H",
   "Corte de Cabello M",
   "Tinte",
@@ -20,16 +26,15 @@ export default function SeriviceInput({ serviceIndex }: Props) {
   const [inputValue, setInputValue] = React.useState("");
 
   React.useEffect(() => {
-    console.log("SlectedService", { value, inputValue });
     updateService(serviceIndex, value);
   }, [value, inputValue]);
 
   return (
     <Autocomplete
       options={options}
-      sx={{ width: "100%" }}
+      fullWidth
       renderInput={(params) => (
-        <TextField {...params} label="Servicio" variant="filled" />
+        <TextField {...params} sx={styles.textField} label="Servicio" variant="filled" />
       )}
       value={value}
       onChange={(event: any, newValue: null | string) => {

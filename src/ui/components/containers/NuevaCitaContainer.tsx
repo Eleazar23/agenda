@@ -34,16 +34,15 @@ const NuevaCitaContainer = () => {
 
   const handleGuardar = () => {
     const {cita} = agendaData
-    const {cliente} = cita
-    const nombreteLen = cliente.nombre.length
-    const phoneLen = cliente.phone.length
+    const nombreteLen = cita.nombreCliente.length
+    const phoneLen = cita.telefonoCliente.length
     if (nombreteLen < 1){
       return handleAlert("Nombre de cliente incorrecto", "error")
     }
     if (phoneLen > 1 && phoneLen < 10){
       return handleAlert(`\"Telefono\" debe contener 10 digitos | Ingreso: ${phoneLen}`, "error")
     }
-    if (cliente.phone.length < 1){
+    if (phoneLen < 1){
       return handleAlert("Falta ingresar \"Telefono\"", "error")
     }
     addCita();

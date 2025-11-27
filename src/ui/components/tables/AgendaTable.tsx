@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import {
   AllCommunityModule,
@@ -8,7 +8,7 @@ import {
   GridOptions,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
-import { hrs12f, getHrs } from "../../utils/utils";
+import { getHrs } from "../../utils/utils";
 import CutomeCellRenderer from "../CustomeCells/CutomeCellRenderer";
 import { Cita, Servicio, useAgendaContext } from "../../contexts/AgendaContext";
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -18,7 +18,7 @@ interface DynamicObject {
   [key: string]: any; // Keys are strings, values can be any type
 }
 
-const estilistas = ["tomi", "felix", "magi", "arturo", "mimi"];
+const estilistas = ["tomi", "felix", "magi", "arturo", "mimi"];// change to get action from mongo db
 const estilistasDayData: DynamicObject = {};
 
 
@@ -26,7 +26,9 @@ const customSpanFunc = (params: any) => {
   const { valueA, valueB } = params;
   if (valueA === "" || valueB === "") {
   } else {
-    if (valueA.servicio.cellID === valueB.servicio.cellID) {
+    const isSameCellID = valueA.servicio.cellID === valueB.servicio.cellID
+  const isSameService = valueA.servicio.servicio === valueB.servicio.servicio
+    if (isSameCellID && isSameService) {
       return true;
     }
   }
@@ -49,7 +51,7 @@ const conlDefsData = estilistas.map((estilista) => {
   };
 });
 
-const colsData = [
+const colDefs = [
   {
     headerName: "",
     field: "hour.label12",
@@ -61,11 +63,6 @@ const colsData = [
 ];
 
 const horas = getHrs()
-console.log({horas})
-
-// const rowInitData = hrs12f.map((hour) => {
-//   return { hr: hour, ...estilistasDayData, isSelected: false };
-// });
 
 const rowInitData = horas.map((hour) => {
   return { hour, ...estilistasDayData, isSelected: false };
@@ -78,7 +75,7 @@ const AgendaTable = () => {
   // Row Data: The data to be displayed.
   const [rowsData, setRowsData] = useState<[] | Array<any>>(rowInitData);
   // Column Definitions: Defines the columns to be displayed.
-  const [colDefs, setColDefs] = useState<[] | Array<any>>(colsData);
+  // const [colDefs, setColDefs] = useState<[] | Array<any>>(colsData);
   const { agendaData } = useAgendaContext();
   const { citas } = agendaData;
 
@@ -99,7 +96,8 @@ const AgendaTable = () => {
   });
 
   const genarateRowsByService = (servicio: Servicio) => {
-    const { duracion } = servicio;
+    const { duracion, servicio: servicioName } = servicio;
+    console.log({servicioName})
     let counter = duracion / 30 - 1;
     let rowsToAdd = [servicio];
 
@@ -108,6 +106,14 @@ const AgendaTable = () => {
       const { rowIndex } = refService;
       rowsToAdd.push({ ...refService, rowIndex: rowIndex + 1 });
       counter--;
+    }
+
+    if (servicioName === "Tinte") { // fix when mongo db working
+      const firstElement = rowsToAdd[0]; // Get the first element
+      const elementsToMove = rowsToAdd.slice(1); // Remove 2 elements starting from index 1
+      const movedElements = elementsToMove.map(el => ({ ...el, rowIndex: el.rowIndex + 2 })); // Update rowIndex of moved elements
+      rowsToAdd = [firstElement, ...movedElements]; // Reconstruct the array
+
     }
 
     return rowsToAdd;
@@ -129,14 +135,14 @@ const AgendaTable = () => {
   };
 
   const updateRows = (cita: Cita) => {
-    const { cliente, fecha, servicios } = cita;
+    const { nombreCliente, telefonoCliente, fecha, servicios } = cita;
     let newRowsData = [...rowsData];
     const realServices = getRealServicesArray(servicios);
     realServices.forEach((servicio) => {
       const { rowIndex } = servicio;
       const { estilista } = servicio;
       let rowToModify = newRowsData[rowIndex];
-      rowToModify[estilista] = { cliente, fecha, servicio };
+      rowToModify[estilista] = { nombreCliente, telefonoCliente, fecha, servicio };
     });
     setRowsData(newRowsData);
   };

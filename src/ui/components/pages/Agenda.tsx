@@ -3,7 +3,7 @@ import { Alert, Box, Paper } from "@mui/material";
 import AgendaTable from "../tables/AgendaTable";
 import NuevaCitaContainer from "../containers/NuevaCitaContainer";
 import { useAgendaContext } from "../../contexts/AgendaContext";
-import CitaModal from "../CitaModal";
+import CitaModal from "../modals/CitaModal";
 
 function Agenda() {
   const agendaContext = useAgendaContext();
