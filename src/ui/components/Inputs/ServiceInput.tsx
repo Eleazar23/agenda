@@ -13,7 +13,7 @@ const styles = {
   },
 };
 
-const options = [
+const options = [ // fix when mongo db working
   "Corte de Cabello H",
   "Corte de Cabello M",
   "Tinte",
@@ -26,7 +26,6 @@ export default function SeriviceInput({ serviceIndex }: Props) {
   const [inputValue, setInputValue] = React.useState("");
 
   React.useEffect(() => {
-    console.log("SlectedService", { value, inputValue });
     updateService(serviceIndex, value);
   }, [value, inputValue]);
 

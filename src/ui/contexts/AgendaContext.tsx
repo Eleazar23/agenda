@@ -1,4 +1,5 @@
 import React, { useState, createContext, useContext } from "react";
+import { getCurrentDate } from "../utils/utils";
 
 type Props = {
   children: React.ReactNode;
@@ -37,6 +38,7 @@ export type Modal = {
 };
 
 type AgendaData = {
+  fecha: string;
   minDuration: number;
   isCitaOpen: boolean;
   isBooking: boolean;
@@ -58,7 +60,10 @@ type AgendaContex = {
 
 export const AgendaContext = createContext<AgendaContex | null>(null);
 
+const initialDate = getCurrentDate().formattedDate;
+
 const initialContextData = {
+  fecha: initialDate,
   minDuration: 30,
   isCitaOpen: false,
   isBooking: false,
@@ -106,7 +111,6 @@ export const AgendaContextProvider = ({ children }: Props) => {
       ...agendaData,
       cita: { ...cita, servicios: newServicios },
     });
-    console.log("updateService", agendaData.cita.servicios);
   };
 
   const updateDuracion = (index: number, newValue: number) => {
@@ -120,7 +124,6 @@ export const AgendaContextProvider = ({ children }: Props) => {
       ...agendaData,
       cita: { ...cita, servicios: newServicios },
     });
-    console.log("updateService", agendaData.cita.servicios);
   };
 
   const addService = (servicio: Servicio) => {
@@ -141,7 +144,7 @@ export const AgendaContextProvider = ({ children }: Props) => {
     setAgendaData({
       ...agendaData,
       isBooking: true,
-      cita: { ...agendaData.cita, servicios: [...servicios, newService] },
+      cita: { ...agendaData.cita, servicios: [...servicios, newService], fecha: agendaData.fecha },
     });
   };
 

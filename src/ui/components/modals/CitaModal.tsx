@@ -14,6 +14,7 @@ import PrecioInput from "../Inputs/PrecioInput";
 import HoraInput from "../Inputs/HoraInput";
 import MetodoPagoInput from "../Inputs/MetodoPagoInput";
 import EstilistaInput from "../Inputs/EstilistaInput";
+import { formatDateFromHTML, formatDateToHTML } from "../../utils/utils";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialogContent-root": {
@@ -46,6 +47,7 @@ export default function CitaModal() {
 
   const handleGuardar = () => {
     // Guardar los cambios realizados en el modal
+    console.log({ modalForm, agendaData })
     setAgendaData({ ...agendaData, isCitaOpen: false, modal: modalForm });
   };
 
@@ -60,6 +62,15 @@ export default function CitaModal() {
       },
     });
   };
+
+  const handleChangeFecha = (newDate: string) => {
+    const fomattedDate = formatDateFromHTML(newDate);
+    setModalForm({
+      ...modalForm,
+      fecha: fomattedDate,
+    });
+    console.log({ modalForm });
+  }
 
   useEffect(() => {
     setModalForm({ ...modal });
@@ -128,6 +139,10 @@ export default function CitaModal() {
                       label="Fecha"
                       variant="filled"
                       fullWidth
+                      value={formatDateToHTML(modalForm?.fecha)}
+                      onChange={(e) =>
+                        handleChangeFecha(e.target.value)
+                      }
                     />
                   </Grid>
                   <Grid container spacing={1} flexGrow={1}>
