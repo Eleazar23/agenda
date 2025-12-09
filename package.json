@@ -20,6 +20,7 @@
     "@mui/x-date-pickers": "^8.11.0",
     "ag-grid-react": "^34.1.2",
     "dayjs": "^1.11.18",
+    "mongoose": "^8.20.1",
     "notistack": "^3.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

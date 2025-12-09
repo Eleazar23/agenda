@@ -36,7 +36,7 @@ export default function MenuAppBar() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Status Salon
+            Status Salon | {sideBarData.currentPage.charAt(0).toUpperCase() + sideBarData.currentPage.slice(1)}
           </Typography>
           {/* {sideBarData.currentPage == "agenda" ? <DateBar /> : <SearchBar />} */}
           {sideBarData.currentPage == "agenda" ? <DateBar /> : <SearchInput />}
