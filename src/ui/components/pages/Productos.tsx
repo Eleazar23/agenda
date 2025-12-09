@@ -7,25 +7,26 @@ import {
   useClientesCtx,
 } from "../../contexts/ClientesCtx";
 import { ClientesModal } from "../modals/ClientesModal";
-import EstilistasTable from "../tables/EstilistasTable";
+import { ProductosModal } from "../modals/ProductosModal";
+import ProductosTable from "../tables/ProductsTable";
 
-type Estilista = {
+type Producto = {
+  id?: string;
   name: string;
-  phone: string;
+  marca: string;
+  precio: string;
 };
 
-const mockData: Estilista[] = [
-  {
-    name: "Eleazar Celis",
-    phone: "312 210 5197",
-  },{
-    name: "Michelle Celis",
-    phone: "312 210 5197",
-  },
+const mockData: Producto[] = [
+    {
+    name: "Shampoo",
+    marca: "Pantene",
+    precio: "150",
+    }
 ];
 
 const styles = {
-  clientesContainer: {
+  productosContainer: {
     width: "100%",
     height: "100%",
     justifyContent: "space-between",
@@ -47,38 +48,36 @@ const styles = {
   },
 };
 
-const Estilistas = () => {
+const Productos = () => {
   // Usar useSate para abrir y cerrar modal
   const [isEditing, setIsEditing] = useState(false);
-  const [estilistasData, setEstilistasData] = useState<Estilista[]>([]);
-  const [editedEstilistas, setEditedEstilistas] = useState({});
+  const [productosData, setProductosData] = useState<Producto[]>([]);
+  const [editedProductos, setEditedProductos] = useState({});
   const [isOpenModal, setIsOpenModal] = useState(false);
 
-
-
-  const getEstilistasData = () => {
-    // Lógica para obtener los datos de los clientes
-    setEstilistasData(mockData);
+  const getProductosData = () => {
+    // Lógica para obtener los datos de los productos
+    setProductosData(mockData);
     return mockData;
   };
 
   const handleGuardar = () => {
     // Lógica para guardar los cambios realizados en la tabla
-    console.log("Guardar cambios:", editedEstilistas);
+    console.log("Guardar cambios:", editedProductos);
     setIsEditing(false);
   };
 
   const handleEdit = (node: any) => {
-    const {rowIndex, data} = node;
-    setEditedEstilistas((prev) => ({
+    const { rowIndex, data } = node;
+    setEditedProductos((prev) => ({
       ...prev,
       [rowIndex]: data,
     }));
   };
 
-    const handleCancelar = () => {
-    getEstilistasData();
-    setEditedEstilistas({});
+  const handleCancelar = () => {
+    getProductosData();
+    setEditedProductos({});
     setIsEditing(false);
   };
 
@@ -91,30 +90,34 @@ const Estilistas = () => {
   };
 
   useEffect(() => {
-    // Simular la obtención de datos de estilistas desde una API o base de datos
-    getEstilistasData();
+    // Simular la obtención de datos de productos desde una API o base de datos
+    getProductosData();
   }, []);
   return (
     // Data Grid will fill the size of the parent container
     <ClientexCtxProvider>
       <Grid
         container
-        sx={styles.clientesContainer}
+        sx={styles.productosContainer}
         direction={"column"}
         spacing={2}
       >
         <Grid container size={12}>
           <Paper sx={styles.paper}>
             <Box component="div" sx={styles.actionBar}>
-              <Button variant="contained" color="primary" onClick={handleOpenModal}>
-                Agregar Estilista
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleOpenModal}
+              >
+                Agregar Producto
               </Button>
             </Box>
           </Paper>
         </Grid>
         <Grid container sx={styles.tableContainer} size={12}>
-          <EstilistasTable
-            estilistasData={estilistasData}
+          <ProductosTable
+            productosData={productosData}
             setIsEditing={setIsEditing}
             handleEdit={handleEdit}
           />
@@ -137,12 +140,12 @@ const Estilistas = () => {
             </Paper>
           </Grid>
         )}
-        <ClientesModal
+        <ProductosModal
           isOpen={isOpenModal}
           onClose={handleCloseModal}
           onSave={(client) => {
-            // Aquí puedes manejar la lógica para guardar el cliente
-            console.log("Estilista guardado:", client);
+            // Aquí puedes manejar la lógica para guardar el producto
+            console.log("Producto Guardado:", client);
             setIsOpenModal(false);
           }}
         />
@@ -151,4 +154,4 @@ const Estilistas = () => {
   );
 };
 
-export default Estilistas;
+export default Productos;

@@ -1,55 +1,89 @@
-import * as React from 'react';
-import { useState } from 'react';
+import * as React from "react";
+import { useState } from "react";
 
-import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
-import { AgGridReact } from 'ag-grid-react'; // React Data Grid Component
-import BitacoraBtn from '../buttons/BitacoraBtn';
+import {
+  AllCommunityModule,
+  CellClickedEvent,
+  CellEditingStartedEvent,
+  ModuleRegistry,
+  GridApi,
+  createGrid,
+  CellValueChangedEvent,
+} from "ag-grid-community";
+import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
+import BitacoraBtn from "../buttons/BitacoraBtn";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
 
+let gridApi: GridApi;
+
+
+type Props = {
+  setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
+  productosData: Array<any>;
+  handleEdit?: (node: any) => void;
+};
+
 const colsData = [
+  {
+    field: "name",
+    headerName: "Nombre",
+    editable: true,
+  },
     {
-        field: "name",
-        headerName: "Nombre"
-    },{
-        field: "type",
-        headerName: "Tipo"
-    },{
-        field: "price",
-        headerName: "Precio",
-    },{
-        field: "actions",
-        headerName: "Acciones",
-        cellRenderer: BitacoraBtn
-    }
-]
-
-const mockData = [
+    field: "marca",
+    headerName: "Marca",
+    editable: true,
+    },
     {
-        name: "Spray Fijador",
-        type: "Fijador",
-        price: "550",
-        actions: ""
-    }
-]
+    field: "precio",
+    headerName: "Precio",
+    editable: true,
+    },
+];
 
-const ProductsTable = () => {
-    // Row Data: The data to be displayed.
-    const [rowData, setRowData] = useState<null | Array<any>>(mockData);
+const ProductsTable = ({ setIsEditing, productosData, handleEdit }: Props) => {
+  // Row Data: The data to be displayed.
+  const [rowData, setRowData] = useState<null | Array<any>>(productosData);
 
-    // Column Definitions: Defines the columns to be displayed.
-    const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
+  // Column Definitions: Defines the columns to be displayed.
+  const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
 
-    return (
+  const defaultColDef = React.useMemo(
+    () => ({
+      flex: 1,
+      headerStyle: { textAlign: "center" },
+    }),
+    []
+  );
+
+  const handleEditingStarted = (event: CellEditingStartedEvent) => {
+    console.log("Cell editing started", event);
+    setIsEditing(true);
+  };
+
+  const hanldeCellChanged = (event: CellValueChangedEvent<any, any, any>) => {
+    console.log("Cell value changed", event);
+    handleEdit && handleEdit(event.node);
+  };
+
+  React.useEffect(() => {
+    setRowData(productosData);
+  }, [productosData]);
+
+  return (
     // Data Grid will fill the size of the parent container
-    <div style={{ height: "100%" }}>
-        <AgGridReact
-            rowData={rowData}
-            columnDefs={colDefs}
-        />
+    <div style={{ height: "100%", width: "100%" }}>
+      <AgGridReact
+        rowData={rowData}
+        columnDefs={colDefs}
+        defaultColDef={defaultColDef}
+        onCellEditingStarted={handleEditingStarted}
+        onCellValueChanged={hanldeCellChanged}
+      />
     </div>
-)
-}
+  );
+};
 
 export default ProductsTable;

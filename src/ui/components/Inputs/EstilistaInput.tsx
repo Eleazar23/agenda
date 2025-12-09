@@ -15,14 +15,14 @@ const styles = {
   },
 };
 
-const options = ["tomi", "felix", "magi", "arturo", "mimi"];
+const options = ["todos","tomi", "felix", "magi", "arturo", "mimi"];
 
 export default function EstilistaInput({
   ctxValue,
   ctxDispatch,
   readOnly,
 }: Props) {
-  const [value, setValue] = React.useState<string>(ctxValue || "");
+  const [value, setValue] = React.useState<string>(ctxValue || options[0]);
   const handleChange = (event: SelectChangeEvent) => {
     if (ctxDispatch) {
       ctxDispatch("estilista", event.target.value as string);

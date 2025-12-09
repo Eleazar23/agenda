@@ -1,61 +1,83 @@
-import * as React from 'react';
-import { useState } from 'react';
+import * as React from "react";
+import { useState } from "react";
 
-import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
-import { AgGridReact } from 'ag-grid-react'; // React Data Grid Component
-import BitacoraBtn from '../buttons/BitacoraBtn';
+import {
+  AllCommunityModule,
+  CellClickedEvent,
+  CellEditingStartedEvent,
+  ModuleRegistry,
+  GridApi,
+  createGrid,
+  CellValueChangedEvent,
+} from "ag-grid-community";
+import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
+import BitacoraBtn from "../buttons/BitacoraBtn";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
 
+let gridApi: GridApi;
+
 const colsData = [
-    {
-        field: "name",
-        headerName: "Nombre"
-    },{
-        field: "phone",
-        headerName: "Telefono"
-    },{
-        field: "lastVisit",
-        headerName: "Fecha Ultima Visita",
-    },{
-        field: "bitacora",
-        headerName: "Bitacora",
-        cellRenderer: BitacoraBtn
-    }
-]
+  {
+    field: "name",
+    headerName: "Nombre",
+    editable: true,
+  },
+  {
+    field: "phone",
+    headerName: "Telefono",
+    editable: true,
+  }
+];
 
-const mockData = [
-    {
-        name: "Eleazar Celis",
-        phone: "312 210 5197",
-        lastVisit: "23/08/2023",
-        bitacora: ""
-    }
-]
+type Props = {
+  setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
+  estilistasData: Array<any>;
+  handleEdit?: (node: any) => void;
+};
 
-const EstilistasTable = () => {
-    // Row Data: The data to be displayed.
-    const [rowData, setRowData] = useState<null | Array<any>>(mockData);
+const EstilistasTable = ({ setIsEditing, estilistasData, handleEdit }: Props) => {
+  // Row Data: The data to be displayed.
+  const [rowData, setRowData] = useState<null | Array<any>>(estilistasData);
 
-    // Column Definitions: Defines the columns to be displayed.
-    const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
+  // Column Definitions: Defines the columns to be displayed.
+  const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
 
-      const defaultColDef = React.useMemo(()=> ({
-        flex: 1,
-        headerStyle:{textAlign: 'center'}
-      }),[])
+  const defaultColDef = React.useMemo(
+    () => ({
+      flex: 1,
+      headerStyle: { textAlign: "center" },
+    }),
+    []
+  );
 
-    return (
+  const handleEditingStarted = (event: CellEditingStartedEvent) => {
+    console.log("Cell editing started", event);
+    setIsEditing(true);
+  };
+
+  const hanldeCellChanged = (event: CellValueChangedEvent<any, any, any>) => {
+    console.log("Cell value changed", event);
+    handleEdit && handleEdit(event.node);
+  };
+
+  React.useEffect(() => {
+    setRowData(estilistasData);
+  }, [estilistasData]);
+
+  return (
     // Data Grid will fill the size of the parent container
-    <div style={{ height: "100%", width:"100%" }}>
-        <AgGridReact
-            rowData={rowData}
-            columnDefs={colDefs}
-            defaultColDef={defaultColDef}
-        />
+    <div style={{ height: "100%", width: "100%" }}>
+      <AgGridReact
+        rowData={rowData}
+        columnDefs={colDefs}
+        defaultColDef={defaultColDef}
+        onCellEditingStarted={handleEditingStarted}
+        onCellValueChanged={hanldeCellChanged}
+      />
     </div>
-)
-}
+  );
+};
 
 export default EstilistasTable;
