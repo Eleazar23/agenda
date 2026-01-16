@@ -1,35 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Box, Button, Grid, Paper } from "@mui/material";
 import ClientsTables from "../tables/ClientsTable";
-import {
-  ClientexCtxProvider,
-} from "../../contexts/ClientesCtx";
-import { ClientesModal } from "../modals/ClientesModal";
+import { ClientesCtxProvider } from "../../contexts/ClientesCtx";
+import { ClientesModal } from "../modals/clientes/ClientesModal";
 
 type Cliente = {
-  name: string;
+  nombre: string;
   phone: string;
   correo: string;
   lastVisit: string;
-  bitacora: string;
 };
-
-const mockData: Cliente[] = [
-  {
-    name: "Eleazar Celis",
-    phone: "312 210 5197",
-    correo: "francisco.celish@gmail.com",
-    lastVisit: "23/08/2023",
-    bitacora: "",
-  },
-  {
-    name: "Michelle Celis",
-    phone: "312 210 5197",
-    correo: "francisco.celish@gmail.com",
-    lastVisit: "23/08/2023",
-    bitacora: "",
-  },
-];
 
 const STYLES = {
   clientesContainer: {
@@ -56,7 +36,7 @@ const STYLES = {
 
 const Clientes = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [clientesData, setClientesData] = useState<Cliente[]>(mockData);
+  // const [clientesData, setClientesData] = useState<Cliente[]>(globalData.clientes);
   const [editedClientes, setEditedClientes] = useState<Record<number, Cliente>>({});
   const [isOpenModal, setIsOpenModal] = useState(false);
 
@@ -74,7 +54,6 @@ const Clientes = () => {
   }, []);
 
   const handleCancelar = useCallback(() => {
-    setClientesData(mockData);
     setEditedClientes({});
     setIsEditing(false);
   }, []);
@@ -87,23 +66,26 @@ const Clientes = () => {
     setIsOpenModal(false);
   }, []);
 
-  const handleSaveClient = useCallback((client: { name: string; phone: string }) => {
+  const handleSaveClient = useCallback((client: { nombre: string; phone: string; correo?: string }) => {
+    const today = new Date();
+    const lastVisit = `${String(today.getDate()).padStart(2, "0")}-${String(today.getMonth() + 1).padStart(2, "0")}-${today.getFullYear()}`;
+    
     const newClient: Cliente = {
-      ...client,
-      correo: "",
-      lastVisit: "",
-      bitacora: "",
+      nombre: client.nombre,
+      phone: client.phone,
+      correo: client.correo || "",
+      lastVisit,
     };
     console.log("Cliente guardado:", newClient);
-    setClientesData((prev) => [...prev, newClient]);
     setIsOpenModal(false);
   }, []);
 
-  useEffect(() => {
-    setClientesData(mockData);
-  }, []);
+  // useEffect(() => {
+  //   setClientesData(globalData.clientes);
+  // }, []);
+  
   return (
-    <ClientexCtxProvider>
+    <ClientesCtxProvider>
       <Grid
         container
         sx={STYLES.clientesContainer}
@@ -125,40 +107,17 @@ const Clientes = () => {
         </Grid>
         <Grid container sx={STYLES.tableContainer} size={12}>
           <ClientsTables
-            clientesData={clientesData}
             setIsEditing={setIsEditing}
             handleEdit={handleEdit}
           />
         </Grid>
-        {isEditing && (
-          <Grid container size={12}>
-            <Paper sx={STYLES.paper}>
-              <Box component="div" sx={STYLES.actionBar}>
-                <Button 
-                  variant="text" 
-                  color="primary" 
-                  onClick={handleCancelar}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleGuardar}
-                >
-                  Guardar Cambios
-                </Button>
-              </Box>
-            </Paper>
-          </Grid>
-        )}
         <ClientesModal
           isOpen={isOpenModal}
           onClose={handleCloseModal}
           onSave={handleSaveClient}
         />
       </Grid>
-    </ClientexCtxProvider>
+    </ClientesCtxProvider>
   );
 };
 
