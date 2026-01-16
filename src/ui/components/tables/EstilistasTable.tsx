@@ -3,12 +3,8 @@ import { useState } from "react";
 
 import {
   AllCommunityModule,
-  CellClickedEvent,
-  CellEditingStartedEvent,
   ModuleRegistry,
   GridApi,
-  createGrid,
-  CellValueChangedEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import EstilistasActionsCell from "../CustomeCells/EstilistasActionsCell";
@@ -66,16 +62,6 @@ const EstilistasTable = ({ setIsEditing, estilistasData, handleEdit, handleAlert
     setDataTable([...globalData.estilistas]);
     return globalData.estilistas;
   };
-
-  // const handleEditingStarted = (event: CellEditingStartedEvent) => {
-  //   console.log("Cell editing started", event);
-  //   setIsEditing(true);
-  // };
-
-  // const hanldeCellChanged = (event: CellValueChangedEvent<any, any, any>) => {
-  //   console.log("Cell value changed", event);
-  //   handleEdit && handleEdit(event.node);
-  // };
 
   React.useEffect(() => {
     getEstilistasData();
