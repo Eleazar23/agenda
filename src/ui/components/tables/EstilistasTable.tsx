@@ -1,23 +1,23 @@
 import * as React from "react";
-import { useState } from "react";
 
 import {
   AllCommunityModule,
   ModuleRegistry,
-  GridApi,
+  ColDef,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import EstilistasActionsCell from "../CustomeCells/EstilistasActionsCell";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
 import { globalData } from "../../mock/globalData";
+import { Estilista } from "../../types/Estilista";
 
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-let gridApi: GridApi;
+// let gridApi: GridApi;
 
-const colsData = [
+const colsData: ColDef<any>[] = [
   {
     field: "name",
     headerName: "Nombre",
@@ -27,7 +27,7 @@ const colsData = [
     headerName: "Telefono",
   },
   {
-    field: "actions",
+    field: "actions" as keyof Estilista,
     headerName: "Acciones",
     cellRenderer: EstilistasActionsCell,
   }
@@ -41,12 +41,11 @@ type Props = {
 };
 
 const EstilistasTable = ({ setIsEditing, estilistasData, handleEdit, handleAlert }: Props) => {
-  const {dataTable, setDataTable} = useEstilistasCtx()
   // Row Data: The data to be displayed.
-  const [rowData, setRowData] = useState<null | Array<any>>(dataTable);
+  const {dataTable } = useEstilistasCtx();
 
   // Column Definitions: Defines the columns to be displayed.
-  const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
+  // const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
 
   const defaultColDef = React.useMemo(
     () => ({
@@ -56,23 +55,23 @@ const EstilistasTable = ({ setIsEditing, estilistasData, handleEdit, handleAlert
     []
   );
 
-    const getEstilistasData = () => {
-    // Lógica para obtener los datos de los clientes
-    console.log("Obteniendo datos de estilistas...");
-    setDataTable([...globalData.estilistas]);
-    return globalData.estilistas;
-  };
+  //   const getEstilistasData = () => {
+  //   // Lógica para obtener los datos de los clientes
+  //   console.log("Obteniendo datos de estilistas...");
+  //   setDataTable([...globalData.estilistas]);
+  //   return globalData.estilistas;
+  // };
 
-  React.useEffect(() => {
-    getEstilistasData();
-  }, [estilistasData]);
+  // React.useEffect(() => {
+  //   getEstilistasData();
+  // }, [estilistasData]);
 
   return (
     // Data Grid will fill the size of the parent container
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
         rowData={dataTable}
-        columnDefs={colDefs}
+        columnDefs={colsData}
         defaultColDef={defaultColDef}
         gridOptions={{enableCellTextSelection: true,}}
       />
