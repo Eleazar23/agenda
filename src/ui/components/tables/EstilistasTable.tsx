@@ -11,7 +11,10 @@ import {
   CellValueChangedEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
-import BitacoraBtn from "../buttons/BitacoraBtn";
+import EstilistasActionsCell from "../CustomeCells/EstilistasActionsCell";
+import { useEstilistasCtx } from "../../contexts/EstilistaContext";
+import { globalData } from "../../mock/globalData";
+
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -22,12 +25,15 @@ const colsData = [
   {
     field: "name",
     headerName: "Nombre",
-    editable: true,
   },
   {
     field: "phone",
     headerName: "Telefono",
-    editable: true,
+  },
+  {
+    field: "actions",
+    headerName: "Acciones",
+    cellRenderer: EstilistasActionsCell,
   }
 ];
 
@@ -35,11 +41,13 @@ type Props = {
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   estilistasData: Array<any>;
   handleEdit?: (node: any) => void;
+  handleAlert?: (message: string, type: "success" | "error" | "info" | "warning") => void;
 };
 
-const EstilistasTable = ({ setIsEditing, estilistasData, handleEdit }: Props) => {
+const EstilistasTable = ({ setIsEditing, estilistasData, handleEdit, handleAlert }: Props) => {
+  const {dataTable, setDataTable} = useEstilistasCtx()
   // Row Data: The data to be displayed.
-  const [rowData, setRowData] = useState<null | Array<any>>(estilistasData);
+  const [rowData, setRowData] = useState<null | Array<any>>(dataTable);
 
   // Column Definitions: Defines the columns to be displayed.
   const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
@@ -52,29 +60,35 @@ const EstilistasTable = ({ setIsEditing, estilistasData, handleEdit }: Props) =>
     []
   );
 
-  const handleEditingStarted = (event: CellEditingStartedEvent) => {
-    console.log("Cell editing started", event);
-    setIsEditing(true);
+    const getEstilistasData = () => {
+    // Lógica para obtener los datos de los clientes
+    console.log("Obteniendo datos de estilistas...");
+    setDataTable([...globalData.estilistas]);
+    return globalData.estilistas;
   };
 
-  const hanldeCellChanged = (event: CellValueChangedEvent<any, any, any>) => {
-    console.log("Cell value changed", event);
-    handleEdit && handleEdit(event.node);
-  };
+  // const handleEditingStarted = (event: CellEditingStartedEvent) => {
+  //   console.log("Cell editing started", event);
+  //   setIsEditing(true);
+  // };
+
+  // const hanldeCellChanged = (event: CellValueChangedEvent<any, any, any>) => {
+  //   console.log("Cell value changed", event);
+  //   handleEdit && handleEdit(event.node);
+  // };
 
   React.useEffect(() => {
-    setRowData(estilistasData);
+    getEstilistasData();
   }, [estilistasData]);
 
   return (
     // Data Grid will fill the size of the parent container
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
-        rowData={rowData}
+        rowData={dataTable}
         columnDefs={colDefs}
         defaultColDef={defaultColDef}
-        onCellEditingStarted={handleEditingStarted}
-        onCellValueChanged={hanldeCellChanged}
+        gridOptions={{enableCellTextSelection: true,}}
       />
     </div>
   );

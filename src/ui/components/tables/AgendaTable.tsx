@@ -4,13 +4,12 @@ import {
   AllCommunityModule,
   ModuleRegistry,
   themeQuartz,
-  SpanRowsParams,
-  GridOptions,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import { getHrs } from "../../utils/utils";
 import CutomeCellRenderer from "../CustomeCells/CutomeCellRenderer";
 import { Cita, Servicio, useAgendaContext } from "../../contexts/AgendaContext";
+import { globalData } from "../../mock/globalData";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 // Register all Community features
@@ -18,7 +17,7 @@ interface DynamicObject {
   [key: string]: any; // Keys are strings, values can be any type
 }
 
-const estilistas = ["tomi", "felix", "magi", "arturo", "mimi"];// change to get action from mongo db
+const estilistas = globalData.estilistas.map(estilista => estilista.name);// change to get action from mongo db
 const estilistasDayData: DynamicObject = {};
 
 
@@ -74,10 +73,11 @@ const rowInitData = horas.map((hour) => {
 const AgendaTable = () => {
   // Row Data: The data to be displayed.
   const [rowsData, setRowsData] = useState<[] | Array<any>>(rowInitData);
+  const [estilistasData, setEstilistasData] = useState<[] | Array<any>>(estilistas);
   // Column Definitions: Defines the columns to be displayed.
   // const [colDefs, setColDefs] = useState<[] | Array<any>>(colsData);
   const { agendaData } = useAgendaContext();
-  const { citas } = agendaData;
+  const { citas, fecha } = agendaData;
 
   const defaultColdef = React.useMemo(
     () => ({
@@ -97,7 +97,6 @@ const AgendaTable = () => {
 
   const genarateRowsByService = (servicio: Servicio) => {
     const { duracion, servicio: servicioName } = servicio;
-    console.log({servicioName})
     let counter = duracion / 30 - 1;
     let rowsToAdd = [servicio];
 
@@ -148,14 +147,16 @@ const AgendaTable = () => {
   };
 
   const updateRowsDataByCitas = () => {
-    citas.forEach((cita) => {
+    console.log("Updating rows data by citas...", citas, fecha);
+    const todaysCitas = citas.filter((cita) => cita.fecha == fecha);
+    todaysCitas.forEach((cita) => {
       updateRows(cita);
     });
   };
 
   useEffect(() => {
     updateRowsDataByCitas();
-  }, [citas]);
+  }, [citas, fecha]);
 
   return (
     // Data Grid will fill the size of the parent container

@@ -1,5 +1,6 @@
 import React, { useState, createContext, useContext } from "react";
 import { getCurrentDate } from "../utils/utils";
+import { globalData } from "../mock/globalData";
 
 type Props = {
   children: React.ReactNode;
@@ -67,7 +68,7 @@ const initialContextData = {
   minDuration: 30,
   isCitaOpen: false,
   isBooking: false,
-  citas: [],
+  citas: globalData.citas,
   cita: {
     fecha: "",
     nombreCliente: "",
@@ -157,6 +158,7 @@ export const AgendaContextProvider = ({ children }: Props) => {
       cita: initialContextData.cita,
       isBooking: false,
     });
+    globalData.citas.push(cita);
     console.log("addCita", agendaData);
   };
 

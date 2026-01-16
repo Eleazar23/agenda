@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { TextField } from "@mui/material";
+import { IconButton, TextField } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 
 type ChangeEvent = React.ChangeEvent<HTMLInputElement>;
 type Props = {
-    name?: string;
-    contextValue?: string;
-    dispatchContext?: (value : string) => void
-}
+  name?: string;
+  contextValue?: string;
+  dispatchContext?: (value: string) => void;
+};
 
-function ClienteInput({name, contextValue, dispatchContext}:Props) {
+function ClienteInput({ name, contextValue, dispatchContext }: Props) {
   const [value, setValue] = useState("");
 
   const handleChange = (e: ChangeEvent) => {
@@ -27,6 +28,15 @@ function ClienteInput({name, contextValue, dispatchContext}:Props) {
       sx={{ width: "100%" }}
       value={contextValue ? contextValue : value}
       onChange={handleChange}
+      slotProps={{
+        input: {
+          endAdornment: (
+            <IconButton type="button" sx={{ p: "10px" }} aria-label="search">
+              <SearchIcon />
+            </IconButton>
+          ),
+        },
+      }}
     />
   );
 }

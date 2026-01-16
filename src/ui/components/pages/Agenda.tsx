@@ -8,6 +8,8 @@ import CitaModal from "../modals/CitaModal";
 function Agenda() {
   const agendaContext = useAgendaContext();
   const { isBooking } = agendaContext.agendaData;
+  
+
   return (
     <>
     <Grid container gap={1} flexWrap={"nowrap"} size={12}>

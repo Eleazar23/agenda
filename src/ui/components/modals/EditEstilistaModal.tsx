@@ -9,38 +9,36 @@ import {
   Box,
 } from "@mui/material";
 import PhoneInput from "../Inputs/PhoneInput";
+import { set } from "mongoose";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
 
 interface Estilista {
-  id?: number;
+  id: number;
   name: string;
   phone: string;
 }
 
+
 interface ClientDialogProps {
   isOpen: boolean;
+  rowIndex: number;
   onClose?: () => void;
-  // onSave: (client: Estilista) => void;
-  initialClient?: Estilista;
-  handleAlert?: (
-    message: string,
-    type: "success" | "error" | "info" | "warning"
-  ) => void;
-  setIsOpenModal: React.Dispatch<React.SetStateAction<boolean>>;
+  initialData?: Estilista;
+  // handleAlert?: (message: string, type: "success" | "error" | "info" | "warning") => void;
 }
 
-const EstilistaModal: React.FC<ClientDialogProps> = ({
+const EditEstilistasModal: React.FC<ClientDialogProps> = ({
   isOpen,
+  rowIndex,
   onClose,
-  initialClient,
-  handleAlert = () => {},
-  setIsOpenModal,
+  initialData,
+  // handleAlert = () => {},
 }) => {
   const [formData, setFormData] = useState<Estilista>(
-    initialClient || { name: "", phone: "" }
+    initialData || { id: 0, name: "", phone: "" }
   );
   const [isNameError, setIsNameError] = useState(false);
-  const { addEstilista } = useEstilistasCtx();
+  const { handleAlert, editEstilista } = useEstilistasCtx();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -55,7 +53,7 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
     e.preventDefault();
     const { name, phone } = formData;
 
-    if (!name && !phone) {
+        if (!name && !phone) {
       handleAlert("Por favor completa todos los campos", "error");
       return;
     }
@@ -79,10 +77,8 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
       );
       return;
     }
-    addEstilista({ ...formData, id: Date.now() });
-    handleAlert("Estilista guardado con éxito", "success");
-    setIsOpenModal(false);
-    setFormData({ name: "", phone: "" });
+
+    editEstilista(rowIndex, formData);
   };
 
   // if (!isOpen) return null;
@@ -90,7 +86,7 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
   return (
     <Dialog onClose={onClose} open={isOpen}>
       <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-        Agregar Estilista
+        Editar Estilista
       </DialogTitle>
       <DialogContent dividers>
         <Box
@@ -108,14 +104,6 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
             required
             error={isNameError}
           />
-          {/* <TextField
-            type="tel"
-            name="phone"
-            placeholder="Teléfono"
-            value={formData.phone}
-            onChange={handleChange}
-            required
-          /> */}
           <PhoneInput
             variant="outlined"
             valueContext={formData.phone}
@@ -135,4 +123,4 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
     </Dialog>
   );
 };
-export default EstilistaModal;
+export default EditEstilistasModal;

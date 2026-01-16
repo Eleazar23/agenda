@@ -56,7 +56,7 @@ export default function DateBar() {
   const wDay = getDayName(now.get("day"));
   const month = now.get("month");
   const year = now.get("year");
-  console.log({ today, month, year, nextday, prevday, dateObj, wDay });
+  // console.log({ today, month, year, nextday, prevday, dateObj, wDay });
 
   const handlePrevDay = () => {
     const newDate = subtractDayToDate(fecha);

@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { TextField } from "@mui/material";
+import { IconButton, TextField } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 
 type Props = {
   valueContext?: string;
   dispatchContext?: (value: string) => void;
+  searchIcon?: boolean;
+  variant?: "filled" | "outlined" | "standard";
 };
 
-function PhoneInput({ valueContext, dispatchContext }: Props) {
+function PhoneInput({ valueContext, dispatchContext, searchIcon = true, variant }: Props) {
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
   const [errorText, setErrorText] = useState("");
@@ -47,11 +50,22 @@ function PhoneInput({ valueContext, dispatchContext }: Props) {
         error={error}
         id="outlined-basic"
         label="Teléfono"
-        variant="filled"
+        variant={variant || "filled"}
+        placeholder="Ingresa teléfono"
+        type="tel"
         value={valueContext ? valueContext : value}
         onChange={handleChange}
         sx={{ width: "100%" }}
         helperText={errorText}
+        slotProps={{
+          input: {
+            endAdornment: searchIcon ? (
+              <IconButton type="button" sx={{ p: "10px" }} aria-label="search" onClick={()=> console.log("Click on search Phone")}>
+                <SearchIcon />
+              </IconButton>
+            ) : null,
+          },
+        }}
       />
     </>
   );
