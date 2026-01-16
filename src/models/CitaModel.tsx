@@ -12,7 +12,7 @@ const AppointmentSchema = new Schema<IAppointment>({
   nombreCliente: { type: String, required: true },
   telefonoCliente: { type: String, required: true },
   fecha: { type: String, required: true },
-  servicios: { type: Array, default: [] },
+  servicios: { type: [Object], default: [] },
 }, { timestamps: true });
 
 const Appointment = mongoose.models.Appointment || mongoose.model<IAppointment>('Appointment', AppointmentSchema);

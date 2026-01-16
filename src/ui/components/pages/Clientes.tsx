@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Box, Button, Grid, Paper } from "@mui/material";
 import ClientsTables from "../tables/ClientsTable";
-import { Height } from "@mui/icons-material";
 import {
   ClientexCtxProvider,
-  useClientesCtx,
 } from "../../contexts/ClientesCtx";
 import { ClientesModal } from "../modals/ClientesModal";
 
@@ -23,7 +21,8 @@ const mockData: Cliente[] = [
     correo: "francisco.celish@gmail.com",
     lastVisit: "23/08/2023",
     bitacora: "",
-  },{
+  },
+  {
     name: "Michelle Celis",
     phone: "312 210 5197",
     correo: "francisco.celish@gmail.com",
@@ -32,13 +31,13 @@ const mockData: Cliente[] = [
   },
 ];
 
-const styles = {
+const STYLES = {
   clientesContainer: {
     width: "100%",
     height: "100%",
     justifyContent: "space-between",
     maxHeight: "100vh",
-    flexWrap: "nowrap",
+    flexWrap: "nowrap" as const,
   },
   paper: {
     padding: 2,
@@ -53,74 +52,78 @@ const styles = {
   tableContainer: {
     height: "100%",
   },
-};
+} as const;
 
 const Clientes = () => {
-  // Usar useSate para abrir y cerrar modal
   const [isEditing, setIsEditing] = useState(false);
-  const [clientesData, setClientesData] = useState<Cliente[]>([]);
-  const [editedClientes, setEditedClientes] = useState({});
+  const [clientesData, setClientesData] = useState<Cliente[]>(mockData);
+  const [editedClientes, setEditedClientes] = useState<Record<number, Cliente>>({});
   const [isOpenModal, setIsOpenModal] = useState(false);
 
-
-
-  const getClientesData = () => {
-    // Lógica para obtener los datos de los clientes
-    setClientesData(mockData);
-    return mockData;
-  };
-
-  const handleGuardar = () => {
-    // Lógica para guardar los cambios realizados en la tabla
+  const handleGuardar = useCallback(() => {
     console.log("Guardar cambios:", editedClientes);
     setIsEditing(false);
-  };
+  }, [editedClientes]);
 
-  const handleEdit = (node: any) => {
-    const {rowIndex, data} = node;
+  const handleEdit = useCallback((node: { rowIndex: number; data: Cliente }) => {
+    const { rowIndex, data } = node;
     setEditedClientes((prev) => ({
       ...prev,
       [rowIndex]: data,
     }));
-  };
+  }, []);
 
-    const handleCancelar = () => {
-    getClientesData();
+  const handleCancelar = useCallback(() => {
+    setClientesData(mockData);
     setEditedClientes({});
     setIsEditing(false);
-  };
+  }, []);
 
-  const handleOpenModal = () => {
+  const handleOpenModal = useCallback(() => {
     setIsOpenModal(true);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsOpenModal(false);
-  };
+  }, []);
+
+  const handleSaveClient = useCallback((client: { name: string; phone: string }) => {
+    const newClient: Cliente = {
+      ...client,
+      correo: "",
+      lastVisit: "",
+      bitacora: "",
+    };
+    console.log("Cliente guardado:", newClient);
+    setClientesData((prev) => [...prev, newClient]);
+    setIsOpenModal(false);
+  }, []);
 
   useEffect(() => {
-    // Simular la obtención de datos de clientes desde una API o base de datos
-    getClientesData();
+    setClientesData(mockData);
   }, []);
   return (
-    // Data Grid will fill the size of the parent container
     <ClientexCtxProvider>
       <Grid
         container
-        sx={styles.clientesContainer}
-        direction={"column"}
+        sx={STYLES.clientesContainer}
+        direction="column"
         spacing={2}
       >
         <Grid container size={12}>
-          <Paper sx={styles.paper}>
-            <Box component="div" sx={styles.actionBar}>
-              <Button variant="contained" color="primary" onClick={handleOpenModal}>
+          <Paper sx={STYLES.paper}>
+            <Box component="div" sx={STYLES.actionBar}>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={handleOpenModal}
+              >
                 Agregar Cliente
               </Button>
             </Box>
           </Paper>
         </Grid>
-        <Grid container sx={styles.tableContainer} size={12}>
+        <Grid container sx={STYLES.tableContainer} size={12}>
           <ClientsTables
             clientesData={clientesData}
             setIsEditing={setIsEditing}
@@ -129,9 +132,13 @@ const Clientes = () => {
         </Grid>
         {isEditing && (
           <Grid container size={12}>
-            <Paper sx={styles.paper}>
-              <Box component="div" sx={styles.actionBar}>
-                <Button variant="text" color="primary" onClick={handleCancelar}>
+            <Paper sx={STYLES.paper}>
+              <Box component="div" sx={STYLES.actionBar}>
+                <Button 
+                  variant="text" 
+                  color="primary" 
+                  onClick={handleCancelar}
+                >
                   Cancelar
                 </Button>
                 <Button
@@ -148,11 +155,7 @@ const Clientes = () => {
         <ClientesModal
           isOpen={isOpenModal}
           onClose={handleCloseModal}
-          onSave={(client) => {
-            // Aquí puedes manejar la lógica para guardar el cliente
-            console.log("Cliente guardado:", client);
-            setIsOpenModal(false);
-          }}
+          onSave={handleSaveClient}
         />
       </Grid>
     </ClientexCtxProvider>

@@ -13,6 +13,7 @@ interface Client {
   id?: string;
   name: string;
   phone: string;
+  correo?: string;
 }
 
 interface ClientDialogProps {
@@ -29,7 +30,7 @@ export const ClientesModal: React.FC<ClientDialogProps> = ({
   initialClient,
 }) => {
   const [formData, setFormData] = useState<Client>(
-    initialClient || { name: "", phone: "" }
+    initialClient || { name: "", phone: "", correo: "" }
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +41,7 @@ export const ClientesModal: React.FC<ClientDialogProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
-    setFormData({ name: "",phone: "" });
+    setFormData({ name: "", phone: "", correo: "" });
   };
 
   if (!isOpen) return null;
@@ -67,6 +68,13 @@ export const ClientesModal: React.FC<ClientDialogProps> = ({
             value={formData.phone}
             onChange={handleChange}
             required
+          />
+          <TextField
+            type="email"
+            name="correo"
+            placeholder="Correo Electrónico"
+            value={formData.correo}
+            onChange={handleChange}
           />
         </Box>
       </DialogContent>
