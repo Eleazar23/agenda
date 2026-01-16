@@ -1,49 +1,50 @@
-import React, { useEffect, useState } from "react";
-import type { CustomCellRendererProps } from "ag-grid-react";
+import React, { useState } from "react";
 import { Box } from "@mui/material";
 import EditBtn from "../buttons/EditBtn";
 import DeleteBtn from "../buttons/DeleteBtn";
-import EditEstilistasModal from "../modals/EditEstilistaModal";
-import { globalData } from "../../mock/globalData";
-import { useEstilistasCtx } from "../../contexts/EstilistaContext";
-import ElimEstilistaModal from "../modals/ElimEstilistaModal";
+import EditClienteModal from "../modals/clientes/EditClienteModal";
+import ElimClienteModal from "../modals/clientes/ElimClienteModal";
 
-function EstilistasActionsCell(params: any) {
-  const [isOpenModal, setIsOpenModal] = useState(false);
+interface Cliente {
+  id?: string;
+  nombre: string;
+  phone: string;
+  correo?: string;
+}
+
+function ClientesActionsCell(params: any) {
   const [isEditing, setIsEditing] = useState(false);
   const [isEliminar, setIsEliminar] = useState(false);
-  const { dataTable, setDataTable } = useEstilistasCtx();
-
-  const handleCloseModal = () => {
-    setIsOpenModal(false);
-  };
 
   const handleEditClick = () => {
-    console.log("Edit button clicked", params);
+    console.log("Edit cliente button clicked", params);
     setIsEditing(true);
   };
-  
+
+  const handleDeleteClick = () => {
+    console.log("Delete cliente button clicked", params);
+    setIsEliminar(true);
+  };
+
   return (
     <>
       <Box display="flex" sx={{ width: "100%", height: "100%" }} gap={2}>
         <EditBtn onClick={handleEditClick} />
-        <DeleteBtn
-          onClick={() => setIsEliminar(true)}
-        />
+        <DeleteBtn onClick={handleDeleteClick} />
       </Box>
-      <EditEstilistasModal
+      <EditClienteModal
         rowIndex={params.node.rowIndex}
         isOpen={isEditing}
         onClose={() => setIsEditing(false)}
         initialData={params.data}
       />
-      <ElimEstilistaModal
+      <ElimClienteModal
         isOpen={isEliminar}
         onClose={() => setIsEliminar(false)}
-        estilistaData={params.data}
+        clienteData={params.data}
       />
     </>
   );
 }
 
-export default EstilistasActionsCell;
+export default ClientesActionsCell;

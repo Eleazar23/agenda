@@ -11,16 +11,19 @@ import {
   CellValueChangedEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
-import BitacoraBtn from "../buttons/BitacoraBtn";
+import ClientesActionsCell from "../CustomeCells/ClientesActionsCell";
+import { globalData } from "../../mock/globalData";
+import { useEstilistasCtx } from "../../contexts/EstilistaContext";
+import { useClientesCtx } from "../../contexts/ClientesCtx";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-let gridApi: GridApi;
+// let gridApi: GridApi;
 
 const colsData = [
   {
-    field: "name",
+    field: "nombre",
     headerName: "Nombre",
     editable: true,
   },
@@ -39,21 +42,22 @@ const colsData = [
     headerName: "Fecha Ultima Visita",
   },
   {
-    field: "bitacora",
-    headerName: "Bitacora",
-    cellRenderer: BitacoraBtn,
+    field: "acciones",
+    headerName: "Acciones",
+    cellRenderer: ClientesActionsCell,
   },
 ];
 
 type Props = {
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
-  clientesData: Array<any>;
   handleEdit?: (node: any) => void;
 };
 
-const ClientsTables = ({ setIsEditing, clientesData, handleEdit }: Props) => {
+const ClientsTables = ({ setIsEditing, handleEdit }: Props) => {
   // Row Data: The data to be displayed.
-  const [rowData, setRowData] = useState<null | Array<any>>(clientesData);
+  // const [rowData, setRowData] = useState<null | Array<any>>(globalData.clientes);
+  const {dataTable } = useClientesCtx();
+
 
   // Column Definitions: Defines the columns to be displayed.
   const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
@@ -76,15 +80,15 @@ const ClientsTables = ({ setIsEditing, clientesData, handleEdit }: Props) => {
     handleEdit && handleEdit(event.node);
   };
 
-  React.useEffect(() => {
-    setRowData(clientesData);
-  }, [clientesData]);
+  // React.useEffect(() => {
+  //   setRowData(globalData.clientes);
+  // }, []);
 
   return (
     // Data Grid will fill the size of the parent container
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
-        rowData={rowData}
+        rowData={dataTable}
         columnDefs={colDefs}
         defaultColDef={defaultColDef}
         onCellEditingStarted={handleEditingStarted}
