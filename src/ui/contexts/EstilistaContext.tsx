@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext, useEffect } from "react";
+import React, { useState, createContext, useContext } from "react";
 import { useSnackbar } from "notistack";
 import { globalData } from "../mock/globalData";
 
@@ -12,13 +12,7 @@ type Estilista = {
   id: number;
   name: string;
   phone: string;
-};
-
-type EstilistasData = {
-  isEditing: boolean;
-  isAgregar: boolean;
-  isBorrar: boolean;
-  dataTable: Array<Estilista> | [];
+  displayName?: string;
 };
 
 type EstilistasContexType = {
@@ -36,7 +30,9 @@ type EstilistasContexType = {
   removeEstilista: (id: number) => void;
 };
 
-export const ClientesContext = createContext<EstilistasContexType | null>(null);
+export const EstilistasContext = createContext<EstilistasContexType | null>(
+  null
+);
 
 const initialContextData = {
   isEditing: false,
@@ -54,6 +50,13 @@ export const EstilistasCtxProvider = ({ children }: Props) => {
   );
   const { enqueueSnackbar } = useSnackbar();
 
+  const getEstilistasData = () => {
+    // Lógica para obtener los datos de los clientes
+    console.log("Obteniendo datos de estilistas...");
+    setDataTable([...globalData.estilistas]);
+    return globalData.estilistas;
+  };
+
   const handleAlert = (message: string, alertType: Alert) => {
     enqueueSnackbar(message, {
       variant: alertType,
@@ -61,20 +64,15 @@ export const EstilistasCtxProvider = ({ children }: Props) => {
     });
   };
 
-  const getData = () => {
-    setDataTable(globalData.estilistas);
-    return globalData.estilistas;
-  };
-
   const addEstilista = (estilista: Estilista) => {
-    // const id = dataTable.length + 1;
-    // estilista.id = id;
-    globalData.estilistas = [...globalData.estilistas, {
+    const newEstilista = {
       ...estilista,
       displayName:
         estilista.name.charAt(0).toUpperCase() + estilista.name.slice(1),
-    }];
-    getData();
+    };
+    globalData.estilistas.push(newEstilista);
+    setDataTable([...globalData.estilistas]);
+    handleAlert("Estilista agregado con éxito", "success");
   };
 
   const editEstilista = (rowIndex: number, updatedEstilista: Estilista) => {
@@ -84,16 +82,22 @@ export const EstilistasCtxProvider = ({ children }: Props) => {
     };
     setDataTable([...globalData.estilistas]);
     handleAlert("Estilista actualizado con éxito", "success");
-  }
+  };
 
   const removeEstilista = (id: number) => {
-    globalData.estilistas = globalData.estilistas.filter((estilista) => estilista.id !== id);
-    getData();
+    globalData.estilistas = globalData.estilistas.filter(
+      (estilista) => estilista.id !== id
+    );
+    setDataTable([...globalData.estilistas]);
     handleAlert("Estilista eliminado con éxito", "success");
   };
 
+  React.useEffect(() => {
+    getEstilistasData();
+  }, []);
+
   return (
-    <ClientesContext.Provider
+    <EstilistasContext.Provider
       value={{
         isEditing,
         setIsEditing,
@@ -110,12 +114,12 @@ export const EstilistasCtxProvider = ({ children }: Props) => {
       }}
     >
       {children}
-    </ClientesContext.Provider>
+    </EstilistasContext.Provider>
   );
 };
 
 export function useEstilistasCtx() {
-  const context = useContext(ClientesContext);
+  const context = useContext(EstilistasContext);
   if (!context) {
     throw new Error(
       "useEstilistasCtx must be used within a EstilistasCtxProvider"
