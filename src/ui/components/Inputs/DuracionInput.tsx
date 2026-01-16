@@ -58,7 +58,7 @@ export default function DuracionInput({serviceIndex, ctxValue, ctxDispatch, read
         variant="filled"
         label="Duracion"
         slotProps={{ htmlInput: { step: "30", min: "30" } }}
-        defaultValue={"30"}
+        // defaultValue={"30"}
         fullWidth
         disabled={readonly}
         onChange={handleChange}

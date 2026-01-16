@@ -7,6 +7,7 @@ type Props = {
   ctxValue?: string;
   ctxDispatch?: (inputName:string, value: string) => void;
   readOnly?: boolean;
+  variant?: "filled" | "outlined" | "standard";
 };
 
 const styles = {
@@ -21,6 +22,7 @@ export default function EstilistaInput({
   ctxValue,
   ctxDispatch,
   readOnly,
+  variant,
 }: Props) {
   const [value, setValue] = React.useState<string>(ctxValue || options[0]);
   const handleChange = (event: SelectChangeEvent) => {
@@ -32,7 +34,7 @@ export default function EstilistaInput({
   };
 
   return (
-    <FormControl variant="filled" fullWidth>
+    <FormControl variant={variant || "filled"} fullWidth>
       <InputLabel id="demo-select-label">Estilista</InputLabel>
       <Select
         labelId="demo-select-label"

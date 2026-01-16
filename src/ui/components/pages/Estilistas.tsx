@@ -8,6 +8,10 @@ import {
 } from "../../contexts/ClientesCtx";
 import { ClientesModal } from "../modals/ClientesModal";
 import EstilistasTable from "../tables/EstilistasTable";
+import { globalData } from "../../mock/globalData";
+import EstilistaModal from "../modals/EstilistaModal";
+import { useSnackbar } from "notistack";
+import { EstilistasCtxProvider, useEstilistasCtx } from "../../contexts/EstilistaContext";
 
 type Estilista = {
   name: string;
@@ -18,7 +22,8 @@ const mockData: Estilista[] = [
   {
     name: "Eleazar Celis",
     phone: "312 210 5197",
-  },{
+  },
+  {
     name: "Michelle Celis",
     phone: "312 210 5197",
   },
@@ -46,6 +51,7 @@ const styles = {
     height: "100%",
   },
 };
+type Alert = "success" | "error" | "info" | "warning";
 
 const Estilistas = () => {
   // Usar useSate para abrir y cerrar modal
@@ -53,14 +59,21 @@ const Estilistas = () => {
   const [estilistasData, setEstilistasData] = useState<Estilista[]>([]);
   const [editedEstilistas, setEditedEstilistas] = useState({});
   const [isOpenModal, setIsOpenModal] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
 
-
-
-  const getEstilistasData = () => {
-    // Lógica para obtener los datos de los clientes
-    setEstilistasData(mockData);
-    return mockData;
+  const handleAlert = (message: string, alertType: Alert) => {
+    enqueueSnackbar(message, {
+      variant: alertType,
+      anchorOrigin: { vertical: "bottom", horizontal: "center" },
+    });
   };
+
+  // const getEstilistasData = () => {
+  //   // Lógica para obtener los datos de los clientes
+  //   console.log("Obteniendo datos de estilistas...");
+  //   setEstilistasData([...globalData.estilistas]);
+  //   return globalData.estilistas;
+  // };
 
   const handleGuardar = () => {
     // Lógica para guardar los cambios realizados en la tabla
@@ -69,15 +82,16 @@ const Estilistas = () => {
   };
 
   const handleEdit = (node: any) => {
-    const {rowIndex, data} = node;
+    const { rowIndex, data } = node;
     setEditedEstilistas((prev) => ({
       ...prev,
       [rowIndex]: data,
     }));
+    console.log("Estilista editado:", rowIndex, data);
   };
 
-    const handleCancelar = () => {
-    getEstilistasData();
+  const handleCancelar = () => {
+    // getEstilistasData();
     setEditedEstilistas({});
     setIsEditing(false);
   };
@@ -90,13 +104,22 @@ const Estilistas = () => {
     setIsOpenModal(false);
   };
 
-  useEffect(() => {
-    // Simular la obtención de datos de estilistas desde una API o base de datos
-    getEstilistasData();
-  }, []);
+  // const handleSaveModal = (estilista: Estilista) => {
+  //   // Aquí puedes manejar la lógica para guardar el cliente
+  //   globalData.estilistas.push({
+  //     ...estilista,
+  //     displayName:
+  //       estilista.name.charAt(0).toUpperCase() + estilista.name.slice(1),
+  //   });
+  //   setEstilistasData([...globalData.estilistas]);
+  //   handleAlert("Estilista guardado con éxito", "success");
+  //   console.log({ globalData });
+  //   setIsOpenModal(false);
+  // };
+
   return (
     // Data Grid will fill the size of the parent container
-    <ClientexCtxProvider>
+    <EstilistasCtxProvider>
       <Grid
         container
         sx={styles.clientesContainer}
@@ -106,7 +129,11 @@ const Estilistas = () => {
         <Grid container size={12}>
           <Paper sx={styles.paper}>
             <Box component="div" sx={styles.actionBar}>
-              <Button variant="contained" color="primary" onClick={handleOpenModal}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleOpenModal}
+              >
                 Agregar Estilista
               </Button>
             </Box>
@@ -117,9 +144,10 @@ const Estilistas = () => {
             estilistasData={estilistasData}
             setIsEditing={setIsEditing}
             handleEdit={handleEdit}
+            handleAlert={handleAlert}
           />
         </Grid>
-        {isEditing && (
+        {/* {isEditing && (
           <Grid container size={12}>
             <Paper sx={styles.paper}>
               <Box component="div" sx={styles.actionBar}>
@@ -136,18 +164,15 @@ const Estilistas = () => {
               </Box>
             </Paper>
           </Grid>
-        )}
-        <ClientesModal
+        )} */}
+        <EstilistaModal
           isOpen={isOpenModal}
           onClose={handleCloseModal}
-          onSave={(client) => {
-            // Aquí puedes manejar la lógica para guardar el cliente
-            console.log("Estilista guardado:", client);
-            setIsOpenModal(false);
-          }}
+          handleAlert={handleAlert}
+          setIsOpenModal={setIsOpenModal}
         />
       </Grid>
-    </ClientexCtxProvider>
+    </EstilistasCtxProvider>
   );
 };
 
