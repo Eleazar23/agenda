@@ -1,4 +1,5 @@
 import Producto from "../types/Producto";
+import { Servicio } from "../types/Servicio";
 
 export type Cliente = {
   id: number;
@@ -8,18 +9,18 @@ export type Cliente = {
   lastVisit: string;
 };
 
-export type Servicio = {
-  rowIndex: number;
-  cellID: string;
-  estilista: string;
-  servicio: string;
-  precio: string;
-  hora: string;
-  duracion: number;
-  estado: string;
-  metododepago: string;
-  notas: string;
-};
+// export type Servicio = {
+//   rowIndex: number;
+//   cellID: string;
+//   estilista: string;
+//   servicio: string;
+//   precio: string;
+//   hora: string;
+//   duracion: number;
+//   estado: string;
+//   metododepago: string;
+//   notas: string;
+// };
 
 export type Cita = {
   fecha: string;
@@ -29,6 +30,7 @@ export type Cita = {
 };
 
 export const globalData = {
+  citas: [] as Array<Cita>,
   clientes: [
     {
       id: 1,
@@ -59,15 +61,14 @@ export const globalData = {
       lastVisit: "14-01-2026",
     },
   ] as Array<Cliente>,
-  serviciosDisponibles: [
-    "Corte de cabello H",
-    "Corte de cabello M",
-    "Manicura",
-    "Pedicura",
-    "Coloración",
-    "Peinado",
-  ] as Array<string>,
-  citas: [] as Array<Cita>,
+  Servicios: [
+    { id: 1, nombre: "Corte de cabello H", precio: "150" },
+    { id: 2, nombre: "Corte de cabello M", precio: "120" },
+    { id: 3, nombre: "Manicura", precio: "80" },
+    { id: 4, nombre: "Pedicura", precio: "100" },
+    { id: 5, nombre: "Coloración", precio: "200" },
+    { id: 6, nombre: "Peinado", precio: "90" },
+  ] as Array<Servicio>,
   estilistas: [
     {
       id: 1,
@@ -100,5 +101,11 @@ export const globalData = {
       phone: "5559990000",
     },
   ],
-  productos: [] as Array<Producto>,
+  productos: [
+    { id: 1, nombre: "Shampoo", precio: "50" },
+    { id: 2, nombre: "Acondicionador", precio: "60" },
+    { id: 3, nombre: "Gel para cabello", precio: "40" },
+    { id: 4, nombre: "Cera para cabello", precio: "70" },
+    { id: 5, nombre: "Laca para cabello", precio: "80" },
+  ] as Array<Producto>,
 };
