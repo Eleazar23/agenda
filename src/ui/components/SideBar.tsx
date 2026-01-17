@@ -12,6 +12,12 @@ import InboxIcon from '@mui/icons-material/MoveToInbox';
 import MailIcon from '@mui/icons-material/Mail';
 import { useSideBarContext } from '../contexts/SideBarContext';
 import SettingsIcon from '@mui/icons-material/Settings';
+import PeopleIcon from '@mui/icons-material/People';
+import EventNoteIcon from '@mui/icons-material/EventNote';
+import EmojiPeopleIcon from '@mui/icons-material/EmojiPeople';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import LocalGroceryStoreIcon from '@mui/icons-material/LocalGroceryStore';
+import StorefrontIcon from '@mui/icons-material/Storefront';
 import { Link } from 'react-router-dom';
 
 
@@ -19,33 +25,33 @@ const menuItems = [
   {
     title: "Agenda",
     value: "agenda",
-    icon: <InboxIcon />
+    icon: <EventNoteIcon />
   },
   {
     title: "Clientes",
     value: "clientes",
-    icon: <InboxIcon />
+    icon: <PeopleIcon />
   },
   {
     title: "Estilistas",
     value: "estilistas",
-    icon: <MailIcon />
+    icon: <EmojiPeopleIcon />
   },
   {
     title: "Productos",
     value: "productos",
-    icon: <InboxIcon />
+    icon: <LocalGroceryStoreIcon />
+  },
+  {
+    title: "Servicios",
+    value: "servicios",
+    icon: <StorefrontIcon />
   },
   {
     title: "Reportes",
     value: "reportes",
     icon: <InboxIcon />
   },
-  {
-    title: "Configuracion",
-    value: "configuracion",
-    icon: <SettingsIcon />
-  }
 ]
 
 export default function SideBar() {
@@ -80,7 +86,7 @@ export default function SideBar() {
           </ListItem>
         ))}
       </List>
-      <Divider />
+      {/* <Divider />
       <List>
         {['All mail', 'Trash', 'Spam'].map((text, index) => (
           <ListItem key={text} disablePadding>
@@ -92,7 +98,7 @@ export default function SideBar() {
             </ListItemButton>
           </ListItem>
         ))}
-      </List>
+      </List> */}
     </Box>
   );
 
