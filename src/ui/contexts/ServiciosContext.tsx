@@ -34,20 +34,20 @@ const initialContextData = {
   dataTable: [],
 };
 
-const mockServicios: Servicio[] = [
-  { id: 1, nombre: "Corte de cabello H", precio: "150" },
-  { id: 2, nombre: "Corte de cabello M", precio: "200" },
-  { id: 3, nombre: "Manicura", precio: "100" },
-  { id: 4, nombre: "Pedicura", precio: "120" },
-  { id: 5, nombre: "Coloración", precio: "500" },
-  { id: 6, nombre: "Peinado", precio: "250" },
-];
-
+// const mockServicios: Servicio[] = [
+//   { id: 1, nombre: "Corte de cabello H", precio: "150" },
+//   { id: 2, nombre: "Corte de cabello M", precio: "200" },
+//   { id: 3, nombre: "Manicura", precio: "100" },
+//   { id: 4, nombre: "Pedicura", precio: "120" },
+//   { id: 5, nombre: "Coloración", precio: "500" },
+//   { id: 6, nombre: "Peinado", precio: "250" },
+// ];
+import { globalData } from "../mock/globalData";
 export const ServiciosCtxProvider = ({ children }: Props) => {
   const [isEditing, setIsEditing] = useState(initialContextData.isEditing);
   const [isAgregar, setIsAgregar] = useState(initialContextData.isAgregar);
   const [isBorrar, setIsBorrar] = useState(initialContextData.isBorrar);
-  const [dataTable, setDataTable] = useState<Array<Servicio>>(mockServicios);
+  const [dataTable, setDataTable] = useState<Array<Servicio>>(globalData.Servicios);
   const { enqueueSnackbar } = useSnackbar();
 
   const handleAlert = (message: string, alertType: Alert) => {
