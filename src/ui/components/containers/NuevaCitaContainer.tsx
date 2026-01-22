@@ -3,51 +3,34 @@ import { Button, Grid, Paper, Typography } from "@mui/material";
 import ClienteContainer from "./ClienteContainer";
 import ServiciosContainer from "./ServiciosContainer";
 import { useAgendaContext } from "../../contexts/AgendaContext";
-import { useSnackbar } from "notistack";
-
-type Alert = "success" | "error" | "info" | "warning"
 
 const NuevaCitaContainer = () => {
-  const { agendaData, setAgendaData, addCita } = useAgendaContext();
-  const { enqueueSnackbar } = useSnackbar();
-  const { isBooking, cita } = agendaData;
-
-  const handleAlert = (message:string, alertType:Alert) =>{
-        enqueueSnackbar(message, {
-      variant: alertType,
-      anchorOrigin: { vertical: "bottom", horizontal: "center" },
-    });
-
-  }
-
-  const hanldeClose = () => {
-    setAgendaData({
-      ...agendaData,
-      isBooking: false,
-      cita: { ...cita, servicios: [] },
-    });
-  };
+  const { cita, handleCancelarCita, guardarCita, handleAlert } =
+    useAgendaContext();
 
   const handleCancelar = () => {
-    hanldeClose();
+    handleCancelarCita();
   };
 
   const handleGuardar = () => {
-    const {cita} = agendaData
-    const nombreteLen = cita.nombreCliente.length
-    const phoneLen = cita.telefonoCliente.length
-    if (nombreteLen < 1){
-      return handleAlert("Nombre de cliente incorrecto", "error")
-    }
-    if (phoneLen > 1 && phoneLen < 10){
-      return handleAlert(`\"Telefono\" debe contener 10 digitos | Ingreso: ${phoneLen}`, "error")
-    }
-    if (phoneLen < 1){
-      return handleAlert("Falta ingresar \"Telefono\"", "error")
-    }
-    addCita();
-    handleAlert("Cita Guardada", "success")
+    // const {cita} = agendaData
+    const nombreteLen = cita.nombreCliente.length;
+    const phoneLen = cita.telefonoCliente.length;
 
+    if (nombreteLen < 1) {
+      return handleAlert("Nombre de cliente incorrecto", "error");
+    }
+    if (phoneLen > 1 && phoneLen < 10) {
+      return handleAlert(
+        `\"Telefono\" debe contener 10 digitos | Ingreso: ${phoneLen}`,
+        "error",
+      );
+    }
+    if (phoneLen < 1) {
+      return handleAlert('Falta ingresar "Telefono"', "error");
+    }
+    guardarCita();
+    handleAlert("Cita Guardada", "success");
   };
   return (
     <Grid container alignContent="flex-start" size={12}>

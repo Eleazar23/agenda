@@ -1,6 +1,7 @@
 import React, { useState, createContext, useContext } from "react";
 import { useSnackbar } from "notistack";
 import { Servicio } from "../types/Servicio";
+import { globalData } from "../mock/globalData";
 
 type Alert = "success" | "error" | "info" | "warning";
 
@@ -42,12 +43,12 @@ const initialContextData = {
 //   { id: 5, nombre: "Coloración", precio: "500" },
 //   { id: 6, nombre: "Peinado", precio: "250" },
 // ];
-import { globalData } from "../mock/globalData";
+
 export const ServiciosCtxProvider = ({ children }: Props) => {
   const [isEditing, setIsEditing] = useState(initialContextData.isEditing);
   const [isAgregar, setIsAgregar] = useState(initialContextData.isAgregar);
   const [isBorrar, setIsBorrar] = useState(initialContextData.isBorrar);
-  const [dataTable, setDataTable] = useState<Array<Servicio>>(globalData.Servicios);
+  const [dataTable, setDataTable] = useState<Array<Servicio>>(globalData.servicios);
   const { enqueueSnackbar } = useSnackbar();
 
   const handleAlert = (message: string, alertType: Alert) => {
@@ -62,21 +63,25 @@ export const ServiciosCtxProvider = ({ children }: Props) => {
       ...servicio,
       id: Date.now(),
     };
-    setDataTable((prev) => [...prev, newServicio]);
+    globalData.servicios.push(newServicio);
+    setDataTable([...globalData.servicios]);
     handleAlert("Servicio agregado con éxito", "success");
   };
 
   const editServicio = (rowIndex: number, updatedServicio: Servicio) => {
-    setDataTable((prev) => {
-      const updated = [...prev];
-      updated[rowIndex] = { ...updated[rowIndex], ...updatedServicio };
-      return updated;
-    });
+    globalData.servicios[rowIndex] = {
+      ...globalData.servicios[rowIndex],
+      ...updatedServicio,
+    };
+    setDataTable([...globalData.servicios]);
     handleAlert("Servicio actualizado con éxito", "success");
   };
 
   const removeServicio = (id: number) => {
-    setDataTable((prev) => prev.filter((servicio) => servicio.id !== id));
+    globalData.servicios = globalData.servicios.filter(
+      (servicio) => servicio.id !== id
+    );
+    setDataTable([...globalData.servicios]);
     handleAlert("Servicio eliminado con éxito", "success");
   };
 

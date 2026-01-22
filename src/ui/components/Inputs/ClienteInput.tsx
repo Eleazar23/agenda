@@ -7,9 +7,15 @@ type Props = {
   name?: string;
   contextValue?: string;
   dispatchContext?: (value: string) => void;
+  handleSearch?: (value: string) => void;
 };
 
-function ClienteInput({ name, contextValue, dispatchContext }: Props) {
+function ClienteInput({
+  name,
+  contextValue,
+  dispatchContext,
+  handleSearch,
+}: Props) {
   const [value, setValue] = useState("");
 
   const handleChange = (e: ChangeEvent) => {
@@ -31,7 +37,15 @@ function ClienteInput({ name, contextValue, dispatchContext }: Props) {
       slotProps={{
         input: {
           endAdornment: (
-            <IconButton type="button" sx={{ p: "10px" }} aria-label="search">
+            <IconButton
+              type="button"
+              sx={{ p: "10px" }}
+              aria-label="search"
+              onClick={() =>
+                handleSearch &&
+                handleSearch(contextValue ? contextValue : value)
+              }
+            >
               <SearchIcon />
             </IconButton>
           ),

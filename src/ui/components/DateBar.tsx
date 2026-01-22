@@ -46,8 +46,7 @@ const styles = {
 };
 
 export default function DateBar() {
-  const { agendaData, setAgendaData } = useAgendaContext();
-  const { fecha } = agendaData;
+  const { fecha, setFecha } = useAgendaContext();
   const now = getTargetDate(fecha);
   const today = now.get("date");
   const wDay = getDayName(now.get("day"));
@@ -55,10 +54,7 @@ export default function DateBar() {
   const year = now.get("year");
 
   const updateDate = (newDate: string) => {
-    setAgendaData({
-      ...agendaData,
-      fecha: newDate,
-    });
+    setFecha(newDate);
   };
 
   const handlePrevDay = () => {

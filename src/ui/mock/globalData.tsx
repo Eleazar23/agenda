@@ -1,13 +1,7 @@
-import Producto from "../types/Producto";
+import {Producto} from "../types/Producto";
 import { Servicio } from "../types/Servicio";
-
-export type Cliente = {
-  id: number;
-  nombre: string;
-  phone: string;
-  correo: string;
-  lastVisit: string;
-};
+import { Cliente } from "../types/Cliente";
+import { Cita } from "../types/Cita";
 
 // export type Servicio = {
 //   rowIndex: number;
@@ -22,12 +16,12 @@ export type Cliente = {
 //   notas: string;
 // };
 
-export type Cita = {
-  fecha: string;
-  nombreCliente: string;
-  telefonoCliente: string;
-  servicios: [] | Array<Servicio>;
-};
+// export type Cita = {
+//   fecha: string;
+//   nombreCliente: string;
+//   telefonoCliente: string;
+//   servicios: [] | Array<Servicio>;
+// };
 
 export const globalData = {
   citas: [] as Array<Cita>,
@@ -61,7 +55,7 @@ export const globalData = {
       lastVisit: "14-01-2026",
     },
   ] as Array<Cliente>,
-  Servicios: [
+  servicios: [
     { id: 1, nombre: "Corte de cabello H", precio: "150" },
     { id: 2, nombre: "Corte de cabello M", precio: "120" },
     { id: 3, nombre: "Manicura", precio: "80" },

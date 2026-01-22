@@ -15,6 +15,11 @@ import HoraInput from "../Inputs/HoraInput";
 import MetodoPagoInput from "../Inputs/MetodoPagoInput";
 import EstilistaInput from "../Inputs/EstilistaInput";
 import { formatDateFromHTML, formatDateToHTML } from "../../utils/utils";
+import { Cita } from "../../types/Cita";
+
+type CitaModalProps = {
+  cita: Cita;
+};
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialogContent-root": {
@@ -31,35 +36,48 @@ const CustomeInputField = styled(TextField)(() => ({
   },
 }));
 
-export default function CitaModal() {
-  const { agendaData, setAgendaData } = useAgendaContext();
-  const { isCitaOpen, modal } = agendaData;
-  const [modalForm, setModalForm] = useState({ ...modal });
+export default function CitaModal({ cita }: CitaModalProps) {
+  // const { agendaData, setAgendaData } = useAgendaContext();
+  const { isCitaOpen, setIsCitaOpen, handleEditCita } = useAgendaContext();
+  const [modalForm, setModalForm] = useState(cita || {
+    id: 0,
+    fecha: "",
+    estilista: "",
+    nombreCliente: "",
+    telefonoCliente: "",
+    servicio: { id: 0, nombre: "", precio: "" },
+    horaInicio: "",
+    horaFin: "",
+    duracion: 0,
+    estado: "sin confirmar",
+    metodoDePago: "",
+    notas: "",
+  });
 
   const handleCancelar = () => {
-    setModalForm({ ...modal });
-    setAgendaData({ ...agendaData, isCitaOpen: false });
+    setModalForm(() => ({ ...modalForm }));
+    setIsCitaOpen(() => false);
   };
 
   const handleClose = () => {
-    setAgendaData({ ...agendaData, isCitaOpen: false });
+    setIsCitaOpen(() => false);
   };
 
   const handleGuardar = () => {
     // Guardar los cambios realizados en el modal
-    console.log({ modalForm, agendaData })
-    setAgendaData({ ...agendaData, isCitaOpen: false, modal: modalForm });
+    // console.log({ modalForm, agendaData })
+    // setAgendaData({ ...agendaData, isCitaOpen: false, modal: modalForm });
+    if (cita && cita.id !== undefined) {
+      handleEditCita(cita.id, modalForm );
+    }
+    setIsCitaOpen(() => false);
   };
 
   const handleChange = (inputName: string, value: any) => {
-    const { servicio } = modalForm;
-    console.log({ modalForm, servicio, inputName, value });
+    console.log({ modalForm, inputName, value });
     setModalForm({
       ...modalForm,
-      servicio: {
-        ...servicio,
-        [inputName]: value,
-      },
+      [inputName]: value,
     });
   };
 
@@ -73,8 +91,10 @@ export default function CitaModal() {
   }
 
   useEffect(() => {
-    setModalForm({ ...modal });
-  }, [modal]);
+    if (cita) {
+      setModalForm({ ...cita });
+    }
+  }, [cita]);
 
   return (
     <>
@@ -86,7 +106,7 @@ export default function CitaModal() {
         open={isCitaOpen}
       >
         <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-          {modal ? modal?.nombreCliente : ""} - {modal?.telefonoCliente}
+          {modalForm.nombreCliente} - {modalForm.telefonoCliente}
         </DialogTitle>
         <IconButton
           aria-label="close"
@@ -112,7 +132,7 @@ export default function CitaModal() {
               <Grid size={5} flexGrow={1}>
                 <Stack spacing={2}>
                   <EstilistaInput
-                    ctxValue={modalForm?.servicio.estilista}
+                    ctxValue={modalForm.estilista}
                     ctxDispatch={handleChange}
                   />
                   <Grid container spacing={1}>
@@ -121,13 +141,13 @@ export default function CitaModal() {
                         id="outlined-basic"
                         label="Servicio"
                         variant="filled"
-                        value={modalForm?.servicio.servicio}
+                        value={modalForm.servicio?.nombre || ""}
                         fullWidth
                       />
                     </Grid>
                     <Grid container alignItems={"center"} size={5}>
                       <Grid size={12}>
-                        <PrecioInput />
+                        <PrecioInput value={modalForm.servicio.precio} />
                       </Grid>
                     </Grid>
                   </Grid>
@@ -139,7 +159,7 @@ export default function CitaModal() {
                       label="Fecha"
                       variant="filled"
                       fullWidth
-                      value={formatDateToHTML(modalForm?.fecha)}
+                      value={formatDateToHTML(modalForm.fecha || "")}
                       onChange={(e) =>
                         handleChangeFecha(e.target.value)
                       }
@@ -147,19 +167,19 @@ export default function CitaModal() {
                   </Grid>
                   <Grid container spacing={1} flexGrow={1}>
                     <Grid size={6}>
-                      <HoraInput />
+                      <HoraInput label="Hora" />
                     </Grid>
                     <Grid size={6}>
                       <CustomeInputField
                         type="number"
                         slotProps={{ htmlInput: { step: "30", min: "30" } }}
-                        defaultValue={modalForm.servicio.duracion}
+                        defaultValue={modalForm.duracion}
                         id="filled-basic-number-duracion"
                         variant="filled"
                         name="duracion"
                         label="Duracion"
                         onChange={(e) =>
-                          handleChange("duracion", e.target.value)
+                          handleChange("duracion", parseInt(e.target.value))
                         }
                       />
                     </Grid>
@@ -175,11 +195,11 @@ export default function CitaModal() {
                     <Grid flexGrow={1}>
                       <StatusCita
                         ctxDispatch={handleChange}
-                        ctxValue={modalForm?.servicio.estado}
+                        ctxValue={modalForm.estado}
                       />
                     </Grid>
                     <Grid flexGrow={1}>
-                      <MetodoPagoInput ctxDispatch={handleChange} ctxValue={modalForm?.servicio.metododepago} />
+                      <MetodoPagoInput ctxDispatch={handleChange} ctxValue={modalForm.metodoDePago} />
                     </Grid>
                   </Grid>
                   <Divider flexItem />

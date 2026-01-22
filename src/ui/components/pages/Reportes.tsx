@@ -4,6 +4,9 @@ import ClientsTables from "../tables/ClientsTable";
 import ReportesTable from "../tables/ReportesTable";
 import EstilistaInput from "../Inputs/EstilistaInput";
 import FechaInput from "../Inputs/FechaInput";
+import { useAgendaContext } from "../../contexts/AgendaContext";
+import { Cita } from "../../types/Cita";
+import { globalData } from "../../mock/globalData";
 
 type Reporte = {
   estilista: string;
@@ -69,11 +72,13 @@ const styles = {
 };
 
 const Reportes = () => {
-  const [reportesData, setReportesData] = useState<Reporte[]>(mockData);
+  const { citas } = useAgendaContext();
+  const [reportesData, setReportesData] = useState<Cita[]>([...citas]);
   const [estilistaFilter, setEstilistaFilter] = useState("");
   const [fechaFilter, setFechaFilter] = useState("");
   const [total, setTotal] = useState(0);
   const [download, setDownload] = useState(false);
+  console.log("Reportes Data:", reportesData);
 
   const handleEstilistaChange = (inputName: string, estilista: string) => {
     // Lógica para filtrar los reportes por estilista
@@ -99,7 +104,7 @@ const Reportes = () => {
   }
 
   const getFilteredReportesData = () => {
-    let filteredData = mockData;
+    let filteredData = globalData.citas;
     if (estilistaFilter) {
       filteredData = filteredData.filter(
         (reporte) => reporte.estilista === estilistaFilter
@@ -145,7 +150,7 @@ const Reportes = () => {
         </Paper>
       </Grid>
       <Grid container sx={styles.tableContainer} size={12}>
-        <ReportesTable reportesData={reportesData} setTotal={setTotal} download={download} setDownload={setDownload} currentDate={fechaFilter} />
+        <ReportesTable reportesData={reportesData} setTotal={setTotal} download={download} setDownload={setDownload} currentDate={fechaFilter} filtro={estilistaFilter} />
       </Grid>
       <Grid container size={12}>
         <Paper sx={styles.paper}>

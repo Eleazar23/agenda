@@ -4,7 +4,7 @@ import { useAgendaContext } from "../../contexts/AgendaContext";
 import { useEffect, useState } from "react";
 
 type Servicio = {
-  rowIndex: null | number;
+  rowIndex: number | 0;
   estilista: string;
   servicio: string;
   hora: string;
@@ -15,8 +15,7 @@ type Props = {
 };
 
 const ServiciosCard = () => {
-  const { agendaData } = useAgendaContext();
-  const {cita} = agendaData
+  const { cita } = useAgendaContext();
   const {servicios} = cita
   return (
     <Card variant="outlined">
@@ -27,11 +26,10 @@ const ServiciosCard = () => {
           {servicios.map((servicio, index) => {
             return (
               <ServiciosForm
-                key={`${servicio.rowIndex}-${servicio.estilista}`}
-                serviceIndex={index}
-                rowIndex={servicio.rowIndex}
+                key={`${servicio.cellID}-${servicio.estilista}`}
+                cellID={servicio.cellID ?? ""}
                 estilista={servicio.estilista}
-                hora={servicio.hora}
+                hora={servicio.horaInicio ?? ""}
               />
             );
           })}
