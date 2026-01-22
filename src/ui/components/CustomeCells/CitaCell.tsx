@@ -1,37 +1,36 @@
-import { Box, Button, Card, CardActionArea, CardContent, Grid, Typography } from "@mui/material"
-import { useState } from "react"
-import { useAgendaContext } from "../../contexts/AgendaContext"
+import { Box, Card, CardActionArea, CardContent, Typography } from "@mui/material";
+import { useAgendaContext } from "../../contexts/AgendaContext";
+import type { CustomCellRendererProps } from "ag-grid-react";
+import CitaModal from "../modals/CitaModal";
 
-const CitaCell = ({params}: any) => {
-    const {agendaData, setAgendaData} = useAgendaContext()
+const CitaCell = (params: CustomCellRendererProps) => {
+  const { setIsCitaOpen, setCita } = useAgendaContext();
+  const { value } = params;
+  const { servicio } = value;
 
-  // const estilista = params.column.colId
-  // const hr = params.data.hr
-  // const rowIndex = params.node.rowIndex
-
-  const {value} = params
-  const {servicio} = value
-
-
-  const handleClick = () =>{
-    // console.log({params: {estilista, hr, rowIndex}, value: params.value})
-    console.log("Opening modal for:", value)
-    setAgendaData({...agendaData, isCitaOpen:true, modal: value})
-  }
+  const handleClick = () => {
+    console.log("Opening modal for:", value);
+    // setCita(value);
+    setIsCitaOpen(true);
+  };
 
   return (
-     <Box
+    <Box
       sx={{
-        width: '100%',
-        height: '100%'
+        width: "100%",
+        height: "100%",
       }}
     >
-        <Card sx={{height: '100%', width:'100%', backgroundColor:'primary.main'}}>
-          <CardActionArea
-            onClick={handleClick}
-            sx={{height:"100%"}}
+      <Card sx={{ height: "100%", width: "100%", backgroundColor: "primary.main" }}>
+        <CardActionArea onClick={handleClick} sx={{ height: "100%" }}>
+          <CardContent
+            sx={{
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              padding: "0.5rem",
+            }}
           >
-            <CardContent sx={{ height: '100%', display:'flex', flexDirection: 'column', padding:"0.5rem"}}>
               <Typography variant="body1" fontWeight="bold" component="div" color="white">
                 {value.nombreCliente}
               </Typography>
@@ -39,14 +38,15 @@ const CitaCell = ({params}: any) => {
                 {value.telefonoCliente}
               </Typography>
               <Typography variant="body2" color="white">
-                {servicio.servicio}
+                {servicio?.nombre || ""}
               </Typography>
-                <Typography variant="body2" color="white">
-                Tiempo: {servicio.duracion} minutos
+              <Typography variant="body2" color="white">
+                Tiempo: {servicio?.duracion} minutos
               </Typography>
             </CardContent>
           </CardActionArea>
         </Card>
+        <CitaModal cita={servicio} />
     </Box>
     )
 }

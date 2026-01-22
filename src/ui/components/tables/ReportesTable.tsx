@@ -17,11 +17,11 @@ const colsData = [
     headerName: "Nombre Cliente",
   },
   {
-    field: "servicio",
+    field: "servicio.nombre",
     headerName: "Servicio",
   },
   {
-    field: "costo",
+    field: "servicio.precio",
     headerName: "Costo",
   },
   {
@@ -48,10 +48,11 @@ type Props = {
   download?: boolean;
   setDownload?: React.Dispatch<React.SetStateAction<boolean>>;
   currentDate: string;
+  filtro?: string;
 };
 
 let gridApi: GridApi;
-const ReportesTable = ({ reportesData, setTotal, download, setDownload, currentDate }: Props) => {
+const ReportesTable = ({ reportesData, setTotal, download, setDownload, currentDate, filtro }: Props) => {
   const gridRef = React.useRef<AgGridReact>(null);
   // Row Data: The data to be displayed.
   const [rowData, setRowData] = useState<null | Array<any>>(reportesData);
@@ -61,15 +62,15 @@ const ReportesTable = ({ reportesData, setTotal, download, setDownload, currentD
 
   React.useEffect(() => {
     const totalCosto = reportesData.reduce(
-      (acc, reporte) => acc + reporte.costo,
+      (acc, reporte) => acc + Number(reporte.servicio.precio),
       0
     );
-    setTotal(totalCosto);
+    setTotal(Number(totalCosto));
   }, [reportesData, setTotal]);
 
   const handleDownloadComplete = () => {
     if (download && setDownload) {
-    gridApi.exportDataAsCsv({fileName: `reporte_${currentDate}`});
+    gridApi.exportDataAsCsv({fileName: `reporte_${filtro}_${currentDate}`});
       setDownload(false);
     }
   };

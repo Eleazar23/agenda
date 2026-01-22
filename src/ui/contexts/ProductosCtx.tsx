@@ -1,14 +1,13 @@
 import React, { useState, createContext, useContext } from "react";
 import { useSnackbar } from "notistack";
 import { globalData } from "../mock/globalData";
-import Producto from "../types/Producto";
+import { Producto } from "../types/Producto";
 
 type Alert = "success" | "error" | "info" | "warning";
 
 type Props = {
   children: React.ReactNode;
 };
-
 
 type ProductosContextType = {
   isEditing: boolean;
@@ -26,7 +25,7 @@ type ProductosContextType = {
 };
 
 export const ProductosContext = createContext<ProductosContextType | null>(
-  null
+  null,
 );
 
 const initialContextData = {
@@ -41,7 +40,7 @@ export const ProductosCtxProvider = ({ children }: Props) => {
   const [isAgregar, setIsAgregar] = useState(initialContextData.isAgregar);
   const [isBorrar, setIsBorrar] = useState(initialContextData.isBorrar);
   const [dataTable, setDataTable] = useState<Array<Producto>>(
-    initialContextData.dataTable
+    initialContextData.dataTable,
   );
   const { enqueueSnackbar } = useSnackbar();
 
@@ -81,7 +80,7 @@ export const ProductosCtxProvider = ({ children }: Props) => {
 
   const removeProducto = (id: number) => {
     globalData.productos = globalData.productos.filter(
-      (producto) => producto.id !== id
+      (producto) => producto.id !== id,
     );
     setDataTable([...globalData.productos]);
     handleAlert("Producto eliminado con éxito", "success");
@@ -117,7 +116,7 @@ export function useProductosCtx() {
   const context = useContext(ProductosContext);
   if (!context) {
     throw new Error(
-      "useProductosCtx must be used within a ProductosCtxProvider"
+      "useProductosCtx must be used within a ProductosCtxProvider",
     );
   }
   return context;

@@ -6,8 +6,7 @@ import { useAgendaContext } from "../../contexts/AgendaContext";
 import CitaModal from "../modals/CitaModal";
 
 function Agenda() {
-  const agendaContext = useAgendaContext();
-  const { isBooking } = agendaContext.agendaData;
+  const { isBooking } = useAgendaContext();
   
 
   return (
@@ -26,7 +25,7 @@ function Agenda() {
           <AgendaTable />
         </Paper>
       </Grid>
-      <CitaModal />
+      {/* <CitaModal /> */}
     </Grid>
     </>
   );

@@ -46,9 +46,10 @@ export default function DuracionInput({serviceIndex, ctxValue, ctxDispatch, read
   useEffect(()=>{
     if (ctxDispatch){
       ctxDispatch(Number(value))
-    } else {
-      updateDuracion(serviceIndex, Number(value))
     }
+    // } else {
+    //   updateDuracion(serviceIndex, Number(value))
+    // }
   }, [value])
 
   return (

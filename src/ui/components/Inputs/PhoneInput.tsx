@@ -7,9 +7,16 @@ type Props = {
   dispatchContext?: (value: string) => void;
   searchIcon?: boolean;
   variant?: "filled" | "outlined" | "standard";
+  handleSearch?: (value: string) => void;
 };
 
-function PhoneInput({ valueContext, dispatchContext, searchIcon = true, variant }: Props) {
+function PhoneInput({
+  valueContext,
+  dispatchContext,
+  searchIcon = true,
+  variant,
+  handleSearch,
+}: Props) {
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
   const [errorText, setErrorText] = useState("");
@@ -60,7 +67,15 @@ function PhoneInput({ valueContext, dispatchContext, searchIcon = true, variant 
         slotProps={{
           input: {
             endAdornment: searchIcon ? (
-              <IconButton type="button" sx={{ p: "10px" }} aria-label="search" onClick={()=> console.log("Click on search Phone")}>
+              <IconButton
+                type="button"
+                sx={{ p: "10px" }}
+                aria-label="search"
+                onClick={() =>
+                  handleSearch &&
+                  handleSearch(valueContext ? valueContext : value)
+                }
+              >
                 <SearchIcon />
               </IconButton>
             ) : null,
