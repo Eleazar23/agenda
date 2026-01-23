@@ -8,7 +8,6 @@ import {
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import EstilistasActionsCell from "../CustomeCells/EstilistasActionsCell";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
-import { globalData } from "../../mock/globalData";
 import { Estilista } from "../../types/Estilista";
 
 

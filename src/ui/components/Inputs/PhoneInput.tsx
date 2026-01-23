@@ -8,6 +8,7 @@ type Props = {
   searchIcon?: boolean;
   variant?: "filled" | "outlined" | "standard";
   handleSearch?: (value: string) => void;
+  autoFocus?: boolean;
 };
 
 function PhoneInput({
@@ -16,6 +17,7 @@ function PhoneInput({
   searchIcon = true,
   variant,
   handleSearch,
+  autoFocus,
 }: Props) {
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
@@ -53,6 +55,7 @@ function PhoneInput({
   return (
     <>
       <TextField
+        autoFocus={autoFocus}
         name="phone"
         error={error}
         id="outlined-basic"

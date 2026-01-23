@@ -7,6 +7,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
+import EditIcon from "@mui/icons-material/Edit";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import { Box, Divider, Grid, Stack, TextField } from "@mui/material";
 import StatusCita from "../Inputs/StatusCita";
@@ -14,8 +15,9 @@ import PrecioInput from "../Inputs/PrecioInput";
 import HoraInput from "../Inputs/HoraInput";
 import MetodoPagoInput from "../Inputs/MetodoPagoInput";
 import EstilistaInput from "../Inputs/EstilistaInput";
-import { formatDateFromHTML, formatDateToHTML } from "../../utils/utils";
+import { formatDateFromHTML, formatDateToHTML, getDuracion } from "../../utils/utils";
 import { Cita } from "../../types/Cita";
+import { getHrsObj } from "../../utils/utils";
 
 type CitaModalProps = {
   cita: Cita;
@@ -39,8 +41,11 @@ const CustomeInputField = styled(TextField)(() => ({
 export default function CitaModal({ cita }: CitaModalProps) {
   // const { agendaData, setAgendaData } = useAgendaContext();
   const { isCitaOpen, setIsCitaOpen, handleEditCita } = useAgendaContext();
+  const [isEditMode, setIsEditMode] = useState(false);
   const [modalForm, setModalForm] = useState(cita || {
     id: 0,
+    rowIndex: 0,
+    cellID: "",
     fecha: "",
     estilista: "",
     nombreCliente: "",
@@ -55,12 +60,19 @@ export default function CitaModal({ cita }: CitaModalProps) {
   });
 
   const handleCancelar = () => {
-    setModalForm(() => ({ ...modalForm }));
-    setIsCitaOpen(() => false);
+    setModalForm({ ...cita });
+    setIsEditMode(false);
+    setIsCitaOpen(false);
   };
 
   const handleClose = () => {
-    setIsCitaOpen(() => false);
+    setModalForm({ ...cita });
+    setIsEditMode(false);
+    setIsCitaOpen(false);
+  };
+
+  const handleToggleEdit = () => {
+    setIsEditMode(!isEditMode);
   };
 
   const handleGuardar = () => {
@@ -70,14 +82,29 @@ export default function CitaModal({ cita }: CitaModalProps) {
     if (cita && cita.id !== undefined) {
       handleEditCita(cita.id, modalForm );
     }
-    setIsCitaOpen(() => false);
+    setIsEditMode(false);
+    setIsCitaOpen(false);
   };
+
+  const handleDuracionChange = () => {
+    const newDuracion = getDuracion(modalForm.horaInicio, modalForm.horaFin);
+    setModalForm({
+      ...modalForm,
+      duracion: newDuracion,
+    });
+  };
+
+  useEffect(() => {
+    handleDuracionChange();
+  }, [modalForm.horaInicio, modalForm.horaFin]);
 
   const handleChange = (inputName: string, value: any) => {
     console.log({ modalForm, inputName, value });
+    const newRowIndex = getHrsObj(modalForm.horaInicio)?.index;
     setModalForm({
       ...modalForm,
       [inputName]: value,
+      rowIndex: newRowIndex,
     });
   };
 
@@ -93,6 +120,7 @@ export default function CitaModal({ cita }: CitaModalProps) {
   useEffect(() => {
     if (cita) {
       setModalForm({ ...cita });
+      setIsEditMode(false);
     }
   }, [cita]);
 
@@ -108,6 +136,18 @@ export default function CitaModal({ cita }: CitaModalProps) {
         <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
           {modalForm.nombreCliente} - {modalForm.telefonoCliente}
         </DialogTitle>
+        <IconButton
+          aria-label="edit"
+          onClick={handleToggleEdit}
+          sx={(theme) => ({
+            position: "absolute",
+            right: 56,
+            top: 8,
+            color: isEditMode ? theme.palette.primary.main : theme.palette.grey[500],
+          })}
+        >
+          <EditIcon />
+        </IconButton>
         <IconButton
           aria-label="close"
           onClick={handleClose}
@@ -134,6 +174,7 @@ export default function CitaModal({ cita }: CitaModalProps) {
                   <EstilistaInput
                     ctxValue={modalForm.estilista}
                     ctxDispatch={handleChange}
+                    readOnly={!isEditMode}
                   />
                   <Grid container spacing={1}>
                     <Grid size={7}>
@@ -143,6 +184,9 @@ export default function CitaModal({ cita }: CitaModalProps) {
                         variant="filled"
                         value={modalForm.servicio?.nombre || ""}
                         fullWidth
+                        slotProps={{
+                          input: { readOnly: true }
+                        }}
                       />
                     </Grid>
                     <Grid container alignItems={"center"} size={5}>
@@ -163,14 +207,30 @@ export default function CitaModal({ cita }: CitaModalProps) {
                       onChange={(e) =>
                         handleChangeFecha(e.target.value)
                       }
+                      slotProps={{
+                        input: { readOnly: !isEditMode }
+                      }}
                     />
                   </Grid>
                   <Grid container spacing={1} flexGrow={1}>
                     <Grid size={6}>
-                      <HoraInput label="Hora" />
+                      <HoraInput 
+                        label="Hora Inicio"
+                        name="horaInicio"
+                        hora={modalForm.horaInicio}
+                        onChange={(newHora) => handleChange("horaInicio", newHora)}
+                        readOnly={!isEditMode}
+                      />
                     </Grid>
                     <Grid size={6}>
-                      <CustomeInputField
+                      <HoraInput 
+                        label="Hora Fin"
+                        name="horaFin"
+                        hora={modalForm.horaFin}
+                        onChange={(newHora) => handleChange("horaFin", newHora)}
+                        readOnly={!isEditMode}
+                      />
+                      {/* <CustomeInputField
                         type="number"
                         slotProps={{ htmlInput: { step: "30", min: "30" } }}
                         defaultValue={modalForm.duracion}
@@ -181,7 +241,7 @@ export default function CitaModal({ cita }: CitaModalProps) {
                         onChange={(e) =>
                           handleChange("duracion", parseInt(e.target.value))
                         }
-                      />
+                      /> */}
                     </Grid>
                   </Grid>
                 </Stack>
@@ -196,10 +256,11 @@ export default function CitaModal({ cita }: CitaModalProps) {
                       <StatusCita
                         ctxDispatch={handleChange}
                         ctxValue={modalForm.estado}
+                        readOnly={!isEditMode}
                       />
                     </Grid>
                     <Grid flexGrow={1}>
-                      <MetodoPagoInput ctxDispatch={handleChange} ctxValue={modalForm.metodoDePago} />
+                      <MetodoPagoInput ctxDispatch={handleChange} ctxValue={modalForm.metodoDePago} readOnly={!isEditMode} />
                     </Grid>
                   </Grid>
                   <Divider flexItem />
@@ -210,9 +271,13 @@ export default function CitaModal({ cita }: CitaModalProps) {
                     fullWidth
                     multiline
                     rows={5}
+                    value={modalForm.notas || ""}
                     onChange={(e) =>
                       handleChange("notas", e.target.value)
                     }
+                    slotProps={{
+                      input: { readOnly: !isEditMode }
+                    }}
                   />
                 </Stack>
               </Grid>
@@ -224,7 +289,12 @@ export default function CitaModal({ cita }: CitaModalProps) {
           <Button autoFocus onClick={handleCancelar}>
             Cancelar
           </Button>
-          <Button autoFocus onClick={handleGuardar} variant="contained">
+          <Button 
+            autoFocus 
+            onClick={handleGuardar} 
+            variant="contained"
+            disabled={!isEditMode}
+          >
             Guardar
           </Button>
         </DialogActions>

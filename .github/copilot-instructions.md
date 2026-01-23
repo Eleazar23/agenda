@@ -1,8 +1,10 @@
 # Copilot Instructions for Agenda Repository
 
 ## Project Overview
-**Status Salon Agenda** is a desktop salon management app: Electron (desktop) + React/TypeScript (UI) + MongoDB (persistence).  
+**Status Salon Agenda** is a desktop salon management app built with Electron + React/TypeScript.  
 Manages appointments (citas), clients, stylists (estilistas), services, and products.
+
+**Current State:** UI complete; data stored in `globalData` mock object ([src/ui/mock/globalData.tsx](src/ui/mock/globalData.tsx)). MongoDB persistence planned but not implemented.
 
 **Key Constraint:** All internal date strings are `DD-MM-YYYY`; HTML `<input type="date">` requires `YYYY-MM-DD` format conversion via `formatDateToHTML()` / `formatDateFromHTML()`.
 
@@ -13,17 +15,18 @@ Manages appointments (citas), clients, stylists (estilistas), services, and prod
 | `npm run dev` | Vite dev server (React only) | HMR at port 5173; fast iteration without Electron |
 | `npm run build` | Full production compile | TypeScript + Vite build; outputs `dist-react/` + `dist-electron/` |
 | `npm run transpile:electron` | Compile Electron TypeScript only | Fast recompile of `src/electron/` after main.ts changes |
-| `npm run dev:electron` | Launch desktop app | Requires `npm run build` first; MongoDB running on localhost:27017 |
+| `npm run dev:electron` | Launch desktop app | Requires `npm run build` first |
 | `npm run lint` | Check TypeScript + ESLint | Fails on unused `// eslint-disable` directives |
 
-**Pre-Electron Launch:** `npm run build` → verify `mongod` running → `npm run dev:electron`
+**Development Workflow:** `npm run dev` for UI iteration → `npm run build` + `npm run dev:electron` to test desktop app
 
 ## Architecture
 
-### Three-Layer Stack
+### Two-Layer Stack (Current)
 1. **React UI** (`src/ui/`) – HashRouter pages (Agenda, Clientes, Estilistas, Servicios, Productos, Reportes)
-2. **Electron Main** (`src/electron/main.ts`) – IPC handlers, context bridge, window management
-3. **MongoDB** (`mongodb://localhost:27017/statusdb`) – Persistence via Mongoose models
+2. **Electron Main** (`src/electron/main.ts`) – Minimal window loader; loads `dist-react/index.html`
+
+**Data Layer:** In-memory `globalData` object mutated directly by contexts (no persistence between sessions)
 
 ### Provider Nesting Order (App.tsx)
 ```
@@ -34,12 +37,11 @@ HashRouter
               └─ Page components (Agenda.tsx, Clientes.tsx, etc.)
 ```
 
-### IPC Data Flow (Electron Bridge)
-React component → `window.api.method()` → Electron main `ipcMain.handle()` → Mongoose model → MongoDB → back to React
-
-**Example:** `const appointments = await window.api.getAppointments();`
-
-**CRITICAL:** IPC handlers are registered in [src/electron/main.ts](src/electron/main.ts) and exposed via `contextBridge.exposeInMainWorld()` in the same file. Both must be updated together.
+### Planned Persistence Layer (Not Implemented)
+Future architecture will add MongoDB via IPC:
+- React → `window.api.*()` → Electron `ipcMain.handle()` → Mongoose → MongoDB
+- Current `main.ts` has no IPC handlers or contextBridge
+- Migration path: Convert `globalData` mutations to async IPC calls
 
 ## Critical Patterns
 
@@ -64,6 +66,8 @@ React component → `window.api.method()` → Electron main `ipcMain.handle()` �
 
 **Pattern:** Contexts use `notistack`'s `enqueueSnackbar()` for user feedback (success/error/info/warning). Call `handleAlert(message, alertType)` for consistent notifications.
 
+**Data Mutation:** All contexts directly modify `globalData` object (e.g., `globalData.clientes.push(...)`), then trigger re-renders via `setDataTable([...globalData.clientes])`
+
 ### Component File Structure
 ```
 src/ui/components/
@@ -86,13 +90,14 @@ src/ui/components/
 - **Cell data structure:** Expects `{nombreCliente, telefonoCliente, servicio: {servicio, duracion, cellID, ...}}`
 
 ### Adding a New Feature
-1. **Model:** Create Mongoose schema in `src/models/YourModel.tsx` (see `CitaModel.tsx` for reference)
-2. **Database:** Import model in [src/electron/main.ts](src/electron/main.ts) after `import '../database'`
-3. **IPC:** Register handlers in `ipcMain.handle()` AND expose via `contextBridge.exposeInMainWorld()` in same file
-4. **Context:** Create provider in `src/ui/contexts/YourContext.tsx` if cross-component state needed
-5. **UI:** Build in `src/ui/components/{pages,forms,tables,modals}/`
-6. **Routes:** Add to [src/ui/components/pages/Home.tsx](src/ui/components/pages/Home.tsx) and link in `SideBar.tsx`
-7. **Verify:** `npm run build` → `npm run dev:electron` (MongoDB running)
+1. **Context:** Create provider in `src/ui/contexts/YourContext.tsx` if cross-component state needed
+2. **Data Model:** Add type definition in `src/ui/types/YourType.tsx`
+3. **Mock Data:** Add to `globalData` object in [src/ui/mock/globalData.tsx](src/ui/mock/globalData.tsx)
+4. **UI:** Build in `src/ui/components/{pages,forms,tables,modals}/`
+5. **Routes:** Add to [src/ui/components/pages/Home.tsx](src/ui/components/pages/Home.tsx) and link in `SideBar.tsx`
+6. **Verify:** `npm run dev` for hot reload, then `npm run build` + `npm run dev:electron` for desktop app
+
+**Future MongoDB Migration:** When adding persistence, create Mongoose schema in `src/models/`, add IPC handlers in `main.ts`, and update contexts to use async `window.api.*()` calls instead of direct `globalData` mutations
 
 ### TypeScript Conventions
 - **Strict mode:** `noImplicitAny: true`, `strictNullChecks: true` – explicit types required
@@ -102,19 +107,19 @@ src/ui/components/
 - **Type definitions:** Centralized in `src/ui/types/` (Cita.tsx, Estilista.tsx, Producto.tsx, Servicio.tsx)
 
 ## Current State (Jan 2026)
-- ✅ **Appointments (Cita):** MongoDB-backed CRUD via IPC (`createAppointment`, `getAppointments`, `deleteAppointment`)
-- ⚠️ **Estilistas, Clientes, Servicios, Productos:** UI/contexts exist with `globalData` mock; **not yet persisted to MongoDB**
-  - These modules mutate `globalData` object directly (in-memory only)
-  - Implement IPC handlers + Mongoose models to persist these entities
+- ⚠️ **All Data:** Stored in-memory via `globalData` mock object; **no MongoDB persistence implemented**
+  - All CRUD operations mutate `globalData` directly (lost on app restart)
+  - Contexts: AgendaContext, EstilistaContext, ClientesCtx, ProductosCtx, ServiciosContext
+  - No IPC handlers or contextBridge in current `main.ts`
+  - Migration path: Add IPC handlers + Mongoose models to persist these entities
 
 ## Quick Troubleshooting
 
 | Issue | Root Cause | Fix |
 |-------|-----------|-----|
-| Electron won't launch | Missing build or MongoDB offline | `npm run build` first; verify `mongod` on localhost:27017 |
+| Electron won't launch | Missing build | `npm run build` first |
 | React HMR not working | Wrong dev command | Use `npm run dev` (not dev:electron) |
 | Date displays wrong in tables | Format mismatch (DD-MM-YYYY vs YYYY-MM-DD) | Use `formatDateToHTML()`/`formatDateFromHTML()` at boundaries |
 | Context hook throws error | Component outside provider wrapper | Check provider nesting in [App.tsx](src/ui/App.tsx) |
 | ag-grid cells render empty | Missing renderer or bad data | Verify component exists in CustomeCells/; check cell data structure |
 | Notification doesn't appear | Missing SnackbarProvider | Ensure component wrapped by SnackbarProvider (in [App.tsx](src/ui/App.tsx)) |
-| IPC method not found | Missing contextBridge exposure | Update both `ipcMain.handle()` AND `contextBridge.exposeInMainWorld()` in [main.ts](src/electron/main.ts) |

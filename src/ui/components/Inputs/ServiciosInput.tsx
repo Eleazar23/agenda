@@ -3,7 +3,6 @@ import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import { Servicio } from "../../types/Servicio";
-import { globalData } from "../../mock/globalData";
 import { Box } from "@mui/material";
 
 type Props = {
@@ -38,21 +37,19 @@ export default function ServiciosInput({ value, onChange }: Props) {
     }
   };
 
-  const getServicios = () => {
-    // Lógica para obtener los datos de los servicios
-    console.log("Obteniendo datos de servicios...");
-    setOptions([...globalData.servicios]);
-    return globalData.servicios;
+  const getServicios = async () => {
+    try {
+      console.log("Obteniendo datos de servicios...");
+      const servicios = await window.api.getServicios();
+      setOptions(servicios);
+      return servicios;
+    } catch (error) {
+      console.error("Error loading servicios:", error);
+      return [];
+    }
   };
 
   React.useEffect(() => {
-    // Fetch services from backend API
-    // fetch("http://localhost:5000/api/servicios")
-    //   .then((response) => response.json())
-    //   .then((data) => {
-    //     const serviceNames = data.map((servicio: { nombre: string }) => servicio.nombre);
-    //     setOptions(serviceNames);
-    //   });
     getServicios();
   }, []);
 

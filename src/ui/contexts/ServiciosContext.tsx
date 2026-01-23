@@ -1,7 +1,6 @@
 import React, { useState, createContext, useContext } from "react";
 import { useSnackbar } from "notistack";
 import { Servicio } from "../types/Servicio";
-import { globalData } from "../mock/globalData";
 
 type Alert = "success" | "error" | "info" | "warning";
 
@@ -19,9 +18,9 @@ type ServiciosContextType = {
   dataTable: Array<Servicio>;
   setDataTable: React.Dispatch<React.SetStateAction<Array<Servicio>>>;
   handleAlert: (message: string, alertType: Alert) => void;
-  addServicio: (servicio: Servicio) => void;
-  editServicio: (rowIndex: number, updatedServicio: Servicio) => void;
-  removeServicio: (id: number) => void;
+  addServicio: (servicio: Servicio) => Promise<void>;
+  editServicio: (rowIndex: number, updatedServicio: Servicio) => Promise<void>;
+  removeServicio: (id: number) => Promise<void>;
 };
 
 export const ServiciosContext = createContext<ServiciosContextType | null>(
@@ -48,7 +47,7 @@ export const ServiciosCtxProvider = ({ children }: Props) => {
   const [isEditing, setIsEditing] = useState(initialContextData.isEditing);
   const [isAgregar, setIsAgregar] = useState(initialContextData.isAgregar);
   const [isBorrar, setIsBorrar] = useState(initialContextData.isBorrar);
-  const [dataTable, setDataTable] = useState<Array<Servicio>>(globalData.servicios);
+  const [dataTable, setDataTable] = useState<Array<Servicio>>([]);
   const { enqueueSnackbar } = useSnackbar();
 
   const handleAlert = (message: string, alertType: Alert) => {
@@ -58,32 +57,61 @@ export const ServiciosCtxProvider = ({ children }: Props) => {
     });
   };
 
-  const addServicio = (servicio: Servicio) => {
-    const newServicio = {
-      ...servicio,
-      id: Date.now(),
-    };
-    globalData.servicios.push(newServicio);
-    setDataTable([...globalData.servicios]);
-    handleAlert("Servicio agregado con éxito", "success");
+  const getServicios = async () => {
+    try {
+      const servicios = await window.api.getServicios();
+      setDataTable(servicios);
+      return servicios;
+    } catch (error) {
+      console.error("Error loading servicios:", error);
+      handleAlert("Error al cargar servicios", "error");
+      return [];
+    }
   };
 
-  const editServicio = (rowIndex: number, updatedServicio: Servicio) => {
-    globalData.servicios[rowIndex] = {
-      ...globalData.servicios[rowIndex],
-      ...updatedServicio,
-    };
-    setDataTable([...globalData.servicios]);
-    handleAlert("Servicio actualizado con éxito", "success");
+  const addServicio = async (servicio: Servicio) => {
+    try {
+      const newServicio = await window.api.addServicio({
+        nombre: servicio.nombre,
+        precio: servicio.precio,
+      });
+      setDataTable((prev) => [...prev, newServicio]);
+      handleAlert("Servicio agregado con éxito", "success");
+    } catch (error) {
+      console.error("Error adding servicio:", error);
+      handleAlert("Error al agregar servicio", "error");
+    }
   };
 
-  const removeServicio = (id: number) => {
-    globalData.servicios = globalData.servicios.filter(
-      (servicio) => servicio.id !== id
-    );
-    setDataTable([...globalData.servicios]);
-    handleAlert("Servicio eliminado con éxito", "success");
+  const editServicio = async (rowIndex: number, updatedServicio: Servicio) => {
+    try {
+      await window.api.updateServicio(updatedServicio);
+      setDataTable((prev) =>
+        prev.map((servicio, index) =>
+          index === rowIndex ? updatedServicio : servicio
+        )
+      );
+      handleAlert("Servicio actualizado con éxito", "success");
+    } catch (error) {
+      console.error("Error updating servicio:", error);
+      handleAlert("Error al actualizar servicio", "error");
+    }
   };
+
+  const removeServicio = async (id: number) => {
+    try {
+      await window.api.deleteServicio(id);
+      setDataTable((prev) => prev.filter((servicio) => servicio.id !== id));
+      handleAlert("Servicio eliminado con éxito", "success");
+    } catch (error) {
+      console.error("Error deleting servicio:", error);
+      handleAlert("Error al eliminar servicio", "error");
+    }
+  };
+
+  React.useEffect(() => {
+    getServicios();
+  }, []);
 
   return (
     <ServiciosContext.Provider
