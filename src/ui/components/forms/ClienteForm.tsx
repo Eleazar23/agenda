@@ -1,5 +1,7 @@
+import { useState } from "react";
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -18,7 +20,9 @@ const ClienteForm = () => {
     searchClienteByPhone,
     searchClienteByNombre,
     handleAlert,
+    addCliente
   } = useAgendaContext();
+  const [isNewCliente, setIsNewCliente] = useState(false);
   // const { cita } = agendaData;
 
   const dispatchCliente = (value: string) => {
@@ -35,9 +39,9 @@ const ClienteForm = () => {
     }));
   };
 
-  const searchByNombre = (nombre: string) => {
+  const searchByNombre = async (nombre: string) => {
     // Implement search logic here
-    const cliente = searchClienteByNombre(nombre);
+    const cliente = await searchClienteByNombre(nombre);
     if (cliente) {
       handleAlert("Cliente encontrado", "success");
       setCita((prevCita) => ({
@@ -47,12 +51,13 @@ const ClienteForm = () => {
       }));
       return;
     }
+    setIsNewCliente(() => true);
     handleAlert("Cliente no encontrado", "error");
   };
 
-  const searchByPhone = (phone: string) => {
+  const searchByPhone = async (phone: string) => {
     // Implement search logic here
-    const cliente = searchClienteByPhone(phone);
+    const cliente = await searchClienteByPhone(phone);
     if (cliente) {
       handleAlert("Cliente encontrado", "success");
       setCita((prevCita) => ({
@@ -62,7 +67,19 @@ const ClienteForm = () => {
       }));
       return;
     }
+    setIsNewCliente(() => true);
     handleAlert("Cliente no encontrado", "error");
+  };
+
+  const handleGuardarNuevoCliente = () => {
+    // Logic to save new cliente - MongoDB will auto-generate the ID
+    addCliente({
+      nombre: cita.nombreCliente,
+      phone: cita.telefonoCliente,
+      correo: "",
+      lastVisit: "",
+    } as any);
+    setIsNewCliente(false);
   };
 
   return (
@@ -80,7 +97,15 @@ const ClienteForm = () => {
             valueContext={cita.telefonoCliente}
             dispatchContext={dispatchPhone}
             handleSearch={searchByPhone}
+            autoFocus={true}
           />
+          {isNewCliente && (
+            <Box component="div" display={"flex"} sx={{ width: "100%" }}>
+              <Button variant="contained" onClick={handleGuardarNuevoCliente}>
+                Guardar nuevo cliente
+              </Button>
+            </Box>
+          )}
         </Grid>
       </CardContent>
     </Card>

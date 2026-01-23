@@ -1,6 +1,5 @@
 import React, { useState, createContext, useContext } from "react";
 import { useSnackbar } from "notistack";
-import { globalData } from "../mock/globalData";
 
 type Alert = "success" | "error" | "info" | "warning";
 
@@ -25,9 +24,9 @@ type EstilistasContexType = {
   dataTable: Array<Estilista>;
   setDataTable: React.Dispatch<React.SetStateAction<Array<Estilista>>>;
   handleAlert: (message: string, alertType: Alert) => void;
-  addEstilista: (estilista: Estilista) => void;
-  editEstilista: (rowIndex: number, updatedEstilista: Estilista) => void;
-  removeEstilista: (id: number) => void;
+  addEstilista: (estilista: Estilista) => Promise<void>;
+  editEstilista: (rowIndex: number, updatedEstilista: Estilista) => Promise<void>;
+  removeEstilista: (id: number) => Promise<void>;
 };
 
 export const EstilistasContext = createContext<EstilistasContexType | null>(
@@ -50,11 +49,17 @@ export const EstilistasCtxProvider = ({ children }: Props) => {
   );
   const { enqueueSnackbar } = useSnackbar();
 
-  const getEstilistasData = () => {
-    // Lógica para obtener los datos de los clientes
-    console.log("Obteniendo datos de estilistas...");
-    setDataTable([...globalData.estilistas]);
-    return globalData.estilistas;
+  const getEstilistasData = async () => {
+    try {
+      console.log("Obteniendo datos de estilistas...");
+      const estilistas = await window.api.getEstilistas();
+      setDataTable(estilistas);
+      return estilistas;
+    } catch (error) {
+      console.error("Error loading estilistas:", error);
+      handleAlert("Error al cargar estilistas", "error");
+      return [];
+    }
   };
 
   const handleAlert = (message: string, alertType: Alert) => {
@@ -64,32 +69,46 @@ export const EstilistasCtxProvider = ({ children }: Props) => {
     });
   };
 
-  const addEstilista = (estilista: Estilista) => {
-    const newEstilista = {
-      ...estilista,
-      displayName:
-        estilista.name.charAt(0).toUpperCase() + estilista.name.slice(1),
-    };
-    globalData.estilistas.push(newEstilista);
-    setDataTable([...globalData.estilistas]);
-    handleAlert("Estilista agregado con éxito", "success");
+  const addEstilista = async (estilista: Estilista) => {
+    try {
+      const newEstilista = await window.api.addEstilista({
+        name: estilista.name,
+        phone: estilista.phone,
+        displayName:
+          estilista.name.charAt(0).toUpperCase() + estilista.name.slice(1),
+      });
+      setDataTable((prev) => [...prev, newEstilista]);
+      handleAlert("Estilista agregado con éxito", "success");
+    } catch (error) {
+      console.error("Error adding estilista:", error);
+      handleAlert("Error al agregar estilista", "error");
+    }
   };
 
-  const editEstilista = (rowIndex: number, updatedEstilista: Estilista) => {
-    globalData.estilistas[rowIndex] = {
-      ...globalData.estilistas[rowIndex],
-      ...updatedEstilista,
-    };
-    setDataTable([...globalData.estilistas]);
-    handleAlert("Estilista actualizado con éxito", "success");
+  const editEstilista = async (rowIndex: number, updatedEstilista: Estilista) => {
+    try {
+      await window.api.updateEstilista(updatedEstilista);
+      setDataTable((prev) =>
+        prev.map((estilista, index) =>
+          index === rowIndex ? updatedEstilista : estilista
+        )
+      );
+      handleAlert("Estilista actualizado con éxito", "success");
+    } catch (error) {
+      console.error("Error updating estilista:", error);
+      handleAlert("Error al actualizar estilista", "error");
+    }
   };
 
-  const removeEstilista = (id: number) => {
-    globalData.estilistas = globalData.estilistas.filter(
-      (estilista) => estilista.id !== id
-    );
-    setDataTable([...globalData.estilistas]);
-    handleAlert("Estilista eliminado con éxito", "success");
+  const removeEstilista = async (id: number) => {
+    try {
+      await window.api.deleteEstilista(id);
+      setDataTable((prev) => prev.filter((estilista) => estilista.id !== id));
+      handleAlert("Estilista eliminado con éxito", "success");
+    } catch (error) {
+      console.error("Error deleting estilista:", error);
+      handleAlert("Error al eliminar estilista", "error");
+    }
   };
 
   React.useEffect(() => {

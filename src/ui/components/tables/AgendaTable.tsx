@@ -11,16 +11,12 @@ import CutomeCellRenderer from "../CustomeCells/CutomeCellRenderer";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import { Cita } from "../../types/Cita";
 import { Servicio } from "../../types/Servicio";
-import { globalData } from "../../mock/globalData";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 // Register all Community features
 interface DynamicObject {
   [key: string]: any; // Keys are strings, values can be any type
 }
-
-const estilistas = globalData.estilistas.map((estilista) => estilista.name); // change to get action from mongo db
-const estilistasDayData: DynamicObject = {};
 
 const customSpanFunc = (params: any) => {
   const { valueA, valueB } = params;
@@ -35,42 +31,68 @@ const customSpanFunc = (params: any) => {
   return false;
 };
 
-const conlDefsData = estilistas.map((estilista) => {
-  estilistasDayData[estilista] = "";
-  return {
-    field: estilista,
-    headerName: estilista.toUpperCase(),
-    spanRows: customSpanFunc,
-    cellRenderer: CutomeCellRenderer,
-    cellStyle: {
-      display: "flex",
-      justifyContent: "center",
-      alignContent: "center",
-      padding: ".1rem",
-    },
-  };
-});
-
-const colDefs = [
-  {
-    headerName: "",
-    field: "hour.label12",
-    flex: 1,
-    minWidth: 104,
-    cellStyle: { fontWeight: "bold" },
-  },
-  ...conlDefsData,
-];
-
-const horas = getHrs();
-
-const rowInitData = horas.map((hour) => {
-  return { hour, ...estilistasDayData, isSelected: false };
-});
-
 const AgendaTable = () => {
+  const [estilistas, setEstilistas] = useState<string[]>([]);
+  const [colDefs, setColDefs] = useState<any[]>([]);
+  const [rowInitData, setRowInitData] = useState<any[]>([]);
+  
+  // Load estilistas from MongoDB
+  useEffect(() => {
+    const loadEstilistas = async () => {
+      try {
+        const estilistasData = await window.api.getEstilistas();
+        const estilistasNames = estilistasData.map((est) => est.name);
+        setEstilistas(estilistasNames);
+      } catch (error) {
+        console.error("Error loading estilistas:", error);
+      }
+    };
+    loadEstilistas();
+  }, []);
+
+  // Update column definitions and initial row data when estilistas change
+  useEffect(() => {
+    if (estilistas.length === 0) return;
+
+    const estilistasDayData: DynamicObject = {};
+    const conlDefsData = estilistas.map((estilista) => {
+      estilistasDayData[estilista] = "";
+      return {
+        field: estilista,
+        headerName: estilista.toUpperCase(),
+        spanRows: customSpanFunc,
+        cellRenderer: CutomeCellRenderer,
+        cellStyle: {
+          display: "flex",
+          justifyContent: "center",
+          alignContent: "center",
+          padding: ".1rem",
+        },
+      };
+    });
+
+    const newColDefs = [
+      {
+        headerName: "",
+        field: "hour.label12",
+        flex: 1,
+        minWidth: 104,
+        cellStyle: { fontWeight: "bold" },
+      },
+      ...conlDefsData,
+    ];
+
+    const horas = getHrs();
+    const newRowInitData = horas.map((hour) => {
+      return { hour, ...estilistasDayData, isSelected: false };
+    });
+
+    setColDefs(newColDefs);
+    setRowInitData(newRowInitData);
+  }, [estilistas]);
+
   // Row Data: The data to be displayed.
-  const [rowsData, setRowsData] = useState<[] | Array<any>>(rowInitData);
+  const [rowsData, setRowsData] = useState<[] | Array<any>>([]);
   const { citas, fecha } = useAgendaContext();
 
   const todaysCitas = useMemo(
@@ -111,14 +133,9 @@ const AgendaTable = () => {
     }
 
     if (lowerCaseName === "tinte"  && rowsToAdd.length >=3) {
-      // fix when mongo db working
-      const firstElement = rowsToAdd[0]; // Get the first element
-      const elementsToMove = rowsToAdd.slice(3); // Remove 2 elements starting from index 1
-      // const movedElements = elementsToMove.map((el) => ({
-      //   ...el,
-      //   rowIndex: el.rowIndex + 2,
-      // })); // Update rowIndex of moved elements
-      rowsToAdd = [firstElement, ...elementsToMove]; // Reconstruct the array
+      const firstElement = rowsToAdd[0];
+      const elementsToMove = rowsToAdd.slice(3);
+      rowsToAdd = [firstElement, ...elementsToMove];
     }
 
     return rowsToAdd;
@@ -141,6 +158,8 @@ const AgendaTable = () => {
   }, [genarateRowsByService]);
 
   const updateRowsDataByCitas = useCallback(() => {
+    if (rowInitData.length === 0) return;
+    
     console.log("Updating rows data by citas...", todaysCitas.length, "appointments for", fecha);
     
     if (todaysCitas.length === 0) {
@@ -169,7 +188,7 @@ const AgendaTable = () => {
     });
     
     setRowsData(newRowsData);
-  }, [todaysCitas, fecha, getRealServicesArray]);
+  }, [todaysCitas, fecha, getRealServicesArray, rowInitData]);
 
   useEffect(() => {
     console.log("Citas or fecha changed, updating rows data...");

@@ -1,6 +1,5 @@
 import React, { useState, createContext, useContext, useEffect } from "react";
 import { getCurrentDate } from "../utils/utils";
-import { globalData } from "../mock/globalData";
 import { Cita } from "../types/Cita";
 import { Servicio } from "../types/Servicio";
 import { useSnackbar } from "notistack";
@@ -48,7 +47,7 @@ type AgendaContex = {
   setCurrentPage: React.Dispatch<React.SetStateAction<string>>;
   cita: NewCita;
   setCita: React.Dispatch<React.SetStateAction<NewCita>>;
-  handleEditCita: (idCita: number, newCitaData: Cita) => void;
+  handleEditCita: (idCita: number, newCitaData: Cita) => Promise<void>;
   addServiceToCita: (servicio: TempService) => void;
   removeServiceFromCita: (servicio: TempService) => void;
   updateDuracion: (
@@ -58,10 +57,11 @@ type AgendaContex = {
   ) => void;
   handleCancelarCita: () => void;
   updateService: (cellID: string, updatedService: Servicio) => void;
-  guardarCita: () => void;
+  guardarCita: () => Promise<void>;
   handleAlert: (message: string, alertType: Alert) => void;
-  searchClienteByNombre: (nombre: string) => Cliente | null;
-  searchClienteByPhone: (phone: string) => Cliente | null;
+  searchClienteByNombre: (nombre: string) => Promise<Cliente | null>;
+  searchClienteByPhone: (phone: string) => Promise<Cliente | null>;
+  addCliente: (cliente: Cliente) => Promise<void>;
 };
 
 export const AgendaContext = createContext<AgendaContex | null>(null);
@@ -118,25 +118,25 @@ export const AgendaContextProvider = ({ children }: Props) => {
     });
   };
 
-  const handleEditCita = (idCita: number, newCitaData: Cita) => {
-    const citaToEditIndex = globalData.citas.findIndex(
-      (cita) => cita.id === idCita,
-    );
-    if (citaToEditIndex !== -1) {
-      
+  const handleEditCita = async (idCita: number, newCitaData: Cita) => {
+    try {
       if (newCitaData.estado === "cancelado") {
-        const firstArrPart = globalData.citas.slice(0, citaToEditIndex);
-        const secondArrPart = globalData.citas.slice(citaToEditIndex + 1);
-        globalData.citas = [...firstArrPart, ...secondArrPart];
-        setCitas([...globalData.citas]);
+        await window.api.deleteCita(idCita);
+        const updatedCitas = citas.filter((cita) => cita.id !== idCita);
+        setCitas(updatedCitas);
+        handleAlert("Cita cancelada", "info");
         return;
       }
-        
-      globalData.citas[citaToEditIndex] = {
-        ...globalData.citas[citaToEditIndex],
-        ...newCitaData,
-      };
-      setCitas([...globalData.citas]);
+      
+      await window.api.updateCita(newCitaData);
+      const updatedCitas = citas.map((cita) =>
+        cita.id === idCita ? newCitaData : cita
+      );
+      setCitas(updatedCitas);
+      handleAlert("Cita actualizada", "success");
+    } catch (error) {
+      console.error("Error updating cita:", error);
+      handleAlert("Error al actualizar la cita", "error");
     }
   };
 
@@ -205,51 +205,94 @@ export const AgendaContextProvider = ({ children }: Props) => {
     setIsBooking(() => false);
   };
 
-  const guardarCita = () => {
-    // Lógica para guardar la cita
-    const nuevasCitas = cita.servicios.map((servicio, index) => ({
-      id: citas.length + index + 1,
-      rowIndex: servicio.rowIndex,
-      fecha: servicio.fecha,
-      estilista: servicio.estilista,
-      nombreCliente: cita.nombreCliente,
-      telefonoCliente: cita.telefonoCliente,
-      servicio: servicio.servicio,
-      horaInicio: servicio.horaInicio,
-      horaFin: servicio.horaFin,
-      duracion: servicio.duracion,
-      estado: cita.estado,
-      metodoDePago: cita.metodoDePago,
-      notas: cita.notas,
-    }));
-    console.log("Nuevas citas a guardar:", nuevasCitas);
-    // setCitas((prevCitas) => [...prevCitas, ...nuevasCitas]);
-    globalData.citas = [...globalData.citas, ...nuevasCitas];
-    setCitas(() => [...globalData.citas]);
-    setCita(() => initialContextData.cita);
-    setIsBooking(() => false);
+  const guardarCita = async () => {
+    try {
+      const nuevasCitas = cita.servicios.map((servicio) => ({
+        rowIndex: servicio.rowIndex,
+        fecha: servicio.fecha,
+        estilista: servicio.estilista,
+        nombreCliente: cita.nombreCliente,
+        telefonoCliente: cita.telefonoCliente,
+        servicio: servicio.servicio,
+        horaInicio: servicio.horaInicio,
+        horaFin: servicio.horaFin,
+        duracion: servicio.duracion,
+        estado: cita.estado,
+        metodoDePago: cita.metodoDePago,
+        notas: cita.notas,
+      }));
+      
+      const savedCitas = await Promise.all(
+        nuevasCitas.map((citaData) => window.api.addCita(citaData))
+      );
+      
+      setCitas((prevCitas) => [...prevCitas, ...savedCitas]);
+      setCita(initialContextData.cita);
+      setIsBooking(false);
+      handleAlert("Cita guardada con éxito", "success");
+    } catch (error) {
+      console.error("Error saving cita:", error);
+      handleAlert("Error al guardar la cita", "error");
+    }
   };
 
-  const searchClienteByNombre = (nombre: string) => {
-    const clienteEncontrado = globalData.clientes.find(
-      (cliente) => cliente.nombre === nombre,
-    );
-    return clienteEncontrado || null;
+  const searchClienteByNombre = async (nombre: string) => {
+    try {
+      const clientes = await window.api.getClientes();
+      const clienteEncontrado = clientes.find(
+        (cliente) => cliente.nombre === nombre,
+      );
+      return clienteEncontrado || null;
+    } catch (error) {
+      console.error("Error searching cliente by nombre:", error);
+      return null;
+    }
   };
 
-  const searchClienteByPhone = (phone: string) => {
-    const clienteEncontrado = globalData.clientes.find(
-      (cliente) => cliente.phone === phone,
-    );
-    return clienteEncontrado || null;
+  const searchClienteByPhone = async (phone: string) => {
+    try {
+      const clientes = await window.api.getClientes();
+      const clienteEncontrado = clientes.find(
+        (cliente) => cliente.phone === phone,
+      );
+      return clienteEncontrado || null;
+    } catch (error) {
+      console.error("Error searching cliente by phone:", error);
+      return null;
+    }
+  };
+
+    const addCliente = async (cliente: Cliente) => {
+    try {
+      const newCliente = await window.api.addCliente({
+        nombre: cliente.nombre,
+        phone: cliente.phone,
+        correo: cliente.correo || "",
+        lastVisit: cliente.lastVisit || "",
+      });
+      handleAlert("Cliente agregado con éxito", "success");
+    } catch (error) {
+      console.error("Error adding cliente:", error);
+      handleAlert("Error al agregar cliente", "error");
+    }
   };
 
   useEffect(() => {
-    const citasByFecha = globalData.citas.filter(
-      (cita) => cita.fecha === fecha && cita.estado !== "cancelado",
-    );
-    console.log("Citas for fecha", fecha, citasByFecha);
-    setCitas(() => [...citasByFecha]);
+    const loadCitas = async () => {
+      try {
+        const citasFromDB = await window.api.getCitasByFecha(fecha);
+        const citasActivas = citasFromDB.filter(
+          (cita) => cita.estado !== "cancelado",
+        );
+        console.log("Citas for fecha", fecha, citasActivas);
+        setCitas(citasActivas);
+      } catch (error) {
+        console.error("Error loading citas:", error);
+        handleAlert("Error al cargar las citas", "error");
+      }
+    };
+    
+    loadCitas();
   }, [fecha]);
 
   return (
@@ -279,6 +322,7 @@ export const AgendaContextProvider = ({ children }: Props) => {
         handleAlert,
         searchClienteByNombre,
         searchClienteByPhone,
+        addCliente,
       }}
     >
       {children}
@@ -290,7 +334,7 @@ export function useAgendaContext() {
   const context = useContext(AgendaContext);
   if (!context) {
     throw new Error(
-      "useSideBarContext must be used within a AgendaContextProvider",
+      "useAgendaContext must be used within a AgendaContextProvider",
     );
   }
   return context;

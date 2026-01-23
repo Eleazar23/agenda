@@ -1,6 +1,5 @@
 import React, { useState, createContext, useContext } from "react";
 import { useSnackbar } from "notistack";
-import { globalData } from "../mock/globalData";
 
 type Alert = "success" | "error" | "info" | "warning";
 
@@ -33,9 +32,9 @@ type ClientesContextType = {
   dataTable: Array<Cliente>;
   setDataTable: React.Dispatch<React.SetStateAction<Array<Cliente>>>;
   handleAlert: (message: string, alertType: Alert) => void;
-  addCliente: (cliente: Cliente) => void;
-  editCliente: (rowIndex: number, updatedCliente: Cliente) => void;
-  removeCliente: (id: number) => void;
+  addCliente: (cliente: Cliente) => Promise<void>;
+  editCliente: (rowIndex: number, updatedCliente: Cliente) => Promise<void>;
+  removeCliente: (id: number) => Promise<void>;
 };
 
 export const ClientesContext = createContext<ClientesContextType | null>(null);
@@ -63,38 +62,59 @@ export const ClientesCtxProvider = ({ children }: Props) => {
     });
   };
 
-  const getClientes = () => {
-    // Lógica para obtener los datos de los clientes
-    console.log("Obteniendo datos de clientes...");
-    setDataTable([...globalData.clientes]);
-    return globalData.clientes;
+  const getClientes = async () => {
+    try {
+      console.log("Obteniendo datos de clientes...");
+      const clientes = await window.api.getClientes();
+      setDataTable(clientes);
+      return clientes;
+    } catch (error) {
+      console.error("Error loading clientes:", error);
+      handleAlert("Error al cargar clientes", "error");
+      return [];
+    }
   };
 
-  const addCliente = (cliente: Cliente) => {
-    globalData.clientes.push({
-      ...cliente,
-      id: Math.max(...globalData.clientes.map((c) => c.id), 0) + 1,
-      lastVisit: cliente.lastVisit || "",
-    });
-    setDataTable([...globalData.clientes]);
-    handleAlert("Cliente agregado con éxito", "success");
+  const addCliente = async (cliente: Cliente) => {
+    try {
+      const newCliente = await window.api.addCliente({
+        nombre: cliente.nombre,
+        phone: cliente.phone,
+        correo: cliente.correo || "",
+        lastVisit: cliente.lastVisit || "",
+      });
+      setDataTable((prev) => [...prev, newCliente]);
+      handleAlert("Cliente agregado con éxito", "success");
+    } catch (error) {
+      console.error("Error adding cliente:", error);
+      handleAlert("Error al agregar cliente", "error");
+    }
   };
 
-  const editCliente = (rowIndex: number, updatedCliente: Cliente) => {
-    globalData.clientes[rowIndex] = {
-      ...globalData.clientes[rowIndex],
-      ...updatedCliente,
-    };
-    setDataTable([...globalData.clientes]);
-    handleAlert("Cliente actualizado con éxito", "success");
+  const editCliente = async (rowIndex: number, updatedCliente: Cliente) => {
+    try {
+      await window.api.updateCliente(updatedCliente);
+      setDataTable((prev) =>
+        prev.map((cliente, index) =>
+          index === rowIndex ? updatedCliente : cliente
+        )
+      );
+      handleAlert("Cliente actualizado con éxito", "success");
+    } catch (error) {
+      console.error("Error updating cliente:", error);
+      handleAlert("Error al actualizar cliente", "error");
+    }
   };
 
-  const removeCliente = (id: number) => {
-    globalData.clientes = globalData.clientes.filter(
-      (cliente) => cliente.id !== id
-    );
-    setDataTable([...globalData.clientes]);
-    handleAlert("Cliente eliminado con éxito", "success");
+  const removeCliente = async (id: number) => {
+    try {
+      await window.api.deleteCliente(id);
+      setDataTable((prev) => prev.filter((cliente) => cliente.id !== id));
+      handleAlert("Cliente eliminado con éxito", "success");
+    } catch (error) {
+      console.error("Error deleting cliente:", error);
+      handleAlert("Error al eliminar cliente", "error");
+    }
   };
 
   React.useEffect(() => {

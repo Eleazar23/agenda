@@ -1,6 +1,5 @@
 import React, { useState, createContext, useContext } from "react";
 import { useSnackbar } from "notistack";
-import { globalData } from "../mock/globalData";
 import { Producto } from "../types/Producto";
 
 type Alert = "success" | "error" | "info" | "warning";
@@ -19,9 +18,9 @@ type ProductosContextType = {
   dataTable: Array<Producto>;
   setDataTable: React.Dispatch<React.SetStateAction<Array<Producto>>>;
   handleAlert: (message: string, alertType: Alert) => void;
-  addProducto: (producto: Producto) => void;
-  editProducto: (rowIndex: number, updatedProducto: Producto) => void;
-  removeProducto: (id: number) => void;
+  addProducto: (producto: Producto) => Promise<void>;
+  editProducto: (rowIndex: number, updatedProducto: Producto) => Promise<void>;
+  removeProducto: (id: number) => Promise<void>;
 };
 
 export const ProductosContext = createContext<ProductosContextType | null>(
@@ -44,11 +43,17 @@ export const ProductosCtxProvider = ({ children }: Props) => {
   );
   const { enqueueSnackbar } = useSnackbar();
 
-  const getProductosData = () => {
-    // Lógica para obtener los datos de los clientes
-    console.log("Obteniendo datos de productos...");
-    setDataTable([...globalData.productos]);
-    return globalData.productos;
+  const getProductosData = async () => {
+    try {
+      console.log("Obteniendo datos de productos...");
+      const productos = await window.api.getProductos();
+      setDataTable(productos);
+      return productos;
+    } catch (error) {
+      console.error("Error loading productos:", error);
+      handleAlert("Error al cargar productos", "error");
+      return [];
+    }
   };
 
   const handleAlert = (message: string, alertType: Alert) => {
@@ -58,32 +63,47 @@ export const ProductosCtxProvider = ({ children }: Props) => {
     });
   };
 
-  const addProducto = (producto: Producto) => {
-    const newProducto = {
-      ...producto,
-      displayName:
-        producto.nombre.charAt(0).toUpperCase() + producto.nombre.slice(1),
-    };
-    globalData.productos.push(newProducto);
-    setDataTable([...globalData.productos]);
-    handleAlert("Producto agregado con éxito", "success");
+  const addProducto = async (producto: Producto) => {
+    try {
+      const newProducto = await window.api.addProducto({
+        nombre: producto.nombre,
+        marca: producto.marca,
+        precio: producto.precio,
+        descripcion: producto.descripcion,
+        stock: producto.stock,
+      });
+      setDataTable((prev) => [...prev, newProducto]);
+      handleAlert("Producto agregado con éxito", "success");
+    } catch (error) {
+      console.error("Error adding producto:", error);
+      handleAlert("Error al agregar producto", "error");
+    }
   };
 
-  const editProducto = (rowIndex: number, updatedProducto: Producto) => {
-    globalData.productos[rowIndex] = {
-      ...globalData.productos[rowIndex],
-      ...updatedProducto,
-    };
-    setDataTable([...globalData.productos]);
-    handleAlert("Producto actualizado con éxito", "success");
+  const editProducto = async (rowIndex: number, updatedProducto: Producto) => {
+    try {
+      await window.api.updateProducto(updatedProducto);
+      setDataTable((prev) =>
+        prev.map((producto, index) =>
+          index === rowIndex ? updatedProducto : producto
+        )
+      );
+      handleAlert("Producto actualizado con éxito", "success");
+    } catch (error) {
+      console.error("Error updating producto:", error);
+      handleAlert("Error al actualizar producto", "error");
+    }
   };
 
-  const removeProducto = (id: number) => {
-    globalData.productos = globalData.productos.filter(
-      (producto) => producto.id !== id,
-    );
-    setDataTable([...globalData.productos]);
-    handleAlert("Producto eliminado con éxito", "success");
+  const removeProducto = async (id: number) => {
+    try {
+      await window.api.deleteProducto(id);
+      setDataTable((prev) => prev.filter((producto) => producto.id !== id));
+      handleAlert("Producto eliminado con éxito", "success");
+    } catch (error) {
+      console.error("Error deleting producto:", error);
+      handleAlert("Error al eliminar producto", "error");
+    }
   };
 
   React.useEffect(() => {

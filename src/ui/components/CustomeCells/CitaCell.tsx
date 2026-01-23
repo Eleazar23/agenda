@@ -38,11 +38,11 @@ const CitaCell = (params: CustomCellRendererProps) => {
                 {value.telefonoCliente}
               </Typography>
               <Typography variant="body2" color="white">
-                {servicio?.nombre || ""}
+                {servicio?.servicio.nombre || ""}
               </Typography>
-              <Typography variant="body2" color="white">
+              {/* <Typography variant="body2" color="white">
                 Tiempo: {servicio?.duracion} minutos
-              </Typography>
+              </Typography> */}
             </CardContent>
           </CardActionArea>
         </Card>

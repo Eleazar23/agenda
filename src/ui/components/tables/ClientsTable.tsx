@@ -12,7 +12,6 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import ClientesActionsCell from "../CustomeCells/ClientesActionsCell";
-import { globalData } from "../../mock/globalData";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
 import { useClientesCtx } from "../../contexts/ClientesCtx";
 

@@ -4,7 +4,6 @@ import { Box } from "@mui/material";
 import EditBtn from "../buttons/EditBtn";
 import DeleteBtn from "../buttons/DeleteBtn";
 import EditEstilistasModal from "../modals/EditEstilistaModal";
-import { globalData } from "../../mock/globalData";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
 import ElimEstilistaModal from "../modals/ElimEstilistaModal";
 
