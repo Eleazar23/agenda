@@ -90,9 +90,11 @@ ipcMain.handle('add-estilista', async (_event, estilista) => {
 
 ipcMain.handle('update-estilista', async (_event, estilista) => {
     try {
+        // Remove _id and __v fields that might come from MongoDB
+        const { _id, __v, ...estilistaData } = estilista as any;
         const updated = await Estilista.findOneAndUpdate(
             { id: estilista.id },
-            estilista,
+            estilistaData,
             { new: true }
         ).lean();
         return updated;
