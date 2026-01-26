@@ -30,7 +30,6 @@ const NuevaCitaContainer = () => {
       return handleAlert('Falta ingresar "Telefono"', "error");
     }
     guardarCita();
-    handleAlert("Cita Guardada", "success");
   };
   return (
     <Grid container alignContent="flex-start" size={12}>

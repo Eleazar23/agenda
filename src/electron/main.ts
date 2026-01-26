@@ -266,11 +266,12 @@ app.on("ready", ()=>{
     // console.log('__dirname:', __dirname);
     
     const mainWindow = new BrowserWindow({
+        autoHideMenuBar: true,
         webPreferences: {
             preload: preloadPath,
             contextIsolation: true,
             nodeIntegration: false,
-            sandbox: false, // Disable sandbox to allow preload script
+            sandbox: false // Disable sandbox to allow preload script
         }
     });
     

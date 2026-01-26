@@ -134,7 +134,7 @@ const AgendaTable = () => {
 
     if (lowerCaseName === "tinte"  && rowsToAdd.length >=3) {
       const firstElement = rowsToAdd[0];
-      const elementsToMove = rowsToAdd.slice(3);
+      const elementsToMove = rowsToAdd.slice(2);
       rowsToAdd = [firstElement, ...elementsToMove];
     }
 

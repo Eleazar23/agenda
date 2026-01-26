@@ -91,10 +91,10 @@ const initialContextData = {
     horaFin: "",
     duracion: 30,
     estado: "sin confirmar",
-    metodoDePago: "",
+    metodoDePago: "efectivo",
     notas: "",
   },
-  currentPage: "clientes",
+  currentPage: "agenda",
 };
 
 export const AgendaContextProvider = ({ children }: Props) => {
@@ -121,7 +121,8 @@ export const AgendaContextProvider = ({ children }: Props) => {
   const handleEditCita = async (idCita: number, newCitaData: Cita) => {
     try {
       if (newCitaData.estado === "cancelado") {
-        await window.api.deleteCita(idCita);
+        // await window.api.deleteCita(idCita);
+        await window.api.updateCita(newCitaData);
         const updatedCitas = citas.filter((cita) => cita.id !== idCita);
         setCitas(updatedCitas);
         handleAlert("Cita cancelada", "info");
@@ -222,9 +223,12 @@ export const AgendaContextProvider = ({ children }: Props) => {
         notas: cita.notas,
       }));
       
-      const savedCitas = await Promise.all(
-        nuevasCitas.map((citaData) => window.api.addCita(citaData))
-      );
+      // Save citas sequentially to avoid race condition with auto-increment IDs
+      const savedCitas: Cita[] = [];
+      for (const citaData of nuevasCitas) {
+        const savedCita = await window.api.addCita(citaData);
+        savedCitas.push(savedCita);
+      }
       
       setCitas((prevCitas) => [...prevCitas, ...savedCitas]);
       setCita(initialContextData.cita);

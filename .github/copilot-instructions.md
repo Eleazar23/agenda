@@ -4,7 +4,7 @@
 **Status Salon Agenda** is a desktop salon management app built with Electron + React/TypeScript.  
 Manages appointments (citas), clients, stylists (estilistas), services, and products.
 
-**Current State:** UI complete; data stored in `globalData` mock object ([src/ui/mock/globalData.tsx](src/ui/mock/globalData.tsx)). MongoDB persistence planned but not implemented.
+**Current State:** Full-stack implementation with MongoDB persistence via IPC. React UI communicates with Electron main process through `window.api.*()` → `ipcMain.handle()` → Mongoose models. Legacy `globalData` mock exists but is **no longer used**.
 
 **Key Constraint:** All internal date strings are `DD-MM-YYYY`; HTML `<input type="date">` requires `YYYY-MM-DD` format conversion via `formatDateToHTML()` / `formatDateFromHTML()`.
 
@@ -17,16 +17,34 @@ Manages appointments (citas), clients, stylists (estilistas), services, and prod
 | `npm run transpile:electron` | Compile Electron TypeScript only | Fast recompile of `src/electron/` after main.ts changes |
 | `npm run dev:electron` | Launch desktop app | Requires `npm run build` first |
 | `npm run lint` | Check TypeScript + ESLint | Fails on unused `// eslint-disable` directives |
+| `npm run seed:db` | Seed MongoDB with test data | Compiles Electron + runs seed.ts script |
 
 **Development Workflow:** `npm run dev` for UI iteration → `npm run build` + `npm run dev:electron` to test desktop app
 
+**MongoDB Setup:** Requires local MongoDB at `mongodb://localhost:27017/agenda`. See [MONGODB_SETUP.md](MONGODB_SETUP.md) for installation. Seed initial data with `npm run seed:db`.
+
 ## Architecture
 
-### Two-Layer Stack (Current)
+### Three-Layer Stack (Current)
 1. **React UI** (`src/ui/`) – HashRouter pages (Agenda, Clientes, Estilistas, Servicios, Productos, Reportes)
-2. **Electron Main** (`src/electron/main.ts`) – Minimal window loader; loads `dist-react/index.html`
+2. **Electron IPC Bridge** (`src/electron/preload.ts`) – contextBridge exposing `window.api.*()` methods
+3. **Electron Main + MongoDB** (`src/electron/main.ts`) – ipcMain handlers + Mongoose models in `src/electron/models/`
 
-**Data Layer:** In-memory `globalData` object mutated directly by contexts (no persistence between sessions)
+**Data Flow:** React component → Context → `window.api.addCliente(data)` → `ipcMain.handle('add-cliente')` → Mongoose `Cliente.save()` → MongoDB
+
+**IPC API Surface** ([preload.ts](src/electron/preload.ts)):
+```typescript
+window.api = {
+  // Each entity (clientes, estilistas, servicios, productos, citas)
+  get{Entity}s: () => Promise<Entity[]>
+  add{Entity}: (data) => Promise<Entity>
+  update{Entity}: (data) => Promise<Entity>
+  delete{Entity}: (id: number) => Promise<void>
+  // Special: getCitasByFecha(fecha: "DD-MM-YYYY")
+}
+```
+
+**Mongoose Models:** `src/electron/models/{Cliente,Estilista,Servicio,Producto,Cita}.ts` – use numeric `id` field (not MongoDB `_id`) for primary keys
 
 ### Provider Nesting Order (App.tsx)
 ```
@@ -36,12 +54,6 @@ HashRouter
           └─ AgendaContextProvider (appointments, dates, booking)
               └─ Page components (Agenda.tsx, Clientes.tsx, etc.)
 ```
-
-### Planned Persistence Layer (Not Implemented)
-Future architecture will add MongoDB via IPC:
-- React → `window.api.*()` → Electron `ipcMain.handle()` → Mongoose → MongoDB
-- Current `main.ts` has no IPC handlers or contextBridge
-- Migration path: Convert `globalData` mutations to async IPC calls
 
 ## Critical Patterns
 
@@ -66,7 +78,7 @@ Future architecture will add MongoDB via IPC:
 
 **Pattern:** Contexts use `notistack`'s `enqueueSnackbar()` for user feedback (success/error/info/warning). Call `handleAlert(message, alertType)` for consistent notifications.
 
-**Data Mutation:** All contexts directly modify `globalData` object (e.g., `globalData.clientes.push(...)`), then trigger re-renders via `setDataTable([...globalData.clientes])`
+**Data Mutation:** All CRUD operations are async IPC calls via `window.api.*()`. Contexts load data from MongoDB on mount and update local state after successful mutations (e.g., `await window.api.addCliente(data)` → `setDataTable([...newData])`)
 
 ### Component File Structure
 ```
@@ -90,14 +102,26 @@ src/ui/components/
 - **Cell data structure:** Expects `{nombreCliente, telefonoCliente, servicio: {servicio, duracion, cellID, ...}}`
 
 ### Adding a New Feature
-1. **Context:** Create provider in `src/ui/contexts/YourContext.tsx` if cross-component state needed
-2. **Data Model:** Add type definition in `src/ui/types/YourType.tsx`
-3. **Mock Data:** Add to `globalData` object in [src/ui/mock/globalData.tsx](src/ui/mock/globalData.tsx)
-4. **UI:** Build in `src/ui/components/{pages,forms,tables,modals}/`
-5. **Routes:** Add to [src/ui/components/pages/Home.tsx](src/ui/components/pages/Home.tsx) and link in `SideBar.tsx`
-6. **Verify:** `npm run dev` for hot reload, then `npm run build` + `npm run dev:electron` for desktop app
+1. **Mongoose Model:** Create schema in `src/electron/models/YourModel.ts` (use numeric `id` field, not `_id`)
+2. **IPC Handlers:** Add CRUD handlers in `src/electron/main.ts`:
+   ```typescript
+   ipcMain.handle('get-entities', async () => await YourModel.find().lean());
+   ipcMain.handle('add-entity', async (_event, data) => { /* auto-increment id */ });
+   ```
+3. **Preload Bridge:** Expose in `src/electron/preload.ts`:
+   ```typescript
+   contextBridge.exposeInMainWorld('api', {
+     getEntities: () => ipcRenderer.invoke('get-entities'),
+     // ...
+   });
+   ```
+4. **TypeScript Types:** Add interface in `src/ui/types/YourType.tsx`, extend `window.api` in `src/ui/electron.d.ts`
+5. **Context:** Create provider in `src/ui/contexts/YourContext.tsx` using async `window.api.*()` calls
+6. **UI:** Build components in `src/ui/components/{pages,forms,tables,modals}/`
+7. **Routes:** Add to [src/ui/components/pages/Home.tsx](src/ui/components/pages/Home.tsx) and link in `SideBar.tsx`
+8. **Verify:** `npm run dev` for UI → `npm run build` + `npm run dev:electron` for desktop app
 
-**Future MongoDB Migration:** When adding persistence, create Mongoose schema in `src/models/`, add IPC handlers in `main.ts`, and update contexts to use async `window.api.*()` calls instead of direct `globalData` mutations
+**ID Generation Pattern:** All Mongoose models use `id: Number` (not MongoDB `_id`). IPC handlers auto-increment via `findOne().sort('-id')` + 1
 
 ### TypeScript Conventions
 - **Strict mode:** `noImplicitAny: true`, `strictNullChecks: true` – explicit types required
@@ -107,11 +131,12 @@ src/ui/components/
 - **Type definitions:** Centralized in `src/ui/types/` (Cita.tsx, Estilista.tsx, Producto.tsx, Servicio.tsx)
 
 ## Current State (Jan 2026)
-- ⚠️ **All Data:** Stored in-memory via `globalData` mock object; **no MongoDB persistence implemented**
-  - All CRUD operations mutate `globalData` directly (lost on app restart)
+- ✅ **MongoDB Persistence:** Fully implemented via IPC bridge
+  - All CRUD operations async: `await window.api.addCliente(data)` → Mongoose → MongoDB
   - Contexts: AgendaContext, EstilistaContext, ClientesCtx, ProductosCtx, ServiciosContext
-  - No IPC handlers or contextBridge in current `main.ts`
-  - Migration path: Add IPC handlers + Mongoose models to persist these entities
+  - IPC handlers in `main.ts` + contextBridge in `preload.ts`
+  - Mongoose models in `src/electron/models/` with numeric `id` field
+- ⚠️ **Legacy Code:** `globalData` mock still exists in `src/ui/mock/` but is **not used** by current implementation
 
 ## Quick Troubleshooting
 
