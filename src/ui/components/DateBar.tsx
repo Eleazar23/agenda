@@ -1,16 +1,17 @@
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+
+import { createTheme } from "@mui/material/styles";
+import { caES } from "@mui/x-date-pickers/locales";
 import dayjs from "dayjs";
-import es from "dayjs/locale/es";
+// import es from "dayjs/locale/es";
 import {
   getCurrentDate,
   addDayToDate,
   subtractDayToDate,
   getDayName,
   getTargetDate,
+  formatDateToHTML,
 } from "../utils/utils";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import ArrowBackIosOutlinedIcon from "@mui/icons-material/ArrowBackIosOutlined";
 import ArrowForwardIosOutlinedIcon from "@mui/icons-material/ArrowForwardIosOutlined";
 import { useAgendaContext } from "../contexts/AgendaContext";
@@ -48,10 +49,7 @@ const styles = {
 export default function DateBar() {
   const { fecha, setFecha } = useAgendaContext();
   const now = getTargetDate(fecha);
-  const today = now.get("date");
   const wDay = getDayName(now.get("day"));
-  const month = now.get("month");
-  const year = now.get("year");
 
   const updateDate = (newDate: string) => {
     setFecha(newDate);
@@ -92,23 +90,25 @@ export default function DateBar() {
           <ArrowForwardIosOutlinedIcon />
         </StyledButton>
       </Box>
-      <Typography
-        variant="h6"
-        sx={{ minWidth: "120px", textAlign: "center" }}
-      >
+      <Typography variant="h6" sx={{ minWidth: "120px", textAlign: "center" }}>
         {wDay}
       </Typography>
-      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-        <DatePicker
-          views={["year", "month", "day"]}
-          openTo="day"
-          format={"DD/MM/YYYY"}
-          defaultValue={dayjs(now).locale("es")}
-          value={dayjs(now).locale("es")}
-          slotProps={{ textField: { sx: styles.textField } }}
-          onChange={handleChangeDate}
+      <Box
+        component={"div"}
+        display="flex"
+        sx={{ backgroundColor: "#ffff"}}
+      >
+        <TextField
+          name="fecha"
+          type="date"
+          id="fecha-picker"
+          label="Fecha"
+          variant="filled"
+          fullWidth
+          value={formatDateToHTML(fecha)}
+          onChange={(e) => handleChangeDate(dayjs(e.target.value))}
         />
-      </LocalizationProvider>
+      </Box>
     </Box>
   );
 }

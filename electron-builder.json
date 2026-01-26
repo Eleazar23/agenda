@@ -1,0 +1,15 @@
+{
+    "appId": "com.statussalon.agenda",
+    "files": [
+        "dist-electron",
+        "dist-react"
+    ],
+    "icon":"./desktop-icon.png",
+    "productName": "Agenda",
+    "win": {
+        "target": [
+            "portable",
+            "msi"
+        ]
+    }
+}

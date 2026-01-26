@@ -38,7 +38,7 @@ const CitaCell = (params: CustomCellRendererProps) => {
                 {value.telefonoCliente}
               </Typography>
               <Typography variant="body2" color="white">
-                {servicio?.servicio.nombre || ""}
+                {`${servicio?.servicio.nombre} - $${servicio?.servicio.precio} | ${servicio?.estado}` || ""}
               </Typography>
               {/* <Typography variant="body2" color="white">
                 Tiempo: {servicio?.duracion} minutos
