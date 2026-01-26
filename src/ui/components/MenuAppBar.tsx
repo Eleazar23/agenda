@@ -39,7 +39,7 @@ export default function MenuAppBar() {
             Status Salon | {sideBarData.currentPage.charAt(0).toUpperCase() + sideBarData.currentPage.slice(1)}
           </Typography>
           {/* {sideBarData.currentPage == "agenda" ? <DateBar /> : <SearchBar />} */}
-          {sideBarData.currentPage == "agenda" ? <DateBar /> : <SearchInput />}
+          {sideBarData.currentPage == "agenda" ? <DateBar /> : null}
         </Toolbar>
       </AppBar>
     </Box>

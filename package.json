@@ -1,9 +1,10 @@
 {
   "name": "agenda",
+  "author": "Eleazar Celis",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
-  "main": "dist-electron/main",
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev:electron": "electron .",
     "dev": "vite",
@@ -11,7 +12,8 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "transpile:electron": "tsc --project src/electron/tsconfig.json",
-    "seed:db": "tsc --project src/electron/tsconfig.json && node dist-electron/seed.js"
+    "seed:db": "tsc --project src/electron/tsconfig.json && node dist-electron/seed.js",
+    "dist:win": "electron-builder --win --x64"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

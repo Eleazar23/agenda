@@ -25,6 +25,10 @@ const colsData = [
     headerName: "Costo",
   },
   {
+    field: "metodoDePago",
+    headerName: "Método de Pago",
+  },
+  {
     field: "fecha",
     headerName: "Fecha",
   },
@@ -55,10 +59,10 @@ let gridApi: GridApi;
 const ReportesTable = ({ reportesData, setTotal, download, setDownload, currentDate, filtro }: Props) => {
   const gridRef = React.useRef<AgGridReact>(null);
   // Row Data: The data to be displayed.
-  const [rowData, setRowData] = useState<null | Array<any>>(reportesData);
+  // const [rowData, setRowData] = useState<null | Array<any>>(reportesData);
 
   // Column Definitions: Defines the columns to be displayed.
-  const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
+  // const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
 
   React.useEffect(() => {
     const totalCosto = reportesData.reduce(
@@ -100,7 +104,7 @@ const defaultColdef = {
       <AgGridReact
         ref={gridRef}
         rowData={reportesData}
-        columnDefs={colDefs}
+        columnDefs={colsData}
         gridOptions={gridOptions}
         defaultColDef={defaultColdef}
       />
