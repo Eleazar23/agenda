@@ -80,7 +80,6 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
       return;
     }
     addEstilista({ ...formData, id: Date.now() });
-    handleAlert("Estilista guardado con éxito", "success");
     setIsOpenModal(false);
     setFormData({ name: "", phone: "" });
   };

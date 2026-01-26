@@ -89,8 +89,8 @@ export const EstilistasCtxProvider = ({ children }: Props) => {
     try {
       await window.api.updateEstilista(updatedEstilista);
       setDataTable((prev) =>
-        prev.map((estilista, index) =>
-          index === rowIndex ? updatedEstilista : estilista
+        prev.map((estilista) =>
+          estilista.id === updatedEstilista.id ? updatedEstilista : estilista
         )
       );
       handleAlert("Estilista actualizado con éxito", "success");

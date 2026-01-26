@@ -1,7 +1,8 @@
 import * as React from "react";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
-import { Autocomplete, FormControl, InputLabel, MenuItem, TextField } from "@mui/material";
+import { FormControl, InputLabel, MenuItem } from "@mui/material";
 import { capitalizeFirstLetter } from "../../utils/utils";
+import { Estilista } from "../../types/Estilista";
 
 type Props = {
   ctxValue?: string;
@@ -16,15 +17,32 @@ const styles = {
   },
 };
 
-const options = ["todos","tomi", "felix", "magi", "arturo", "mimi"];
-
 export default function EstilistaInput({
   ctxValue,
   ctxDispatch,
   readOnly,
   variant,
 }: Props) {
-  const [value, setValue] = React.useState<string>(ctxValue || options[0]);
+  const [estilistas, setEstilistas] = React.useState<Estilista[]>([]);
+  const [value, setValue] = React.useState<string>(ctxValue || "");
+  const defaultTodos: Estilista = { id: 100000, name: "todos", phone: "", displayName: "Todos" };
+
+  React.useEffect(() => {
+    const fetchEstilistas = async () => {
+      try {
+        const data = await window.api.getEstilistas();
+        console.log("Fetched estilistas:", data);
+        setEstilistas([defaultTodos, ...data]);
+        if (!ctxValue && data.length > 0) {
+          setValue(data[0].name);
+        }
+      } catch (error) {
+        console.error("Error fetching estilistas:", error);
+      }
+    };
+    fetchEstilistas();
+  }, []);
+
   const handleChange = (event: SelectChangeEvent) => {
     if (ctxDispatch) {
       ctxDispatch("estilista", event.target.value as string);
@@ -45,9 +63,9 @@ export default function EstilistaInput({
         sx={styles.textField}
         inputProps={{ readOnly: readOnly }}
       >
-        {options.map((option) => (
-          <MenuItem key={option} value={option}>
-            {capitalizeFirstLetter(option)}
+        {estilistas.map((estilista) => (
+          <MenuItem key={estilista.id} value={estilista.name}>
+            {capitalizeFirstLetter(estilista.name)}
           </MenuItem>
         ))}
       </Select>
