@@ -4,9 +4,13 @@ import React from 'react';
 import { IconButton } from '@mui/material';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
 
-const BitacoraBtn = () => {
+interface BitacoraBtnProps {
+  onClick: () => void;
+}
+
+const BitacoraBtn = ({ onClick }: BitacoraBtnProps) => {
     return (
-<IconButton aria-label="delete" size="small">
+<IconButton aria-label="bitacora" size="small" onClick={onClick}>
   <LocalLibraryIcon fontSize="inherit" />
 </IconButton>
     );

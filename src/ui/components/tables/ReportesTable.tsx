@@ -37,8 +37,8 @@ const colsData = [
     headerName: "Hora Fin",
   },
   {
-    field: "duracion",
-    headerName: "Duración",
+    field: "estado",
+    headerName: "Estado Cita",
   },
 ];
 

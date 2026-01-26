@@ -15,6 +15,7 @@ import PrecioInput from "../Inputs/PrecioInput";
 import HoraInput from "../Inputs/HoraInput";
 import MetodoPagoInput from "../Inputs/MetodoPagoInput";
 import EstilistaInput from "../Inputs/EstilistaInput";
+import ServiciosInput from "../Inputs/ServiciosInput";
 import { formatDateFromHTML, formatDateToHTML, getDuracion } from "../../utils/utils";
 import { Cita } from "../../types/Cita";
 import { getHrsObj } from "../../utils/utils";
@@ -177,22 +178,15 @@ export default function CitaModal({ cita }: CitaModalProps) {
                     readOnly={!isEditMode}
                   />
                   <Grid container spacing={1}>
-                    <Grid size={7}>
-                      <CustomeInputField
-                        id="outlined-basic"
-                        label="Servicio"
-                        variant="filled"
-                        value={modalForm.servicio?.nombre || ""}
-                        fullWidth
-                        slotProps={{
-                          input: { readOnly: true }
+                    <Grid size={12}>
+                      <ServiciosInput
+                        value={modalForm.servicio || null}
+                        onChange={(newServicio) => {
+                          if (newServicio) {
+                            handleChange("servicio", newServicio);
+                          }
                         }}
                       />
-                    </Grid>
-                    <Grid container alignItems={"center"} size={5}>
-                      <Grid size={12}>
-                        <PrecioInput value={modalForm.servicio.precio} />
-                      </Grid>
                     </Grid>
                   </Grid>
                   <Grid container>

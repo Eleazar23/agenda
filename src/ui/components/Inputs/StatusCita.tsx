@@ -19,6 +19,12 @@ const styles = {
 export default function StatusCita({ ctxValue, ctxDispatch, readOnly }: Props) {
   const [value, setValue] = React.useState<string>(ctxValue || options[0]);
 
+  React.useEffect(() => {
+    if (ctxValue !== undefined) {
+      setValue(ctxValue);
+    }
+  }, [ctxValue]);
+
   const handleChange = (event: any) => {
     if (ctxDispatch) {
       ctxDispatch("estado", event.target.value as string);
