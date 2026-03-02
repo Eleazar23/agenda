@@ -73,6 +73,10 @@ const ClienteForm = () => {
 
   const handleGuardarNuevoCliente = () => {
     // Logic to save new cliente - MongoDB will auto-generate the ID
+    if (!cita.nombreCliente || !cita.telefonoCliente) {
+      handleAlert("Nombre y teléfono son obligatorios", "error");
+      return;
+    }
     addCliente({
       nombre: cita.nombreCliente,
       phone: cita.telefonoCliente,
@@ -100,7 +104,7 @@ const ClienteForm = () => {
             autoFocus={true}
           />
           {isNewCliente && (
-            <Box component="div" display={"flex"} sx={{ width: "100%" }}>
+            <Box component="div" display={"flex"} sx={{ width: "100%" } } justifyContent={"flex-end"}>
               <Button variant="contained" onClick={handleGuardarNuevoCliente}>
                 Guardar nuevo cliente
               </Button>

@@ -7,40 +7,6 @@ import FechaInput from "../Inputs/FechaInput";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import { Cita } from "../../types/Cita";
 
-type Reporte = {
-  estilista: string;
-  nombreCliente: string;
-  servicio: string;
-  costo: number;
-  fecha: string;
-  horaInicio: string;
-  horaFin: string;
-  duracion: number;
-};
-
-const mockData: Reporte[] = [
-  {
-    estilista: "tomi",
-    nombreCliente: "Eleazar Celis",
-    servicio: "Corte de cabello",
-    costo: 250,
-    fecha: "03-12-2025",
-    horaInicio: "10:00",
-    horaFin: "11:00",
-    duracion: 60,
-  },
-  {
-    estilista: "mimi",
-    nombreCliente: "Michelle Celis",
-    servicio: "Peinado",
-    costo: 300,
-    fecha: "03-12-2025",
-    horaInicio: "11:30",
-    horaFin: "12:15",
-    duracion: 45,
-  },
-];
-
 const styles = {
   clientesContainer: {
     width: "100%",
@@ -71,27 +37,35 @@ const styles = {
 };
 
 const Reportes = () => {
-  const { citas } = useAgendaContext();
+  // const { fecha } = useAgendaContext();
   const [allCitas, setAllCitas] = useState<Cita[]>([]);
   const [reportesData, setReportesData] = useState<Cita[]>([]);
   const [estilistaFilter, setEstilistaFilter] = useState("");
   const [fechaFilter, setFechaFilter] = useState("");
+  const [metodoDePagoFilter, setMetodoDePagoFilter] = useState("");
   const [total, setTotal] = useState(0);
   const [download, setDownload] = useState(false);
   console.log("Reportes Data:", reportesData);
 
-  // Load all citas from MongoDB on mount
-  useEffect(() => {
-    const loadAllCitas = async () => {
-      try {
-        const allCitasFromDB = await window.api.getCitas();
-        setAllCitas(allCitasFromDB);
-      } catch (error) {
-        console.error("Error loading all citas:", error);
-      }
-    };
-    loadAllCitas();
-  }, []);
+  const filterReportesData = (citas: Cita[]) => {
+    let filtaredData = citas.filter((cita) => cita.estado === "pagado");
+    if (estilistaFilter) {
+      filtaredData = filtaredData.filter(
+        (cita) => cita.estilista === estilistaFilter,
+      );
+    }
+    if (fechaFilter) {
+      filtaredData = filtaredData.filter(
+        (cita) => cita.fecha === fechaFilter,
+      );
+    }
+    if (metodoDePagoFilter) {
+      filtaredData = filtaredData.filter(
+        (cita) => cita.metodoDePago === metodoDePagoFilter,
+      );
+    }
+    return filtaredData;
+  };
 
   const handleEstilistaChange = (inputName: string, estilista: string) => {
     // Lógica para filtrar los reportes por estilista
@@ -99,42 +73,75 @@ const Reportes = () => {
       setEstilistaFilter("");
       return;
     }
-    // const filteredData = reportesData.filter( (reporte) => reporte.estilista === estilista );
     setEstilistaFilter(estilista);
-    // setReportesData(filteredData);
   };
 
   const handleFechaChange = (inputName: string, fecha: string) => {
     // Lógica para filtrar los reportes por fecha
-    setFechaFilter(fecha);
-    // setReportesData(filteredData);
+    setFechaFilter(() => fecha);
   };
 
   const handleDownload = () => {
     // Lógica para descargar el reporte en Excel
     setDownload(true);
-  }
+  };
 
   const getFilteredReportesData = () => {
     let filteredData = allCitas;
     if (estilistaFilter) {
       filteredData = filteredData.filter(
-        (reporte) => reporte.estilista === estilistaFilter
+        (reporte) => reporte.estilista === estilistaFilter,
       );
     }
-    if (fechaFilter) {
-      filteredData = filteredData.filter(
-        (reporte) => reporte.fecha === fechaFilter
-      );
-    }
+    // if (fechaFilter) {
+    //   filteredData = filteredData.filter(
+    //     (reporte) => reporte.fecha === fechaFilter
+    //   );
+    // }
     return filteredData;
   };
+
+  const getTotalCosto = (data: Cita[]) => {
+    console.log("Calculating total costo for data:", data);
+      const totalCosto = data.reduce((acc, reporte) => {
+      acc + Number(reporte.servicio.precio);
+      return acc;
+    }, 0);
+    return totalCosto;
+  };
+
+  // Load all citas from MongoDB on mount
+  const getCitasByFecha = async (fecha: string) => {
+        try {
+        const allCitasFromDBByFecha = await window.api.getCitasByFecha(fechaFilter);
+        const filteredCitas = filterReportesData(allCitasFromDBByFecha);
+        setReportesData(() => filteredCitas);
+      } catch (error) {
+        console.error("Error loading all citas:", error);
+      }
+  };
+
+  // useEffect(() => {
+  //   const loadAllCitas = async () => {
+  //     try {
+  //       const allCitasFromDBByFecha = await window.api.getCitasByFecha(fechaFilter);
+  //       console.log({ fechaFilter, allCitasFromDBByFecha });
+  //       const filteredCitas = filterReportesData(allCitasFromDBByFecha);
+  //       setReportesData(() => filteredCitas);
+  //     } catch (error) {
+  //       console.error("Error loading all citas:", error);
+  //     }
+  //   };
+  //   loadAllCitas();
+  // }, [fechaFilter]);
 
   useEffect(() => {
     // Lógica para obtener los datos de los reportes
     const filteredData = getFilteredReportesData();
-    setReportesData(filteredData);
-  }, [estilistaFilter, fechaFilter]);
+    const totalCosto = getTotalCosto(filteredData);
+    setReportesData(() => filteredData);
+    setTotal(() => totalCosto);
+  }, [allCitas, estilistaFilter]);
 
   return (
     // Data Grid will fill the size of the parent container
@@ -148,26 +155,42 @@ const Reportes = () => {
         <Paper sx={styles.paper}>
           <Box component="div" sx={styles.actionBar}>
             <Box component="div" display={"flex"} sx={{ gap: 2 }}>
-            <Box component="div" sx={{ width: "200px" }}>
-              <EstilistaInput ctxValue={estilistaFilter} ctxDispatch={handleEstilistaChange} />
+              <Box component="div" sx={{ width: "200px" }}>
+                <EstilistaInput
+                  ctxValue={estilistaFilter}
+                  ctxDispatch={handleEstilistaChange}
+                />
+              </Box>
+              <Box component="div" sx={{ width: "200px" }}>
+                <FechaInput
+                  ctxValue={fechaFilter}
+                  ctxDispatch={handleFechaChange}
+                />
+              </Box>
             </Box>
-            <Box component="div" sx={{ width: "200px" }}>
-                <FechaInput ctxValue={fechaFilter} ctxDispatch={handleFechaChange} />
-            </Box>
-                </Box>
-            <Button variant="contained" color="primary" onClick={handleDownload}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleDownload}
+            >
               Guardar Excel
             </Button>
           </Box>
         </Paper>
       </Grid>
       <Grid container sx={styles.tableContainer} size={12}>
-        <ReportesTable reportesData={reportesData} setTotal={setTotal} download={download} setDownload={setDownload} currentDate={fechaFilter} filtro={estilistaFilter} />
+        <ReportesTable
+          reportesData={reportesData}
+          download={download}
+          setDownload={setDownload}
+          currentDate={fechaFilter}
+          filtro={estilistaFilter}
+        />
       </Grid>
       <Grid container size={12}>
         <Paper sx={styles.paper}>
           <Box component="div" sx={styles.footer}>
-            <Typography variant="h6">Total: ${total.toFixed(2)}</Typography>
+            <Typography variant="h6">{`Total: $${total.toFixed(2)}`}</Typography>
           </Box>
         </Paper>
       </Grid>

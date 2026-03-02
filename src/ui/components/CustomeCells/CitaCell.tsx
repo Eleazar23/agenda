@@ -4,7 +4,7 @@ import type { CustomCellRendererProps } from "ag-grid-react";
 import CitaModal from "../modals/CitaModal";
 
 const CitaCell = (params: CustomCellRendererProps) => {
-  const { setIsCitaOpen, setCita } = useAgendaContext();
+  const { setIsCitaOpen } = useAgendaContext();
   const { value } = params;
   const { servicio } = value;
 
@@ -46,7 +46,7 @@ const CitaCell = (params: CustomCellRendererProps) => {
             </CardContent>
           </CardActionArea>
         </Card>
-        <CitaModal cita={servicio} />
+        <CitaModal key={servicio?.id} cita={servicio} />
     </Box>
     )
 }

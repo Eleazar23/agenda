@@ -48,7 +48,6 @@ const colsData = [
 
 type Props = {
   reportesData: Array<any>;
-  setTotal: React.Dispatch<React.SetStateAction<number>>;
   download?: boolean;
   setDownload?: React.Dispatch<React.SetStateAction<boolean>>;
   currentDate: string;
@@ -56,7 +55,13 @@ type Props = {
 };
 
 let gridApi: GridApi;
-const ReportesTable = ({ reportesData, setTotal, download, setDownload, currentDate, filtro }: Props) => {
+const ReportesTable = ({
+  reportesData,
+  download,
+  setDownload,
+  currentDate,
+  filtro,
+}: Props) => {
   const gridRef = React.useRef<AgGridReact>(null);
   // Row Data: The data to be displayed.
   // const [rowData, setRowData] = useState<null | Array<any>>(reportesData);
@@ -64,26 +69,25 @@ const ReportesTable = ({ reportesData, setTotal, download, setDownload, currentD
   // Column Definitions: Defines the columns to be displayed.
   // const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
 
-  React.useEffect(() => {
-    const totalCosto = reportesData.reduce(
-      (acc, reporte) => acc + Number(reporte.servicio.precio),
-      0
-    );
-    setTotal(Number(totalCosto));
-  }, [reportesData, setTotal]);
+  // React.useEffect(() => {
+  //   const totalCosto = reportesData.reduce((acc, reporte) => {
+  //     acc + Number(reporte.servicio.precio);
+  //     return acc;
+  //   }, 0);
+  //   setTotal(Number(totalCosto));
+  // }, [reportesData, setTotal]);
 
   const handleDownloadComplete = () => {
     if (download && setDownload) {
-    gridApi.exportDataAsCsv({fileName: `reporte_${filtro}_${currentDate}`});
+      gridApi.exportDataAsCsv({ fileName: `reporte_${filtro}_${currentDate}` });
       setDownload(false);
     }
   };
 
-
-const defaultColdef = {
-      sortable: true,
-      filter: true,
-    };
+  const defaultColdef = {
+    sortable: true,
+    filter: true,
+  };
   const gridOptions = {
     onGridReady: (params: any) => {
       gridApi = params.api;
@@ -92,10 +96,10 @@ const defaultColdef = {
     },
   };
 
-    React.useEffect(() => {
-        if (download) {
-        handleDownloadComplete();
-        }
+  React.useEffect(() => {
+    if (download) {
+      handleDownloadComplete();
+    }
   }, [download, setDownload]);
 
   return (

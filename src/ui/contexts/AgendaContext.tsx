@@ -267,6 +267,12 @@ export const AgendaContextProvider = ({ children }: Props) => {
   };
 
     const addCliente = async (cliente: Cliente) => {
+
+      if (!cliente.nombre || !cliente.phone) {
+        handleAlert("Nombre y teléfono son obligatorios", "error");
+        return;
+      }
+      
     try {
       const newCliente = await window.api.addCliente({
         nombre: cliente.nombre,

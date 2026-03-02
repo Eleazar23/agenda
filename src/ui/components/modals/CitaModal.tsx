@@ -8,17 +8,43 @@ import DialogActions from "@mui/material/DialogActions";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useAgendaContext } from "../../contexts/AgendaContext";
-import { Box, Divider, Grid, Stack, TextField } from "@mui/material";
+import {
+  Autocomplete,
+  Box,
+  Divider,
+  Grid,
+  InputAdornment,
+  Stack,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from "@mui/material";
 import StatusCita from "../Inputs/StatusCita";
 import PrecioInput from "../Inputs/PrecioInput";
 import HoraInput from "../Inputs/HoraInput";
 import MetodoPagoInput from "../Inputs/MetodoPagoInput";
 import EstilistaInput from "../Inputs/EstilistaInput";
 import ServiciosInput from "../Inputs/ServiciosInput";
-import { formatDateFromHTML, formatDateToHTML, getDuracion } from "../../utils/utils";
+import {
+  formatDateFromHTML,
+  formatDateToHTML,
+  getDuracion,
+} from "../../utils/utils";
 import { Cita } from "../../types/Cita";
 import { getHrsObj } from "../../utils/utils";
+import IconText from "../IconText";
+//Icons
+import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import CallOutlinedIcon from "@mui/icons-material/CallOutlined";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import ProductsCar from "../tables/ProductsCar";
+import Cantidad from "../Inputs/Cantidad";
+import AddProductForm from "../forms/AddProductForm";
+import Servicio from "./cita/Servicio";
+import TotalCitaTbl from "../tables/TotalCitaTbl";
 
 type CitaModalProps = {
   cita: Cita;
@@ -43,22 +69,42 @@ export default function CitaModal({ cita }: CitaModalProps) {
   // const { agendaData, setAgendaData } = useAgendaContext();
   const { isCitaOpen, setIsCitaOpen, handleEditCita } = useAgendaContext();
   const [isEditMode, setIsEditMode] = useState(false);
-  const [modalForm, setModalForm] = useState(cita || {
-    id: 0,
-    rowIndex: 0,
-    cellID: "",
-    fecha: "",
-    estilista: "",
-    nombreCliente: "",
-    telefonoCliente: "",
-    servicio: { id: 0, nombre: "", precio: "" },
-    horaInicio: "",
-    horaFin: "",
-    duracion: 0,
-    estado: "sin confirmar",
-    metodoDePago: "",
-    notas: "",
-  });
+  const [productos, setProductos] = useState([
+    { nombre: "Shampoo", precio: 10, cantidad: 2 },
+    { nombre: "Acondicionador", precio: 15, cantidad: 1 },
+    { nombre: "Mascarilla", precio: 20, cantidad: 1 },
+    { nombre: "Spray", precio: 12, cantidad: 3 },
+    { nombre: "Gel", precio: 8, cantidad: 2 },
+  ]);
+  const [modalForm, setModalForm] = useState(
+    cita || {
+      id: 0,
+      rowIndex: 0,
+      cellID: "",
+      fecha: "",
+      estilista: "",
+      nombreCliente: "",
+      telefonoCliente: "",
+      servicio: { id: 0, nombre: "", precio: "" },
+      horaInicio: "",
+      horaFin: "",
+      duracion: 0,
+      estado: "sin confirmar",
+      metodoDePago: "",
+      notas: "",
+    },
+  );
+  const [view, setView] = useState("servicio");
+
+  const handleAlignmentChange = (
+    event: React.MouseEvent<HTMLElement>,
+    newAlignment: string,
+  ) => {
+    if (newAlignment !== null) {
+      setView(newAlignment);
+      return;
+    }
+  };
 
   const handleCancelar = () => {
     setModalForm({ ...cita });
@@ -81,7 +127,7 @@ export default function CitaModal({ cita }: CitaModalProps) {
     // console.log({ modalForm, agendaData })
     // setAgendaData({ ...agendaData, isCitaOpen: false, modal: modalForm });
     if (cita && cita.id !== undefined) {
-      handleEditCita(cita.id, modalForm );
+      handleEditCita(cita.id, modalForm);
     }
     setIsEditMode(false);
     setIsCitaOpen(false);
@@ -116,7 +162,7 @@ export default function CitaModal({ cita }: CitaModalProps) {
       fecha: fomattedDate,
     });
     console.log({ modalForm });
-  }
+  };
 
   useEffect(() => {
     if (cita) {
@@ -129,166 +175,88 @@ export default function CitaModal({ cita }: CitaModalProps) {
     <>
       <BootstrapDialog
         fullWidth
-        maxWidth="md"
+        maxWidth="lg"
         onClose={handleClose}
         aria-labelledby="customized-dialog-title"
         open={isCitaOpen}
       >
-        <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-          {modalForm.nombreCliente} - {modalForm.telefonoCliente}
-        </DialogTitle>
-        <IconButton
-          aria-label="edit"
-          onClick={handleToggleEdit}
-          sx={(theme) => ({
-            position: "absolute",
-            right: 56,
-            top: 8,
-            color: isEditMode ? theme.palette.primary.main : theme.palette.grey[500],
-          })}
-        >
-          <EditIcon />
-        </IconButton>
-        <IconButton
-          aria-label="close"
-          onClick={handleClose}
-          sx={(theme) => ({
-            position: "absolute",
-            right: 8,
-            top: 8,
-            color: theme.palette.grey[500],
-          })}
-        >
-          <CloseIcon />
-        </IconButton>
-        <DialogContent dividers>
-          <Box component="div" display="flex" sx={{ flexGrow: 1 }}>
-            <Grid
-              container
-              direction={"row"}
-              spacing={2}
-              size={12}
-              flexGrow={1}
+        <Box display="flex" justifyContent="space-between" margin={2}>
+          <Box
+            component="div"
+            display="flex"
+            justifyContent="flex-start"
+            alignContent="center"
+            gap={2}
+          >
+            <IconText
+              icon={<AccountCircleOutlinedIcon />}
+              label={modalForm.nombreCliente}
+            />
+            <IconText
+              icon={<CallOutlinedIcon />}
+              label={modalForm.telefonoCliente}
+            />
+            <CustomeInputField
+              name="fecha"
+              type="date"
+              id="filled-basic"
+              label="Fecha"
+              variant="filled"
+              fullWidth
+              value={formatDateToHTML(modalForm.fecha || "")}
+              onChange={(e) => handleChangeFecha(e.target.value)}
+            />
+            <ToggleButtonGroup
+              color="primary"
+              value={view}
+              exclusive
+              onChange={handleAlignmentChange}
+              aria-label="Platform"
             >
-              <Grid size={5} flexGrow={1}>
-                <Stack spacing={2}>
-                  <EstilistaInput
-                    ctxValue={modalForm.estilista}
-                    ctxDispatch={handleChange}
-                    readOnly={!isEditMode}
-                  />
-                  <Grid container spacing={1}>
-                    <Grid size={12}>
-                      <ServiciosInput
-                        value={modalForm.servicio || null}
-                        onChange={(newServicio) => {
-                          if (newServicio) {
-                            handleChange("servicio", newServicio);
-                          }
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-                  <Grid container>
-                    <CustomeInputField
-                      name="fecha"
-                      type="date"
-                      id="outlined-basic"
-                      label="Fecha"
-                      variant="filled"
-                      fullWidth
-                      value={formatDateToHTML(modalForm.fecha || "")}
-                      onChange={(e) =>
-                        handleChangeFecha(e.target.value)
-                      }
-                      slotProps={{
-                        input: { readOnly: !isEditMode }
-                      }}
-                    />
-                  </Grid>
-                  <Grid container spacing={1} flexGrow={1}>
-                    <Grid size={6}>
-                      <HoraInput 
-                        label="Hora Inicio"
-                        name="horaInicio"
-                        hora={modalForm.horaInicio}
-                        onChange={(newHora) => handleChange("horaInicio", newHora)}
-                        readOnly={!isEditMode}
-                      />
-                    </Grid>
-                    <Grid size={6}>
-                      <HoraInput 
-                        label="Hora Fin"
-                        name="horaFin"
-                        hora={modalForm.horaFin}
-                        onChange={(newHora) => handleChange("horaFin", newHora)}
-                        readOnly={!isEditMode}
-                      />
-                      {/* <CustomeInputField
-                        type="number"
-                        slotProps={{ htmlInput: { step: "30", min: "30" } }}
-                        defaultValue={modalForm.duracion}
-                        id="filled-basic-number-duracion"
-                        variant="filled"
-                        name="duracion"
-                        label="Duracion"
-                        onChange={(e) =>
-                          handleChange("duracion", parseInt(e.target.value))
-                        }
-                      /> */}
-                    </Grid>
-                  </Grid>
-                </Stack>
-              </Grid>
-
-              <Divider orientation="vertical" flexItem />
-
-              <Grid size={6} sx={{ height: "100%" }} flexGrow={1}>
-                <Stack spacing={1}>
-                  <Grid container spacing={2} flexGrow={1} direction={"column"}>
-                    <Grid flexGrow={1}>
-                      <StatusCita
-                        ctxDispatch={handleChange}
-                        ctxValue={modalForm.estado}
-                        readOnly={!isEditMode}
-                      />
-                    </Grid>
-                    <Grid flexGrow={1}>
-                      <MetodoPagoInput ctxDispatch={handleChange} ctxValue={modalForm.metodoDePago} readOnly={!isEditMode} />
-                    </Grid>
-                  </Grid>
-                  <Divider flexItem />
-                  <TextField
-                    name="notas"
-                    label="Notas"
-                    variant="filled"
-                    fullWidth
-                    multiline
-                    rows={5}
-                    value={modalForm.notas || ""}
-                    onChange={(e) =>
-                      handleChange("notas", e.target.value)
-                    }
-                    slotProps={{
-                      input: { readOnly: !isEditMode }
-                    }}
-                  />
-                </Stack>
-              </Grid>
-            </Grid>
+              <ToggleButton value="servicio">Servicio</ToggleButton>
+              <ToggleButton value="total">Total</ToggleButton>
+            </ToggleButtonGroup>
           </Box>
+
+          <Box component={"div"} display="flex">
+            <IconButton
+              aria-label="edit"
+              onClick={handleToggleEdit}
+              sx={(theme) => ({
+                position: "absolute",
+                right: 56,
+                top: 8,
+                color: isEditMode
+                  ? theme.palette.primary.main
+                  : theme.palette.grey[500],
+              })}
+            >
+              <EditIcon />
+            </IconButton>
+            <IconButton
+              aria-label="close"
+              onClick={handleClose}
+              sx={(theme) => ({
+                position: "absolute",
+                right: 8,
+                top: 8,
+                color: theme.palette.grey[500],
+              })}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </Box>
+
+        <DialogContent dividers>
+          {view === "servicio" ? <Servicio /> : <TotalCitaTbl />}
         </DialogContent>
 
         <DialogActions>
           <Button autoFocus onClick={handleCancelar}>
             Cancelar
           </Button>
-          <Button 
-            autoFocus 
-            onClick={handleGuardar} 
-            variant="contained"
-            disabled={!isEditMode}
-          >
+          <Button autoFocus onClick={handleGuardar} variant="contained">
             Guardar
           </Button>
         </DialogActions>
