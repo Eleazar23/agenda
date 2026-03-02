@@ -6,7 +6,7 @@ export interface IProducto {
   marca: string;
   precio: string;
   descripcion?: string;
-  stock?: number;
+  stock: number;
 }
 
 const productoSchema = new Schema<IProducto>({

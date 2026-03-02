@@ -1,6 +1,7 @@
 import * as React from "react";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { capitalizeFirstLetter } from "../../utils/utils";
+import { statusCitaOptions } from "../../utils/StatusCitaOptions";
 
 type Props = {
   ctxValue?: string;
@@ -8,7 +9,7 @@ type Props = {
   readOnly?: boolean;
 };
 
-const options = ["sin confirmar","confirmado", "en proceso", "pagado", "cancelado", "no asistio", "finalizado"];
+// const options = ["sin confirmar","confirmado", "en proceso", "pagado", "cancelado", "no asistio", "finalizado"];
 
 const styles = {
   textField: {
@@ -17,7 +18,7 @@ const styles = {
 };
 
 export default function StatusCita({ ctxValue, ctxDispatch, readOnly }: Props) {
-  const [value, setValue] = React.useState<string>(ctxValue || options[0]);
+  const [value, setValue] = React.useState<string>(ctxValue || statusCitaOptions[0].value);
 
   React.useEffect(() => {
     if (ctxValue !== undefined) {
@@ -43,11 +44,11 @@ export default function StatusCita({ ctxValue, ctxDispatch, readOnly }: Props) {
         onChange={handleChange}
         sx={styles.textField}
         inputProps={{ readOnly: readOnly }}
-        defaultValue={options[0]}
+        defaultValue={statusCitaOptions[0].value}
       >
-        {options.map((option) => (
-          <MenuItem key={option} value={option}>
-            {capitalizeFirstLetter(option)}
+        {statusCitaOptions.map((option) => (
+          <MenuItem key={option.id} value={option.value}>
+            {capitalizeFirstLetter(option.label)}
           </MenuItem>
         ))}
       </Select>

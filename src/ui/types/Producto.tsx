@@ -4,5 +4,5 @@ export type Producto = {
     marca: string;
     precio: string;
     descripcion?: string;
-    stock?: number;
+    stock: number | 0;
 };

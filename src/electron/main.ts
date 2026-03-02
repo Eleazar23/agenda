@@ -44,9 +44,11 @@ ipcMain.handle('add-cliente', async (_event, cliente) => {
 
 ipcMain.handle('update-cliente', async (_event, cliente) => {
     try {
+        // Remove _id and __v fields that might come from MongoDB
+        const { _id, __v, ...clienteData } = cliente as any;
         const updated = await Cliente.findOneAndUpdate(
             { id: cliente.id },
-            cliente,
+            clienteData,
             { new: true }
         ).lean();
         return updated;
@@ -138,9 +140,11 @@ ipcMain.handle('add-servicio', async (_event, servicio) => {
 
 ipcMain.handle('update-servicio', async (_event, servicio) => {
     try {
+        // Remove _id and __v fields that might come from MongoDB
+        const { _id, __v, ...servicioData } = servicio as any;
         const updated = await Servicio.findOneAndUpdate(
             { id: servicio.id },
-            servicio,
+            servicioData,
             { new: true }
         ).lean();
         return updated;
@@ -171,7 +175,7 @@ ipcMain.handle('get-productos', async () => {
 
 ipcMain.handle('add-producto', async (_event, producto) => {
     try {
-        const maxId = await Producto.findOne().sort('-id').lean();
+        const maxId = await Producto.findOne().sort('id').lean();
         const newId = maxId ? maxId.id + 1 : 1;
         const newProducto = new Producto({ ...producto, id: newId });
         await newProducto.save();
@@ -184,9 +188,11 @@ ipcMain.handle('add-producto', async (_event, producto) => {
 
 ipcMain.handle('update-producto', async (_event, producto) => {
     try {
+        // Remove _id and __v fields that might come from MongoDB
+        const { _id, __v, ...productoData } = producto as any;
         const updated = await Producto.findOneAndUpdate(
             { id: producto.id },
-            producto,
+            productoData,
             { new: true }
         ).lean();
         return updated;

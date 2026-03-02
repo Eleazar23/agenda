@@ -6,7 +6,7 @@
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
-    "dev:electron": "electron .",
+    "dev:electron": "npm run build && electron .",
     "dev": "vite",
     "build": "tsc && vite build && npm run transpile:electron",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -16,12 +16,13 @@
     "dist:win": "electron-builder --win --x64"
   },
   "dependencies": {
+    "@base-ui/react": "^1.2.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.1",
     "@mui/material": "^7.3.1",
     "@mui/x-date-pickers": "^8.11.0",
-    "ag-grid-react": "^34.1.2",
+    "ag-grid-react": "^34.3.1",
     "dayjs": "^1.11.18",
     "mongoose": "^8.20.1",
     "notistack": "^3.0.2",

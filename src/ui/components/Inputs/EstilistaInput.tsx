@@ -31,10 +31,11 @@ export default function EstilistaInput({
     const fetchEstilistas = async () => {
       try {
         const data = await window.api.getEstilistas();
-        console.log("Fetched estilistas:", data);
-        setEstilistas([defaultTodos, ...data]);
-        if (!ctxValue && data.length > 0) {
-          setValue(data[0].name);
+        const dataWithTodos = [defaultTodos, ...data];
+        console.log("Fetched estilistas:", dataWithTodos);
+        setEstilistas(dataWithTodos);
+        if (!ctxValue && dataWithTodos.length > 0) {
+          setValue(dataWithTodos[0].name);
         }
       } catch (error) {
         console.error("Error fetching estilistas:", error);
