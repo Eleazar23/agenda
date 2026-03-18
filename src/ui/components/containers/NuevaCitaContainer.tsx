@@ -3,6 +3,7 @@ import { Button, Grid, Paper, Typography } from "@mui/material";
 import ClienteContainer from "./ClienteContainer";
 import ServiciosContainer from "./ServiciosContainer";
 import { useAgendaContext } from "../../contexts/AgendaContext";
+import ClienteForm from "../forms/ClienteForm";
 
 const NuevaCitaContainer = () => {
   const { cita, handleCancelarCita, guardarCita, handleAlert } =
@@ -14,10 +15,10 @@ const NuevaCitaContainer = () => {
 
   const handleGuardar = () => {
     // const {cita} = agendaData
-    const nombreteLen = cita.nombreCliente.length;
+    const nombreLen = cita.nombreCliente.length;
     const phoneLen = cita.telefonoCliente.length;
 
-    if (nombreteLen < 1) {
+    if (nombreLen < 1) {
       return handleAlert("Nombre de cliente incorrecto", "error");
     }
     if (phoneLen > 1 && phoneLen < 10) {
@@ -56,7 +57,7 @@ const NuevaCitaContainer = () => {
       </Grid>
       <Grid container size={12} gap={2}>
         <Grid size={12} gap={2}>
-          <ClienteContainer />
+          <ClienteForm />
         </Grid>
         <Grid size={12} gap={2}>
           <ServiciosContainer />

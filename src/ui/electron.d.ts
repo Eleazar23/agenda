@@ -35,6 +35,7 @@ export interface IElectronAPI {
   updateCita: (cita: Cita) => Promise<Cita>;
   deleteCita: (id: number) => Promise<void>;
   getCitasByFecha: (fecha: string) => Promise<Cita[]>;
+  getCitaByFechaCliente: (fecha: string, nombreCliente: string) => Promise<Cita | null>;
 }
 
 declare global {

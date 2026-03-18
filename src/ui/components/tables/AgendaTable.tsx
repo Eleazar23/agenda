@@ -10,6 +10,7 @@ import { getHrs } from "../../utils/utils";
 import CutomeCellRenderer from "../CustomeCells/CutomeCellRenderer";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import { Cita } from "../../types/Cita";
+import { ServicioAgendado } from "../../types/ServicioAgendado";
 import { Servicio } from "../../types/Servicio";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -119,7 +120,7 @@ const AgendaTable = () => {
     [],
   );
 
-  const genarateRowsByService = useCallback((servicio: Cita) => {
+  const genarateRowsByService = useCallback((servicio: ServicioAgendado) => {
     const { duracion, servicio: servicioName } = servicio;
     let counter = duracion / 30 - 1;
     let rowsToAdd = [servicio];
@@ -141,8 +142,8 @@ const AgendaTable = () => {
     return rowsToAdd;
   }, []);
 
-  const getRealServicesArray = useCallback((servicios: Array<Cita>) => {
-    let arrNewServices: Array<Cita> = [];
+  const getRealServicesArray = useCallback((servicios: Array<ServicioAgendado>) => {
+    let arrNewServices: Array<ServicioAgendado> = [];
 
     servicios.forEach((servicio) => {
       if (servicio.duracion <= 30) {
@@ -171,8 +172,8 @@ const AgendaTable = () => {
     const newRowsData: Array<any> = rowInitData.map(row => ({ ...row }));
     
     todaysCitas.forEach((cita) => {
-      const { nombreCliente, telefonoCliente, fecha } = cita;
-      const realServices = getRealServicesArray([cita]);
+      const { nombreCliente, telefonoCliente, fecha, estado } = cita;
+      const realServices = getRealServicesArray(cita.servicios);
       
       realServices.forEach((servicio) => {
         const { rowIndex, estilista } = servicio;
@@ -182,6 +183,7 @@ const AgendaTable = () => {
             telefonoCliente,
             fecha,
             servicio,
+            estado,
           };
         }
       });

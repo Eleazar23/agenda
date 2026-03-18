@@ -1,18 +1,16 @@
-import { Servicio } from "./Servicio";
+import { ProductoInCita } from "./Producto";
+// import { Servicio } from "./Servicio";
+import { ServicioAgendado } from "./ServicioAgendado";
 
 // type EstadoCita = "pendiente" | "confirmada" | "cancelada" | "completada";
 
 export type Cita = {
     id: number;
-    rowIndex: number;
     fecha: string;
-    estilista: string;
     nombreCliente: string;
     telefonoCliente: string;
-    servicio: Servicio;
-    horaInicio: string;
-    horaFin: string;
-    duracion: number;
+    servicios: ServicioAgendado[] | [];
+    productos: ProductoInCita[] | [];
     estado: string;
     metodoDePago: string;
     notas: string;

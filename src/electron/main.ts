@@ -175,7 +175,7 @@ ipcMain.handle('get-productos', async () => {
 
 ipcMain.handle('add-producto', async (_event, producto) => {
     try {
-        const maxId = await Producto.findOne().sort('id').lean();
+        const maxId = await Producto.findOne().sort('-id').lean();
         const newId = maxId ? maxId.id + 1 : 1;
         const newProducto = new Producto({ ...producto, id: newId });
         await newProducto.save();
@@ -226,6 +226,15 @@ ipcMain.handle('get-citas-by-fecha', async (_event, fecha) => {
         return await Cita.find({ fecha }).lean();
     } catch (error) {
         console.error('Error getting citas by fecha:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-cita-by-fecha-cliente', async (_event, fecha, nombreCliente) => {
+    try {
+        return await Cita.findOne({ fecha, nombreCliente }).lean();
+    } catch (error) {
+        console.error('Error getting citas by fecha and cliente:', error);
         throw error;
     }
 });

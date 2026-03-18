@@ -1,14 +1,13 @@
 import * as React from "react";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
-import { useAgendaContext } from "../../contexts/AgendaContext";
-import { Servicio } from "../../types/Servicio";
 import { Box } from "@mui/material";
+import { Producto } from "../../types/Producto";
 
 type Props = {
   serviceIndex?: number;
-  value: Servicio | null;
-  onChange: (newValue: Servicio | null) => void;
+  value: Producto | null;
+  onChange: (newValue: Producto | null) => void;
 };
 
 const styles = {
@@ -17,44 +16,36 @@ const styles = {
   },
 };
 
-// const options = [ // fix when mongo db working
-//   "Corte de Cabello H",
-//   "Corte de Cabello M",
-//   "Tinte",
-//   "Peinado",
-// ];
-
-export default function ServiciosInput({ value, onChange }: Props) {
+export default function ProductInput({ value, onChange }: Props) {
   // const { servicios } = useAgendaContext();
-  const [options, setOptions] = React.useState<Array<Servicio>>([]);
+  const [options, setOptions] = React.useState<Array<Producto>>([]);
   const [inputValue, setInputValue] = React.useState("");
 
-  const handleChange = (event: any, newValue: Servicio | null) => {
+  const handleChange = (event: any, newValue: Producto | null) => {
     event.preventDefault();
+    console.log("Selected product:", newValue);
     if (newValue) {
       onChange(newValue);
-      console.log("Selected service:", newValue);
     }
   };
 
-  const getServicios = async () => {
+  const getProductos = async () => {
     try {
-      console.log("Obteniendo datos de servicios...");
-      const servicios = await window.api.getServicios();
-      setOptions(servicios);
-      return servicios;
+      const productos = await window.api.getProductos();
+      setOptions(productos);
+      return productos;
     } catch (error) {
-      console.error("Error loading servicios:", error);
+      console.error("Error loading productos:", error);
       return [];
     }
   };
 
   React.useEffect(() => {
-    getServicios();
+    getProductos();
   }, []);
 
   return (
-    <Autocomplete<Servicio>
+    <Autocomplete<Producto>
       getOptionLabel={(option) => option.nombre}
       options={options}
       fullWidth
@@ -63,7 +54,7 @@ export default function ServiciosInput({ value, onChange }: Props) {
         <TextField
           {...params}
           sx={styles.textField}
-          label="Servicio"
+          label="Producto"
           variant="filled"
         />
       )}
@@ -77,7 +68,7 @@ export default function ServiciosInput({ value, onChange }: Props) {
         const { key, ...optionProps } = props;
         return (
           <Box component="li" key={key} {...optionProps}>
-            {option.nombre} - ${option.precio}
+            {`${option.nombre} - $${option.precio} | Stock: ${option.stock}`}
           </Box>
         );
       }}

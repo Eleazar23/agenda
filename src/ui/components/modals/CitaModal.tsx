@@ -8,46 +8,33 @@ import DialogActions from "@mui/material/DialogActions";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useAgendaContext } from "../../contexts/AgendaContext";
-import {
-  Autocomplete,
-  Box,
-  Divider,
-  Grid,
-  InputAdornment,
-  Stack,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
-} from "@mui/material";
-import StatusCita from "../Inputs/StatusCita";
-import PrecioInput from "../Inputs/PrecioInput";
-import HoraInput from "../Inputs/HoraInput";
-import MetodoPagoInput from "../Inputs/MetodoPagoInput";
-import EstilistaInput from "../Inputs/EstilistaInput";
-import ServiciosInput from "../Inputs/ServiciosInput";
+import { Box, TextField, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import {
   formatDateFromHTML,
   formatDateToHTML,
   getDuracion,
 } from "../../utils/utils";
 import { Cita } from "../../types/Cita";
-import { getHrsObj } from "../../utils/utils";
+import {getHrs, getHrsObj } from "../../utils/utils";
 import IconText from "../IconText";
 //Icons
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import CallOutlinedIcon from "@mui/icons-material/CallOutlined";
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
-import ProductsCar from "../tables/ProductsCar";
-import Cantidad from "../Inputs/Cantidad";
-import AddProductForm from "../forms/AddProductForm";
-import Servicio from "./cita/Servicio";
+// import Servicio from "./cita/Servicio";
 import TotalCitaTbl from "../tables/TotalCitaTbl";
+import ServicioForm from "./cita/Servicio";
+import { ServicioAgendado } from "../../types/ServicioAgendado";
+import { Producto, ProductoInCita } from "../../types/Producto";
 
 type CitaModalProps = {
-  cita: Cita;
+  fecha: string;
+  nombreCliente: string;
+  telefonoCliente?: string;
+  servicio: ServicioAgendado;
+  estado: string;
+  isCitaOpen: boolean;
+  setIsCitaOpen: (open: boolean) => void;
 };
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
@@ -65,36 +52,49 @@ const CustomeInputField = styled(TextField)(() => ({
   },
 }));
 
-export default function CitaModal({ cita }: CitaModalProps) {
+export default function CitaModal({
+  fecha,
+  nombreCliente,
+  telefonoCliente,
+  servicio,
+  estado,
+  isCitaOpen,
+  setIsCitaOpen,
+}: CitaModalProps) {
   // const { agendaData, setAgendaData } = useAgendaContext();
-  const { isCitaOpen, setIsCitaOpen, handleEditCita } = useAgendaContext();
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [productos, setProductos] = useState([
-    { nombre: "Shampoo", precio: 10, cantidad: 2 },
-    { nombre: "Acondicionador", precio: 15, cantidad: 1 },
-    { nombre: "Mascarilla", precio: 20, cantidad: 1 },
-    { nombre: "Spray", precio: 12, cantidad: 3 },
-    { nombre: "Gel", precio: 8, cantidad: 2 },
-  ]);
-  const [modalForm, setModalForm] = useState(
+  const [cita, setCita] = useState<Cita | null>(null);
+  // const { isCitaOpen, setIsCitaOpen, handleEditCita } = useAgendaContext();
+  const { handleEditCita } = useAgendaContext();
+  // const { isCitaOpen, setIsCitaOpen } = useState(false);
+  // const [isEditMode, setIsEditMode] = useState(false);
+  const [view, setView] = useState("servicio");
+  const [citaForm, setCitaForm] = useState<Cita>(
     cita || {
       id: 0,
-      rowIndex: 0,
-      cellID: "",
-      fecha: "",
-      estilista: "",
-      nombreCliente: "",
-      telefonoCliente: "",
-      servicio: { id: 0, nombre: "", precio: "" },
-      horaInicio: "",
-      horaFin: "",
-      duracion: 0,
-      estado: "sin confirmar",
-      metodoDePago: "",
+      fecha,
+      nombreCliente,
+      telefonoCliente: telefonoCliente || "",
+      servicios: [],
+      productos: [],
+      estado: estado || "sin confirmar",
+      metodoDePago: "efectivo",
       notas: "",
     },
   );
-  const [view, setView] = useState("servicio");
+
+  const getCitaData = async () => {
+    try {
+      const citaData = await window.api.getCitaByFechaCliente(
+        fecha,
+        nombreCliente,
+      );
+      setCita(() => citaData);
+      setCitaForm((prev) => ({ ...prev, ...citaData }));
+    } catch (error) {
+      console.error("Error adding cliente:", error);
+      // console.log("Error al agregar cliente", "error");
+    }
+  };
 
   const handleAlignmentChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -107,69 +107,101 @@ export default function CitaModal({ cita }: CitaModalProps) {
   };
 
   const handleCancelar = () => {
-    setModalForm({ ...cita });
-    setIsEditMode(false);
+    setCitaForm(prev => ({ ...prev, ...cita }));
+    // setIsEditMode(false);
     setIsCitaOpen(false);
   };
 
   const handleClose = () => {
-    setModalForm({ ...cita });
-    setIsEditMode(false);
+    // setModalForm({ ...cita });
+    // setIsEditMode(false);
     setIsCitaOpen(false);
   };
 
   const handleToggleEdit = () => {
-    setIsEditMode(!isEditMode);
+    // setIsEditMode(!isEditMode);
   };
 
   const handleGuardar = () => {
     // Guardar los cambios realizados en el modal
+    handleEditCita(citaForm.id, citaForm);
     // console.log({ modalForm, agendaData })
     // setAgendaData({ ...agendaData, isCitaOpen: false, modal: modalForm });
-    if (cita && cita.id !== undefined) {
-      handleEditCita(cita.id, modalForm);
-    }
-    setIsEditMode(false);
-    setIsCitaOpen(false);
+    // if (servicio && servicio.id !== undefined) {
+    // }
+    // setIsEditMode(false);
+
+    console.log({ citaForm });
+
+    // setIsCitaOpen(false);
   };
 
-  const handleDuracionChange = () => {
-    const newDuracion = getDuracion(modalForm.horaInicio, modalForm.horaFin);
-    setModalForm({
-      ...modalForm,
-      duracion: newDuracion,
-    });
+  const updateProductosInCita = (newProductos: Array<ProductoInCita>) => {
+    setCitaForm((prev) => ({
+      ...prev,
+      productos: newProductos,
+    }));
   };
+
+  const updateServicioInCita = (updatedServicio: ServicioAgendado) => {
+    const newHr = getHrsObj(updatedServicio.horaInicio);
+    const newRowIndex = newHr ? newHr.index : updatedServicio.rowIndex;
+    const serviceToUpdateIndex = citaForm.servicios.findIndex(
+      (s) => s.id === updatedServicio.id,
+    );
+    if (serviceToUpdateIndex === -1) return;
+    const updatedServicios = [...citaForm.servicios];
+    updatedServicios[serviceToUpdateIndex] = { ...updatedServicio, rowIndex: newRowIndex };
+    setCitaForm((prev) => ({
+      ...prev,
+      servicios: updatedServicios,
+    }));
+  };
+
+  // const handleDuracionChange = () => {
+  //   const newDuracion = getDuracion(citaForm.horaInicio, citaForm.horaFin);
+  //   setCitaForm({
+  //     ...citaForm,
+  //     duracion: newDuracion,
+  //   });
+  // };
+
+  // useEffect(() => {
+  //   handleDuracionChange();
+  // }, [modalForm.horaInicio, modalForm.horaFin]);
 
   useEffect(() => {
-    handleDuracionChange();
-  }, [modalForm.horaInicio, modalForm.horaFin]);
+    // if (isCitaOpen) {
+    //   getCitaData();
+    // }
+    getCitaData();
+    console.log({ cita });
+  }, []);
 
-  const handleChange = (inputName: string, value: any) => {
-    console.log({ modalForm, inputName, value });
-    const newRowIndex = getHrsObj(modalForm.horaInicio)?.index;
-    setModalForm({
-      ...modalForm,
-      [inputName]: value,
-      rowIndex: newRowIndex,
-    });
-  };
+  // const handleChange = (inputName: string, value: any) => {
+  //   console.log({ modalForm, inputName, value });
+  //   const newRowIndex = getHrsObj(modalForm.horaInicio)?.index;
+  //   setModalForm({
+  //     ...modalForm,
+  //     [inputName]: value,
+  //     rowIndex: newRowIndex,
+  //   });
+  // };
 
   const handleChangeFecha = (newDate: string) => {
     const fomattedDate = formatDateFromHTML(newDate);
-    setModalForm({
-      ...modalForm,
+    setCitaForm({
+      ...citaForm,
       fecha: fomattedDate,
     });
-    console.log({ modalForm });
   };
 
-  useEffect(() => {
-    if (cita) {
-      setModalForm({ ...cita });
-      setIsEditMode(false);
-    }
-  }, [cita]);
+  // useEffect(() => {
+  //   if (servicio) {
+  //     // setModalForm({ ...cita });
+  //     setIsEditMode(false);
+  //   }
+  // }, [servicio]);
 
   return (
     <>
@@ -190,11 +222,11 @@ export default function CitaModal({ cita }: CitaModalProps) {
           >
             <IconText
               icon={<AccountCircleOutlinedIcon />}
-              label={modalForm.nombreCliente}
+              label={nombreCliente || "Sin nombre"}
             />
             <IconText
               icon={<CallOutlinedIcon />}
-              label={modalForm.telefonoCliente}
+              label={telefonoCliente || "Sin teléfono"}
             />
             <CustomeInputField
               name="fecha"
@@ -203,7 +235,7 @@ export default function CitaModal({ cita }: CitaModalProps) {
               label="Fecha"
               variant="filled"
               fullWidth
-              value={formatDateToHTML(modalForm.fecha || "")}
+              value={formatDateToHTML(citaForm.fecha)}
               onChange={(e) => handleChangeFecha(e.target.value)}
             />
             <ToggleButtonGroup
@@ -214,32 +246,15 @@ export default function CitaModal({ cita }: CitaModalProps) {
               aria-label="Platform"
             >
               <ToggleButton value="servicio">Servicio</ToggleButton>
-              <ToggleButton value="total">Total</ToggleButton>
+              <ToggleButton value="total">Cita</ToggleButton>
             </ToggleButtonGroup>
           </Box>
 
           <Box component={"div"} display="flex">
             <IconButton
-              aria-label="edit"
-              onClick={handleToggleEdit}
-              sx={(theme) => ({
-                position: "absolute",
-                right: 56,
-                top: 8,
-                color: isEditMode
-                  ? theme.palette.primary.main
-                  : theme.palette.grey[500],
-              })}
-            >
-              <EditIcon />
-            </IconButton>
-            <IconButton
               aria-label="close"
               onClick={handleClose}
               sx={(theme) => ({
-                position: "absolute",
-                right: 8,
-                top: 8,
                 color: theme.palette.grey[500],
               })}
             >
@@ -249,7 +264,17 @@ export default function CitaModal({ cita }: CitaModalProps) {
         </Box>
 
         <DialogContent dividers>
-          {view === "servicio" ? <Servicio /> : <TotalCitaTbl />}
+          {view === "servicio" ? (
+            <ServicioForm
+              servicio={servicio}
+              citaForm={citaForm}
+              setCitaForm={setCitaForm}
+              updateProductosInCita={updateProductosInCita}
+              updateServicioInCita={updateServicioInCita}
+            />
+          ) : (
+            <TotalCitaTbl cita={cita} />
+          )}
         </DialogContent>
 
         <DialogActions>
