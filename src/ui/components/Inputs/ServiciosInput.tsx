@@ -58,13 +58,18 @@ export default function ServiciosInput({ value, onChange }: Props) {
       getOptionLabel={(option) => option.nombre}
       options={options}
       fullWidth
-      value={value }
+      value={value}
       renderInput={(params) => (
-        <TextField {...params} sx={styles.textField} label="Servicio" variant="filled" />
+        <TextField
+          {...params}
+          sx={styles.textField}
+          label="Servicio"
+          variant="filled"
+        />
       )}
       onChange={handleChange}
       onInputChange={(event, newInputValue) => {
-        console.log(event)
+        console.log(event);
         setInputValue(newInputValue);
       }}
       inputValue={inputValue}

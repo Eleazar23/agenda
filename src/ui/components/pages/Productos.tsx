@@ -6,20 +6,12 @@ import ProductosTable from "../tables/ProductsTable";
 import { ProductosCtxProvider } from "../../contexts/ProductosCtx";
 import AddProductoModal from "../modals/productos/AddProductoModal";
 
-type Producto = {
-  id?: string;
-  name: string;
-  marca: string;
-  precio: string;
-};
-
-const mockData: Producto[] = [
-  {
-    name: "Shampoo",
-    marca: "Pantene",
-    precio: "150",
-  },
-];
+// type Producto = {
+//   id?: string;
+//   name: string;
+//   marca: string;
+//   precio: string;
+// };
 
 const styles = {
   productosContainer: {

@@ -6,17 +6,33 @@ export interface IServicioInCita {
   precio: string;
 }
 
-export interface ICita {
+export interface IProductoInCita {
+  id: number;
+  nombre: string;
+  estilista: string;
+  precio: string;
+  cantidad: number;
+}
+
+export interface IServicioAgendadoInCita {
   id: number;
   rowIndex: number;
-  fecha: string;
-  estilista: string;
-  nombreCliente: string;
-  telefonoCliente: string;
+  cellID: string;
   servicio: IServicioInCita;
+  estilista: string;
   horaInicio: string;
   horaFin: string;
   duracion: number;
+  fecha: string;
+}
+
+export interface ICita {
+  id: number;
+  fecha: string;
+  nombreCliente: string;
+  telefonoCliente: string;
+  servicios: IServicioAgendadoInCita[] | [];
+  productos: IProductoInCita[] | [];
   estado: string;
   metodoDePago: string;
   notas: string;
@@ -30,15 +46,11 @@ const servicioInCitaSchema = new Schema<IServicioInCita>({
 
 const citaSchema = new Schema<ICita>({
   id: { type: Number, required: true, unique: true },
-  rowIndex: { type: Number, required: true },
   fecha: { type: String, required: true },
-  estilista: { type: String, required: true },
   nombreCliente: { type: String, required: true },
   telefonoCliente: { type: String, required: true },
-  servicio: { type: servicioInCitaSchema, required: true },
-  horaInicio: { type: String, required: true },
-  horaFin: { type: String, required: true },
-  duracion: { type: Number, required: true },
+  servicios: { type: [Object], default: [] },
+  productos: { type: [Object], default: [] },
   estado: { type: String, required: true },
   metodoDePago: { type: String},
   notas: { type: String},

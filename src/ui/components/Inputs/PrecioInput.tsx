@@ -1,7 +1,7 @@
 import { InputAdornment, TextField } from "@mui/material";
 
 type Props = {
-  value?: null | string;
+  value?: number;
   error?: boolean;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   variant?: "filled" | "outlined" | "standard";
@@ -23,7 +23,7 @@ function PrecioInput({ value, error, onChange, variant }: Props) {
       variant={variant || "filled"}
       label="Precio"
       name="precio"
-      value={value || ""}
+      value={value || 0}
       error={error}
       helperText={error ? "El precio es requerido" : ""}
       onChange={handleChange}

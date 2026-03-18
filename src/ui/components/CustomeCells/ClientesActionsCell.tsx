@@ -5,7 +5,7 @@ import DeleteBtn from "../buttons/DeleteBtn";
 import EditClienteModal from "../modals/clientes/EditClienteModal";
 import ElimClienteModal from "../modals/clientes/ElimClienteModal";
 import BitacoraBtn from "../buttons/BitacoraBtn";
-import BitacoraModal from "../modals/clientes/BitacoraModal";
+// import BitacoraModal from "../modals/clientes/BitacoraModal";
 
 function ClientesActionsCell(params: any) {
   const [isEditing, setIsEditing] = useState(false);
@@ -45,11 +45,11 @@ function ClientesActionsCell(params: any) {
         onClose={() => setIsEliminar(false)}
         clienteData={params.data}
       />
-      <BitacoraModal
+      {/* <BitacoraModal
         open={isBitacoraOpen}
         onClose={() => setIsBitacoraOpen(false)}
         cliente={params.data}
-      />
+      /> */}
     </>
   );
 }

@@ -32,7 +32,7 @@ const AddServicioModal: React.FC<ServicioDialogProps> = ({
     initialServicio || {
       id: 0,
       nombre: "",
-      precio: "0",
+      precio: 0,
     }
   );
   const [errors, setErrors] = useState<FormErrors>({});
@@ -74,7 +74,7 @@ const AddServicioModal: React.FC<ServicioDialogProps> = ({
     }
 
     addServicio({ ...formData, id: Date.now() });
-    setFormData({ id: 0, nombre: "", precio: "0" });
+    setFormData({ id: 0, nombre: "", precio: 0 });
     onClose();
   };
 

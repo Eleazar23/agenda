@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { TextField } from "@mui/material";
 
 type Props = {
+  label?: string;
   ctxValue?: number;
   ctxOnChange?: (newValue: number) => void;
   variant?: "outlined" | "standard" | "filled";
@@ -11,6 +12,7 @@ type Props = {
 };
 
 function CantidadInput({
+  label,
   ctxValue,
   ctxOnChange,
   variant,
@@ -18,9 +20,9 @@ function CantidadInput({
   name,
   ...defaultProps
 }: Props) {
-  const [value, setValue] = React.useState(ctxValue || 1);
+  const [value, setValue] = React.useState(ctxValue || 0);
   const MAX_VALUE = 50;
-  const MIN_VALUE = 1; // Define un valor mínimo para evitar números negativos o cero
+  const MIN_VALUE = 0; // Define un valor mínimo para evitar números negativos o cero
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const unformattedInput = event.target.value;
@@ -37,14 +39,19 @@ function CantidadInput({
     ctxOnChange && ctxOnChange(value);
   }, [value]);
 
+  useEffect(() => {
+    setValue(ctxValue || 0);
+  }, [ctxValue]);
+
   return (
     <>
       <TextField
-        label="Cantidad"
-        name={name|| "cantidad"}
+        label={label || "Cantidad"}
+        name={name || "cantidad"}
         type="number"
         variant={variant || "outlined"}
-        value={ctxValue || value}
+        value={ctxValue !== undefined ? ctxValue : value}
+        // value={value}
         onChange={handleChange}
         size={size || undefined}
         {...defaultProps}

@@ -2,6 +2,7 @@ import { Button } from "@mui/material";
 import { useState } from "react";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import type { CustomCellRendererProps } from "ag-grid-react";
+import Productos from "../pages/Productos";
 
 const EmptyCell = (params: CustomCellRendererProps) => {
   const { cita, fecha } = useAgendaContext();
@@ -10,24 +11,37 @@ const EmptyCell = (params: CustomCellRendererProps) => {
   const rowIndex = params.node?.rowIndex || 0;
   const [isSelected, setIsSelected] = useState(false);
   const cellID = `${rowIndex}-${estilista}`;
-  const cellData = { cellID, estilista, horaInicio: hr?.label24 || "", fecha, rowIndex };
+  const cellData = {
+    rowIndex,
+    cellID,
+    fecha: fecha,
+    servicio: {
+      id: 0,
+      nombre: "",
+      precio: 0,
+    },
+    estilista,
+    horaInicio: hr.label24,
+    horaFin: hr.label24,
+    duracion: 30,
+  };
   const { removeServiceFromCita, addServiceToCita } = useAgendaContext();
   // console.log('Empty Cell Params:', params)
 
   const handleClick = async () => {
     if (!isSelected) {
-      setIsSelected( () => true);
-      addServiceToCita({...cita, ...cellData});
+      setIsSelected(() => true);
+      addServiceToCita({ id: 0, ...cellData });
       return;
     }
-    setIsSelected( () => false);
-    removeServiceFromCita({...cita, ...cellData});
+    setIsSelected(() => false);
+    removeServiceFromCita({ ...cita, ...cellData });
   };
 
   return (
     <>
       <Button
-      color="secondary"
+        color="secondary"
         sx={{ width: "100%" }}
         variant={isSelected ? "contained" : "text"}
         onClick={handleClick}

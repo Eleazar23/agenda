@@ -1,10 +1,18 @@
-import { Box, Card, CardActionArea, CardContent, Typography } from "@mui/material";
-import { useAgendaContext } from "../../contexts/AgendaContext";
+import {
+  Box,
+  Card,
+  CardActionArea,
+  CardContent,
+  Typography,
+} from "@mui/material";
+// import { useAgendaContext } from "../../contexts/AgendaContext";
 import type { CustomCellRendererProps } from "ag-grid-react";
 import CitaModal from "../modals/CitaModal";
+import { useState } from "react";
 
 const CitaCell = (params: CustomCellRendererProps) => {
-  const { setIsCitaOpen } = useAgendaContext();
+  // const { setIsCitaOpen } = useAgendaContext();
+  const [isCitaOpen, setIsCitaOpen] = useState(false);
   const { value } = params;
   const { servicio } = value;
 
@@ -21,7 +29,9 @@ const CitaCell = (params: CustomCellRendererProps) => {
         height: "100%",
       }}
     >
-      <Card sx={{ height: "100%", width: "100%", backgroundColor: "primary.main" }}>
+      <Card
+        sx={{ height: "100%", width: "100%", backgroundColor: "primary.main" }}
+      >
         <CardActionArea onClick={handleClick} sx={{ height: "100%" }}>
           <CardContent
             sx={{
@@ -31,24 +41,39 @@ const CitaCell = (params: CustomCellRendererProps) => {
               padding: "0.5rem",
             }}
           >
-              <Typography variant="body1" fontWeight="bold" component="div" color="white">
-                {value.nombreCliente}
-              </Typography>
-              <Typography variant="body1" component="div" color="white">
-                {value.telefonoCliente}
-              </Typography>
-              <Typography variant="body2" color="white">
-                {`${servicio?.servicio.nombre} - $${servicio?.servicio.precio} | ${servicio?.estado}` || ""}
-              </Typography>
-              {/* <Typography variant="body2" color="white">
+            <Typography
+              variant="body1"
+              fontWeight="bold"
+              component="div"
+              color="white"
+            >
+              {value.nombreCliente}
+            </Typography>
+            <Typography variant="body1" component="div" color="white">
+              {value.telefonoCliente}
+            </Typography>
+            <Typography variant="body2" color="white">
+              {`${servicio?.servicio.nombre} - $${servicio?.servicio.precio} | ${(value?.estado).charAt(0).toUpperCase() + (value?.estado).slice(1)}` ||
+                ""}
+            </Typography>
+            {/* <Typography variant="body2" color="white">
                 Tiempo: {servicio?.duracion} minutos
               </Typography> */}
-            </CardContent>
-          </CardActionArea>
-        </Card>
-        <CitaModal key={servicio?.id} cita={servicio} />
+          </CardContent>
+        </CardActionArea>
+      </Card>
+      <CitaModal
+        key={servicio?.id}
+        fecha={value.fecha}
+        nombreCliente={value.nombreCliente}
+        telefonoCliente={value.telefonoCliente}
+        servicio={servicio}
+        estado={value.estado}
+        isCitaOpen={isCitaOpen}
+        setIsCitaOpen={setIsCitaOpen}
+      />
     </Box>
-    )
-}
+  );
+};
 
 export default CitaCell;

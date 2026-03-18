@@ -87,6 +87,7 @@ const ClienteForm = () => {
   };
 
   return (
+    <Grid size={12}>
     <Card variant="outlined">
       <CardHeader title="Cliente" />
       <Divider sx={{ margin: "0 1rem" }} />
@@ -113,6 +114,7 @@ const ClienteForm = () => {
         </Grid>
       </CardContent>
     </Card>
+    </Grid>
   );
 };
 

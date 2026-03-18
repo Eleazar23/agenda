@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {Producto} from "../../../types/Producto";
+import { Producto } from "../../../types/Producto";
 import {
   Dialog,
   DialogTitle,
@@ -10,6 +10,7 @@ import {
   Box,
 } from "@mui/material";
 import { useProductosCtx } from "../../../contexts/ProductosCtx";
+import CantidadInput from "../../Inputs/CantidadInput";
 
 type Props = {
   isOpen: boolean;
@@ -29,9 +30,9 @@ function EditProductoModal({ isOpen, rowIndex, onClose, initialData }: Props) {
       stock: "",
     },
   );
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof Producto, string>>
-  >({});
+  const [errors, setErrors] = useState<Partial<Record<keyof Producto, string>>>(
+    {},
+  );
 
   const { editProducto } = useProductosCtx();
 
@@ -56,10 +57,7 @@ function EditProductoModal({ isOpen, rowIndex, onClose, initialData }: Props) {
     ) {
       nextErrors.precio = "El precio debe ser un número mayor que cero.";
     }
-    if (
-      data.stock !== undefined &&
-      Number(data.stock) < 0
-    ) {
+    if (data.stock !== undefined && Number(data.stock) < 0) {
       nextErrors.stock = "El stock no puede ser negativo.";
     }
     return nextErrors;
@@ -77,6 +75,13 @@ function EditProductoModal({ isOpen, rowIndex, onClose, initialData }: Props) {
   const handleClose = () => {
     setErrors({});
     if (onClose) onClose();
+  };
+
+  const handleStockChange = (value: number) => {
+    setFormData((prev) => ({ ...prev, stock: value }));
+    if (errors.stock) {
+      setErrors((prev) => ({ ...prev, stock: undefined }));
+    }
   };
 
   return (
@@ -118,7 +123,13 @@ function EditProductoModal({ isOpen, rowIndex, onClose, initialData }: Props) {
               error={!!errors.precio}
               helperText={errors.precio}
             />
-            <TextField
+            <CantidadInput
+              label="Stock"
+              name="stock"
+              ctxValue={formData.stock}
+              ctxOnChange={handleStockChange}
+            />
+            {/* <TextField
               label="Stock"
               name="stock"
               type="number"
@@ -127,7 +138,7 @@ function EditProductoModal({ isOpen, rowIndex, onClose, initialData }: Props) {
               fullWidth
               error={!!errors.stock}
               helperText={errors.stock}
-            />
+            /> */}
           </Box>
           <TextField
             label="Descripción"

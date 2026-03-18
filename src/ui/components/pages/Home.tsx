@@ -4,7 +4,7 @@ import Agenda from "./Agenda";
 import Estilistas from "./Estilistas";
 import { Grid } from "@mui/material";
 import Clientes from "./Clientes";
-import Reportes from "./Reportes";
+// import Reportes from "./Reportes";
 import Productos from "./Productos";
 import Servicios from "./Servicios";
 
@@ -25,7 +25,7 @@ export default function Home() {
           <Route path="/productos" element={<Productos />} />
           <Route path="/servicios" element={<Servicios />} />
           <Route path="/clientes" element={<Clientes />} />
-          <Route path="/reportes" element={<Reportes />} />
+          {/* <Route path="/reportes" element={<Reportes />} /> */}
         </Routes>
       </Grid>
     </>

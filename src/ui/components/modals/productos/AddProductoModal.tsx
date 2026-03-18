@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import PrecioInput from "../../Inputs/PrecioInput";
 import { useProductosCtx } from "../../../contexts/ProductosCtx";
+import CantidadInput from "../../Inputs/CantidadInput";
 
 interface ClientDialogProps {
   isOpen: boolean;
@@ -36,7 +37,7 @@ const AddProductoModal: React.FC<ClientDialogProps> = ({
       id: 0,
       nombre: "",
       marca: "",
-      precio: "0",
+      precio: 0,
       stock: 0,
       descripcion: "",
     },
@@ -86,7 +87,6 @@ const AddProductoModal: React.FC<ClientDialogProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const { nombre, marca, precio } = formData;
-    console.log("Submitting form with data:", { nombre, marca, precio });
     const formErrors = validateForm(formData);
 
     if (Object.keys(formErrors).length > 0) {
@@ -95,8 +95,15 @@ const AddProductoModal: React.FC<ClientDialogProps> = ({
     }
 
     addProducto({ ...formData, id: Date.now() });
-    setFormData({ id: 0, nombre: "", marca: "", precio: "0", stock: 0, descripcion: "" });
+    setFormData({ id: 0, nombre: "", marca: "", precio: 0, stock: 0, descripcion: "" });
     onClose();
+  };
+
+  const handleStockChange = (value: number) => {
+    setFormData((prev) => ({ ...prev, stock: value }));
+    if (errors.stock) {
+      setErrors((prev) => ({ ...prev, stock: undefined }));
+    }
   };
 
   // if (!isOpen) return null;
@@ -139,7 +146,13 @@ const AddProductoModal: React.FC<ClientDialogProps> = ({
               value={formData.precio}
               variant="outlined"
             />
-            <TextField
+            <CantidadInput
+              label="Stock"
+              name="stock"
+              ctxValue={formData.stock}
+              ctxOnChange={handleStockChange}
+            />
+            {/* <TextField
               type="number"
               name="stock"
               label="Stock"
@@ -149,7 +162,7 @@ const AddProductoModal: React.FC<ClientDialogProps> = ({
               required
               error={!!errors.stock}
               slotProps={{ htmlInput: { min: "0" } }}
-            />
+            /> */}
           </Box>
           <TextField
             type="text"

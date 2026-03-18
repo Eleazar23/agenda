@@ -1,6 +1,7 @@
 import React from "react";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
+import { Cita } from "../../types/Cita";
 // Register all Community features
 const modules = [AllCommunityModule];
 // Register all Community features
@@ -20,10 +21,10 @@ type Servicio = {
 };
 
 type Props = {
-  servicios?: Array<Servicio>;
+  cita: Cita | null;
 };
 
-function TotalCitaTbl() {
+function TotalCitaTbl({ cita }: Props) {
   const [colDefs, setColDefs] = React.useState<Array<any>>([
     { field: "nombre", headerName: "Nombre del producto" },
     { field: "precio", headerName: "Precio" },
