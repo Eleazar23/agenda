@@ -4,6 +4,8 @@ import { contextBridge, ipcRenderer } from 'electron';
 contextBridge.exposeInMainWorld('api', {
   // Clientes
   getClientes: () => ipcRenderer.invoke('get-clientes'),
+  getCliente: (nombre: string) => ipcRenderer.invoke('get-cliente', nombre),
+  getClientesByNombre: (nombre: string) => ipcRenderer.invoke('get-clientes-by-nombre', nombre),
   addCliente: (cliente: any) => ipcRenderer.invoke('add-cliente', cliente),
   updateCliente: (cliente: any) => ipcRenderer.invoke('update-cliente', cliente),
   deleteCliente: (id: number) => ipcRenderer.invoke('delete-cliente', id),

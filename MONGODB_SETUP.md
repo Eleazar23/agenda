@@ -190,7 +190,7 @@ All contexts have been updated:
 {
   id: number;
   nombre: string;
-  phone: string;
+  telefono: string;
   correo: string;
   lastVisit: string; // DD-MM-YYYY
 }
@@ -201,7 +201,7 @@ All contexts have been updated:
 {
   id: number;
   name: string;
-  phone: string;
+  telefono: string;
   displayName?: string;
 }
 ```

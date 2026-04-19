@@ -27,7 +27,7 @@ const colsData = [
     editable: true,
   },
   {
-    field: "phone",
+    field: "telefono",
     headerName: "Telefono",
     editable: true,
   },

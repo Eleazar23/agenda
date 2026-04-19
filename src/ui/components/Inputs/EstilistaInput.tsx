@@ -25,7 +25,7 @@ export default function EstilistaInput({
 }: Props) {
   const [estilistas, setEstilistas] = React.useState<Estilista[]>([]);
   const [value, setValue] = React.useState<string>(ctxValue || "");
-  const defaultTodos: Estilista = { id: 100000, name: "todos", phone: "", displayName: "Todos" };
+  const defaultTodos: Estilista = { id: 100000, name: "todos", telefono: "", displayName: "Todos" };
 
   React.useEffect(() => {
     const fetchEstilistas = async () => {

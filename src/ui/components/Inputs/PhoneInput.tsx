@@ -56,7 +56,7 @@ function PhoneInput({
     <>
       <TextField
         autoFocus={autoFocus}
-        name="phone"
+        name="telefono"
         error={error}
         id="outlined-basic"
         label="Teléfono"

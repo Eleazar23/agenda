@@ -9,7 +9,7 @@ import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import { useAgendaContext } from "../../contexts/AgendaContext";
-import { Box, TextField, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { Box, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 import {
   formatDateFromHTML,
   formatDateToHTML,
@@ -22,7 +22,7 @@ import IconText from "../IconText";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import CallOutlinedIcon from "@mui/icons-material/CallOutlined";
 // import Servicio from "./cita/Servicio";
-import TotalCitaTbl from "../tables/TotalCitaTbl";
+import TotalCitaTbls from "../tables/TotalCitaTbls";
 import ServicioForm from "./cita/Servicio";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
 import { Producto, ProductoInCita } from "../../types/Producto";
@@ -81,6 +81,12 @@ export default function CitaModal({
       notas: "",
     },
   );
+
+  const totalCita = citaForm.servicios.reduce((acumulador, servicio) => {
+    return acumulador + Number(servicio.servicio.precio);
+  }, 0) + citaForm.productos.reduce((acumulador, producto) => {
+    return acumulador + Number(producto.precio) * Number(producto.cantidad);
+  }, 0);
 
   const getCitaData = async () => {
     try {
@@ -273,11 +279,14 @@ export default function CitaModal({
               updateServicioInCita={updateServicioInCita}
             />
           ) : (
-            <TotalCitaTbl cita={cita} />
+            <TotalCitaTbls cita={cita} />
           )}
         </DialogContent>
 
         <DialogActions>
+          <Typography variant="h6" fontWeight="bold">
+            {`Total Cita: $${totalCita}`}
+            </Typography>
           <Button autoFocus onClick={handleCancelar}>
             Cancelar
           </Button>

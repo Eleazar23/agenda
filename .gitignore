@@ -24,5 +24,6 @@ dist-electron
 *.njsproj
 *.sln
 *.sw?
+*.md
 
 out/

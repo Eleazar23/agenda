@@ -14,7 +14,7 @@ import { getCurrentDate } from "../../../utils/utils";
 interface Client {
   id?: string;
   nombre: string;
-  phone: string;
+  telefono: string;
   correo?: string;
 }
 
@@ -27,7 +27,7 @@ interface ClientDialogProps {
 
 interface FormErrors {
   nombre?: string;
-  phone?: string;
+  telefono?: string;
   correo?: string;
 }
 
@@ -42,10 +42,10 @@ const validateForm = (formData: Client): FormErrors => {
   }
 
   // Phone validation
-  if (!formData.phone || formData.phone.trim() === "") {
-    errors.phone = "El teléfono es requerido";
-  } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ""))) {
-    errors.phone = "El teléfono debe tener 10 dígitos";
+  if (!formData.telefono || formData.telefono.trim() === "") {
+    errors.telefono = "El teléfono es requerido";
+  } else if (!/^\d{10}$/.test(formData.telefono.replace(/\D/g, ""))) {
+    errors.telefono = "El teléfono debe tener 10 dígitos";
   }
 
   // Email validation (optional but must be valid if provided)
@@ -65,13 +65,13 @@ export const ClientesModal: React.FC<ClientDialogProps> = ({
   initialClient,
 }) => {
   const [formData, setFormData] = useState<Client>(
-    initialClient || { nombre: "", phone: "", correo: "" },
+    initialClient || { nombre: "", telefono: "", correo: "" },
   );
   const [errors, setErrors] = useState<FormErrors>({});
   const { addCliente } = useClientesCtx();
 
   const handleClose = () => {
-    setFormData({ nombre: "", phone: "", correo: "" });
+    setFormData({ nombre: "", telefono: "", correo: "" });
     setErrors({});
     onClose?.();
   };
@@ -96,7 +96,7 @@ export const ClientesModal: React.FC<ClientDialogProps> = ({
     addCliente({
       id: Date.now(),
       nombre: formData.nombre,
-      phone: formData.phone,
+      telefono: formData.telefono,
       correo: formData.correo || "",
       lastVisit: getCurrentDate().formattedDate,
     });
@@ -130,13 +130,13 @@ export const ClientesModal: React.FC<ClientDialogProps> = ({
           />
           <TextField
             type="tel"
-            name="phone"
+            name="telefono"
             placeholder="Teléfono (10 dígitos)"
-            value={formData.phone}
+            value={formData.telefono}
             onChange={handleChange}
             required
-            error={!!errors.phone}
-            helperText={errors.phone}
+            error={!!errors.telefono}
+            helperText={errors.telefono}
             fullWidth
             inputProps={{ maxLength: 10 }}
           />

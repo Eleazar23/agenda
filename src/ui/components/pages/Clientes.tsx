@@ -6,7 +6,7 @@ import { ClientesModal } from "../modals/clientes/ClientesModal";
 
 type Cliente = {
   nombre: string;
-  phone: string;
+  telefono: string;
   correo: string;
   lastVisit: string;
 };
@@ -66,13 +66,13 @@ const Clientes = () => {
     setIsOpenModal(false);
   }, []);
 
-  const handleSaveClient = useCallback((client: { nombre: string; phone: string; correo?: string }) => {
+  const handleSaveClient = useCallback((client: { nombre: string; telefono: string; correo?: string }) => {
     const today = new Date();
     const lastVisit = `${String(today.getDate()).padStart(2, "0")}-${String(today.getMonth() + 1).padStart(2, "0")}-${today.getFullYear()}`;
     
     const newClient: Cliente = {
       nombre: client.nombre,
-      phone: client.phone,
+      telefono: client.telefono,
       correo: client.correo || "",
       lastVisit,
     };

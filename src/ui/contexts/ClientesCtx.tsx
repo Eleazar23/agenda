@@ -10,7 +10,7 @@ type Props = {
 type Cliente = {
   id: number;
   nombre: string;
-  phone: string;
+  telefono: string;
   correo: string;
   lastVisit: string;
 };
@@ -79,7 +79,7 @@ export const ClientesCtxProvider = ({ children }: Props) => {
     try {
       const newCliente = await window.api.addCliente({
         nombre: cliente.nombre,
-        phone: cliente.phone,
+        telefono: cliente.telefono,
         correo: cliente.correo || "",
         lastVisit: cliente.lastVisit || "",
       });

@@ -10,7 +10,7 @@ type Props = {
 type Estilista = {
   id: number;
   name: string;
-  phone: string;
+  telefono: string;
   displayName?: string;
 };
 
@@ -73,7 +73,7 @@ export const EstilistasCtxProvider = ({ children }: Props) => {
     try {
       const newEstilista = await window.api.addEstilista({
         name: estilista.name,
-        phone: estilista.phone,
+        telefono: estilista.telefono,
         displayName:
           estilista.name.charAt(0).toUpperCase() + estilista.name.slice(1),
       });

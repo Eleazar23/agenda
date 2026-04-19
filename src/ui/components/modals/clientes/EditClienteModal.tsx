@@ -15,7 +15,7 @@ import { useClientesCtx } from "../../../contexts/ClientesCtx";
 interface Cliente {
   id: number;
   nombre: string;
-  phone: string;
+  telefono: string;
   correo: string;
   lastVisit: string;
 }
@@ -34,7 +34,7 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
   initialData,
 }) => {
   const [formData, setFormData] = useState<Cliente>(
-    initialData || { nombre: "", phone: "", correo: "", id: 0, lastVisit: "" }
+    initialData || { nombre: "", telefono: "", correo: "", id: 0, lastVisit: "" }
   );
   const [isNombreError, setIsNombreError] = useState(false);
   const [isPhoneError, setIsPhoneError] = useState(false);
@@ -52,7 +52,7 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
   };
 
   const handleChangePhone = (value: string) => {
-    setFormData((prev) => ({ ...prev, phone: value }));
+    setFormData((prev) => ({ ...prev, telefono: value }));
     if (isPhoneError) {
       setIsPhoneError(false);
       setPhoneErrorMsg("");
@@ -61,7 +61,7 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const { nombre, phone } = formData;
+    const { nombre, telefono } = formData;
     let hasErrors = false;
 
     // Reset errors
@@ -77,11 +77,11 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
       hasErrors = true;
     }
 
-    if (!phone) {
+    if (!telefono) {
       setIsPhoneError(true);
       setPhoneErrorMsg("El teléfono es obligatorio");
       hasErrors = true;
-    } else if (phone.length < 10) {
+    } else if (telefono.length < 10) {
       setIsPhoneError(true);
       setPhoneErrorMsg("El número de teléfono debe tener al menos 10 dígitos");
       hasErrors = true;
@@ -123,7 +123,7 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
           <Box sx={{ position: "relative" }}>
             <PhoneInput
               variant="outlined"
-              valueContext={formData.phone}
+              valueContext={formData.telefono}
               dispatchContext={handleChangePhone}
               searchIcon={false}
             />

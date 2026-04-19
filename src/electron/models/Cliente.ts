@@ -3,7 +3,7 @@ import { Schema, model } from 'mongoose';
 export interface ICliente {
   id: number;
   nombre: string;
-  phone: string;
+  telefono: string;
   correo: string;
   lastVisit: string;
 }
@@ -11,7 +11,7 @@ export interface ICliente {
 const clienteSchema = new Schema<ICliente>({
   id: { type: Number, required: true, unique: true },
   nombre: { type: String, required: true },
-  phone: { type: String, required: true },
+  telefono: { type: String, required: true },
   correo: { type: String},
   lastVisit: { type: String},
 });

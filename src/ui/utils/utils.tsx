@@ -171,3 +171,15 @@ export const getHrsObj = (hourValue: string) => {
     console.log("Duracion actualizada a:", diffMins);
     return realDiffMins;
   };
+ export function throttle(func: any, limit: number) {
+  let inThrottle = false;
+  return function(this: any) {
+    const args = arguments;
+    const context = this;
+    if (!inThrottle) {
+      func.apply(context, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  }
+}

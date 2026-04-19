@@ -12,17 +12,20 @@ import {
 import PhoneInput from "../Inputs/PhoneInput";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import ClienteInput from "../Inputs/ClienteInput";
+import { Cliente } from "../../types/Cliente";
+
 
 const ClienteForm = () => {
   const {
     cita,
     setCita,
     searchClienteByPhone,
-    searchClienteByNombre,
+    searchClientesByNombre,
     handleAlert,
     addCliente
   } = useAgendaContext();
   const [isNewCliente, setIsNewCliente] = useState(false);
+  const [clientesOptions, setClientesOptions] = useState<Cliente[] | []>([]);
   // const { cita } = agendaData;
 
   const dispatchCliente = (value: string) => {
@@ -41,29 +44,32 @@ const ClienteForm = () => {
 
   const searchByNombre = async (nombre: string) => {
     // Implement search logic here
-    const cliente = await searchClienteByNombre(nombre);
-    if (cliente) {
-      handleAlert("Cliente encontrado", "success");
-      setCita((prevCita) => ({
-        ...prevCita,
-        nombreCliente: cliente.nombre,
-        telefonoCliente: cliente.phone,
-      }));
+    // const cliente = await searchClienteByNombre(nombre);
+    const clientes = await searchClientesByNombre(nombre);
+    if (clientes) {
+      setClientesOptions(() => clientes)
+      // handleAlert("Cliente encontrado", "success");
+      // setCita((prevCita) => ({
+      //   ...prevCita,
+      //   nombreCliente: cliente.nombre,
+      //   telefonoCliente: cliente.telefono,
+      // }));
+      setIsNewCliente(() => false);
       return;
     }
     setIsNewCliente(() => true);
     handleAlert("Cliente no encontrado", "error");
   };
 
-  const searchByPhone = async (phone: string) => {
+  const searchByPhone = async (telefono: string) => {
     // Implement search logic here
-    const cliente = await searchClienteByPhone(phone);
+    const cliente = await searchClienteByPhone(telefono);
     if (cliente) {
       handleAlert("Cliente encontrado", "success");
       setCita((prevCita) => ({
         ...prevCita,
         nombreCliente: cliente.nombre,
-        telefonoCliente: cliente.phone,
+        telefonoCliente: cliente.telefono,
       }));
       return;
     }
@@ -79,7 +85,7 @@ const ClienteForm = () => {
     }
     addCliente({
       nombre: cita.nombreCliente,
-      phone: cita.telefonoCliente,
+      telefono: cita.telefonoCliente,
       correo: "",
       lastVisit: "",
     } as any);
@@ -94,9 +100,10 @@ const ClienteForm = () => {
       <CardContent>
         <Grid container gap={1} sx={{ width: "100%" }}>
           <ClienteInput
-            contextValue={cita.nombreCliente}
+            ctxValue={cita.nombreCliente}
             dispatchContext={dispatchCliente}
-            handleSearch={searchByNombre}
+            // handleSearch={searchByNombre}
+            // options={clientesOptions}
           />
           <PhoneInput
             valueContext={cita.telefonoCliente}
