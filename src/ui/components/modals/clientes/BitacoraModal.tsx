@@ -52,9 +52,9 @@
 //       // Get all citas from MongoDB
 //       const allCitas = await window.api.getCitas();
 
-//       // Filter citas for this specific client by phone (unique identifier)
+//       // Filter citas for this specific client by telefono (unique identifier)
 //       const clienteCitas = allCitas.filter(
-//         (cita: Cita) => cita.telefonoCliente === cliente.phone,
+//         (cita: Cita) => cita.telefonoCliente === cliente.telefono,
 //       );
 
 //       // Sort by date (most recent first)
@@ -156,7 +156,7 @@
 //               color="text.secondary"
 //               sx={{ mt: 0.5 }}
 //             >
-//               {cliente.nombre} - {cliente.phone}
+//               {cliente.nombre} - {cliente.telefono}
 //             </Typography>
 //           </Box>
 //           <IconButton

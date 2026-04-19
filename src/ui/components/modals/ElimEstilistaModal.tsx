@@ -10,7 +10,7 @@ import { useEstilistasCtx } from "../../contexts/EstilistaContext";
 type Estilista = {
   id: number;
   name: string;
-  phone: string;
+  telefono: string;
 };
 
 type Props = {
@@ -49,7 +49,7 @@ export default function ElimEstilistaModal({
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            {`Nombre: ${estilistaData.name} - Telefono: ${estilistaData.phone}`}
+            {`Nombre: ${estilistaData.name} - Telefono: ${estilistaData.telefono}`}
             <br />
             <br />
             Una vez eliminado, no podras recuperar la informacion de este

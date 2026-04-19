@@ -1,6 +1,6 @@
 export type Estilista = {
   id: number;
   name: string;
-  phone: string;
+  telefono: string;
   displayName?: string;
 };

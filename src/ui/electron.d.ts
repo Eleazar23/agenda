@@ -7,6 +7,8 @@ import { Cita } from './types/Cita';
 export interface IElectronAPI {
   // Clientes
   getClientes: () => Promise<Cliente[]>;
+  getCliente: (nombre: string) => Promise<Cliente>;
+  getClientesByNombre: (nombre: string) => Promise<Cliente[]>,
   addCliente: (cliente: Omit<Cliente, 'id'>) => Promise<Cliente>;
   updateCliente: (cliente: Cliente) => Promise<Cliente>;
   deleteCliente: (id: number) => Promise<void>;

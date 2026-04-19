@@ -14,7 +14,7 @@ import { useEstilistasCtx } from "../../contexts/EstilistaContext";
 interface Estilista {
   id?: number;
   name: string;
-  phone: string;
+  telefono: string;
 }
 
 interface ClientDialogProps {
@@ -37,7 +37,7 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
   setIsOpenModal,
 }) => {
   const [formData, setFormData] = useState<Estilista>(
-    initialClient || { name: "", phone: "" }
+    initialClient || { name: "", telefono: "" }
   );
   const [isNameError, setIsNameError] = useState(false);
   const { addEstilista } = useEstilistasCtx();
@@ -48,14 +48,14 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
   };
 
   const handleChangePhone = (value: string) => {
-    setFormData((prev) => ({ ...prev, phone: value }));
+    setFormData((prev) => ({ ...prev, telefono: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const { name, phone } = formData;
+    const { name, telefono } = formData;
 
-    if (!name && !phone) {
+    if (!name && !telefono) {
       handleAlert("Por favor completa todos los campos", "error");
       return;
     }
@@ -67,12 +67,12 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
       return;
     }
 
-    if (!phone) {
+    if (!telefono) {
       handleAlert("El teléfono es obligatorio", "error");
       return;
     }
 
-    if (phone.length < 10) {
+    if (telefono.length < 10) {
       handleAlert(
         "El número de teléfono debe tener al menos 10 dígitos",
         "error"
@@ -81,7 +81,7 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
     }
     addEstilista({ ...formData, id: Date.now() });
     setIsOpenModal(false);
-    setFormData({ name: "", phone: "" });
+    setFormData({ name: "", telefono: "" });
   };
 
   // if (!isOpen) return null;
@@ -109,15 +109,15 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
           />
           {/* <TextField
             type="tel"
-            name="phone"
+            name="telefono"
             placeholder="Teléfono"
-            value={formData.phone}
+            value={formData.telefono}
             onChange={handleChange}
             required
           /> */}
           <PhoneInput
             variant="outlined"
-            valueContext={formData.phone}
+            valueContext={formData.telefono}
             dispatchContext={handleChangePhone}
             searchIcon={false}
           />

@@ -15,7 +15,7 @@ import { useClientesCtx } from "../../../contexts/ClientesCtx";
 interface Cliente {
   id: number;
   nombre: string;
-  phone: string;
+  telefono: string;
   correo?: string;
   lastVisit?: string;
 }

@@ -29,6 +29,24 @@ ipcMain.handle('get-clientes', async () => {
     }
 });
 
+ipcMain.handle('get-cliente', async (_event, nombre) => {
+    try {
+        return await Cliente.findOne({ nombre }).collation({ locale: 'en', strength: 2 }).lean();
+    } catch (error) {
+        console.error('Error getting cliente:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-clientes-by-nombre', async (_event, nombre) => {
+    try {
+        return await Cliente.find({ nombre }).collation({ locale: 'en', strength: 2 }).lean();
+    } catch (error) {
+        console.error('Error getting cliente:', error);
+        throw error;
+    }
+});
+
 ipcMain.handle('add-cliente', async (_event, cliente) => {
     try {
         const maxId = await Cliente.findOne().sort('-id').lean();

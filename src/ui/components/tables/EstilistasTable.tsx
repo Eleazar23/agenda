@@ -22,7 +22,7 @@ const colsData: ColDef<any>[] = [
     headerName: "Nombre",
   },
   {
-    field: "phone",
+    field: "telefono",
     headerName: "Telefono",
   },
   {

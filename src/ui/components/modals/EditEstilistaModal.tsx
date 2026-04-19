@@ -15,7 +15,7 @@ import { useEstilistasCtx } from "../../contexts/EstilistaContext";
 interface Estilista {
   id: number;
   name: string;
-  phone: string;
+  telefono: string;
 }
 
 
@@ -35,7 +35,7 @@ const EditEstilistasModal: React.FC<ClientDialogProps> = ({
   // handleAlert = () => {},
 }) => {
   const [formData, setFormData] = useState<Estilista>(
-    initialData || { id: 0, name: "", phone: "" }
+    initialData || { id: 0, name: "", telefono: "" }
   );
   const [isNameError, setIsNameError] = useState(false);
   const { handleAlert, editEstilista } = useEstilistasCtx();
@@ -46,14 +46,14 @@ const EditEstilistasModal: React.FC<ClientDialogProps> = ({
   };
 
   const handleChangePhone = (value: string) => {
-    setFormData((prev) => ({ ...prev, phone: value }));
+    setFormData((prev) => ({ ...prev, telefono: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const { name, phone } = formData;
+    const { name, telefono } = formData;
 
-        if (!name && !phone) {
+        if (!name && !telefono) {
       handleAlert("Por favor completa todos los campos", "error");
       return;
     }
@@ -65,12 +65,12 @@ const EditEstilistasModal: React.FC<ClientDialogProps> = ({
       return;
     }
 
-    if (!phone) {
+    if (!telefono) {
       handleAlert("El teléfono es obligatorio", "error");
       return;
     }
 
-    if (phone.length < 10) {
+    if (telefono.length < 10) {
       handleAlert(
         "El número de teléfono debe tener al menos 10 dígitos",
         "error"
@@ -106,7 +106,7 @@ const EditEstilistasModal: React.FC<ClientDialogProps> = ({
           />
           <PhoneInput
             variant="outlined"
-            valueContext={formData.phone}
+            valueContext={formData.telefono}
             dispatchContext={handleChangePhone}
             searchIcon={false}
           />

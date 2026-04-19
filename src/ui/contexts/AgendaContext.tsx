@@ -62,7 +62,8 @@ type AgendaContex = {
   guardarCita: () => Promise<void>;
   handleAlert: (message: string, alertType: Alert) => void;
   searchClienteByNombre: (nombre: string) => Promise<Cliente | null>;
-  searchClienteByPhone: (phone: string) => Promise<Cliente | null>;
+  searchClientesByNombre: (nombre: string) => Promise<Cliente[] | null>;
+  searchClienteByPhone: (telefono: string) => Promise<Cliente | null>;
   addCliente: (cliente: Cliente) => Promise<void>;
 };
 
@@ -241,32 +242,39 @@ export const AgendaContextProvider = ({ children }: Props) => {
 
   const searchClienteByNombre = async (nombre: string) => {
     try {
-      const clientes = await window.api.getClientes();
-      const clienteEncontrado = clientes.find(
-        (cliente) => cliente.nombre === nombre,
-      );
-      return clienteEncontrado || null;
+      const cliente = await window.api.getCliente(nombre);
+      return cliente || null;
     } catch (error) {
       console.error("Error searching cliente by nombre:", error);
       return null;
     }
   };
 
-  const searchClienteByPhone = async (phone: string) => {
+    const searchClientesByNombre = async (nombre: string) => {
+    try {
+      const cliente = await window.api.getClientesByNombre(nombre);
+      return cliente || null;
+    } catch (error) {
+      console.error("Error searching cliente by nombre:", error);
+      return null;
+    }
+  };
+
+  const searchClienteByPhone = async (telefono: string) => {
     try {
       const clientes = await window.api.getClientes();
       const clienteEncontrado = clientes.find(
-        (cliente) => cliente.phone === phone,
+        (cliente) => cliente.telefono === telefono,
       );
       return clienteEncontrado || null;
     } catch (error) {
-      console.error("Error searching cliente by phone:", error);
+      console.error("Error searching cliente by telefono:", error);
       return null;
     }
   };
 
   const addCliente = async (cliente: Cliente) => {
-    if (!cliente.nombre || !cliente.phone) {
+    if (!cliente.nombre || !cliente.telefono) {
       handleAlert("Nombre y teléfono son obligatorios", "error");
       return;
     }
@@ -274,7 +282,7 @@ export const AgendaContextProvider = ({ children }: Props) => {
     try {
       const newCliente = await window.api.addCliente({
         nombre: cliente.nombre,
-        phone: cliente.phone,
+        telefono: cliente.telefono,
         correo: cliente.correo || "",
         lastVisit: cliente.lastVisit || "",
       });
@@ -329,6 +337,7 @@ export const AgendaContextProvider = ({ children }: Props) => {
         guardarCita,
         handleAlert,
         searchClienteByNombre,
+        searchClientesByNombre,
         searchClienteByPhone,
         addCliente,
       }}
