@@ -17,7 +17,7 @@ const styles = {
   },
 };
 
-export default function EstilistaInput({
+export default function EstilistaFilter({
   ctxValue,
   ctxDispatch,
   readOnly,
@@ -25,15 +25,17 @@ export default function EstilistaInput({
 }: Props) {
   const [estilistas, setEstilistas] = React.useState<Estilista[]>([]);
   const [value, setValue] = React.useState<string>(ctxValue || "");
+  const defaultTodos: Estilista = { id: 100000, name: "todos", telefono: "", displayName: "Todos" };
 
   React.useEffect(() => {
     const fetchEstilistas = async () => {
       try {
         const data = await window.api.getEstilistas();
-        console.log("Fetched estilistas:", data);
-        setEstilistas(data);
-        if (!ctxValue && data.length > 0) {
-          setValue(data[0].name);
+        const dataWithTodos = [defaultTodos, ...data];
+        console.log("Fetched estilistas:", dataWithTodos);
+        setEstilistas(dataWithTodos);
+        if (!ctxValue && dataWithTodos.length > 0) {
+          setValue(dataWithTodos[0].name);
         }
       } catch (error) {
         console.error("Error fetching estilistas:", error);
