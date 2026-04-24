@@ -20,11 +20,11 @@ function TotalServiciosTbl({ servicios }: Props) {
     { field: "horaInicio", headerName: "Hora de inicio" },
     { field: "horaFin", headerName: "Hora de fin" },
   ]);
-  const [rowsData, setRowsData] = React.useState<Array<ServicioAgendado> | []>(servicios);
+  // const [rowsData, setRowsData] = React.useState<Array<ServicioAgendado> | []>(servicios);
 
   return (
     <div style={{ height: 250 }}>
-      <AgGridReact rowData={rowsData} columnDefs={colDefs} />
+      <AgGridReact rowData={servicios} columnDefs={colDefs} />
     </div>
   );
 }

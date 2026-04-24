@@ -26,7 +26,7 @@ function TotalProductosTbl({ productos }: Props) {
   ]);
   return (
     <div style={{ height: 250 }}>
-      <AgGridReact rowData={rowsData} columnDefs={colDefs} />
+      <AgGridReact rowData={productos} columnDefs={colDefs} />
     </div>
   );
 }
