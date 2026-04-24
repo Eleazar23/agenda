@@ -47,9 +47,9 @@ const AddServicioModal: React.FC<ServicioDialogProps> = ({
       errors.nombre = "El nombre debe tener al menos 3 caracteres";
     }
     // Precio validation
-    if (!formData.precio) {
+    if (formData.precio === undefined || formData.precio === null) {
       errors.precio = "El precio es requerido";
-    } else if (isNaN(Number(formData.precio)) || Number(formData.precio) <= 0) {
+    } else if (isNaN(Number(formData.precio)) || Number(formData.precio) < 0) {
       errors.precio = "El precio debe ser un número positivo";
     }
     return errors;

@@ -9,14 +9,20 @@ import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import { useAgendaContext } from "../../contexts/AgendaContext";
-import { Box, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import {
+  Box,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from "@mui/material";
 import {
   formatDateFromHTML,
   formatDateToHTML,
   getDuracion,
 } from "../../utils/utils";
 import { Cita } from "../../types/Cita";
-import {getHrs, getHrsObj } from "../../utils/utils";
+import { getHrs, getHrsObj } from "../../utils/utils";
 import IconText from "../IconText";
 //Icons
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
@@ -26,6 +32,7 @@ import TotalCitaTbls from "../tables/TotalCitaTbls";
 import ServicioForm from "./cita/Servicio";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
 import { Producto, ProductoInCita } from "../../types/Producto";
+import { getCitasByFechaCliente } from "../../services/citasApi";
 
 type CitaModalProps = {
   fecha: string;
@@ -63,6 +70,8 @@ export default function CitaModal({
 }: CitaModalProps) {
   // const { agendaData, setAgendaData } = useAgendaContext();
   const [cita, setCita] = useState<Cita | null>(null);
+  const [citas, setCitas] = useState<Cita[]>([]);
+  const [totalCita, setTotalCita] = useState(0);
   // const { isCitaOpen, setIsCitaOpen, handleEditCita } = useAgendaContext();
   const { handleEditCita } = useAgendaContext();
   // const { isCitaOpen, setIsCitaOpen } = useState(false);
@@ -82,11 +91,13 @@ export default function CitaModal({
     },
   );
 
-  const totalCita = citaForm.servicios.reduce((acumulador, servicio) => {
-    return acumulador + Number(servicio.servicio.precio);
-  }, 0) + citaForm.productos.reduce((acumulador, producto) => {
-    return acumulador + Number(producto.precio) * Number(producto.cantidad);
-  }, 0);
+  // const totalCita =
+  //   citaForm.servicios.reduce((acumulador, servicio) => {
+  //     return acumulador + Number(servicio.servicio.precio);
+  //   }, 0) +
+  //   citaForm.productos.reduce((acumulador, producto) => {
+  //     return acumulador + Number(producto.precio) * Number(producto.cantidad);
+  //   }, 0);
 
   const getCitaData = async () => {
     try {
@@ -97,9 +108,14 @@ export default function CitaModal({
       setCita(() => citaData);
       setCitaForm((prev) => ({ ...prev, ...citaData }));
     } catch (error) {
-      console.error("Error adding cliente:", error);
-      // console.log("Error al agregar cliente", "error");
+      console.log("Error al agregar cliente", "error");
     }
+  };
+
+  const getCitasData = async () => {
+    const citasData = await getCitasByFechaCliente(fecha, nombreCliente);
+    console.log({ citasData });
+    setCitas((prev) => [...prev, ...citasData]);
   };
 
   const handleAlignmentChange = (
@@ -113,19 +129,12 @@ export default function CitaModal({
   };
 
   const handleCancelar = () => {
-    setCitaForm(prev => ({ ...prev, ...cita }));
-    // setIsEditMode(false);
+    setCitaForm((prev) => ({ ...prev, ...cita }));
     setIsCitaOpen(false);
   };
 
   const handleClose = () => {
-    // setModalForm({ ...cita });
-    // setIsEditMode(false);
     setIsCitaOpen(false);
-  };
-
-  const handleToggleEdit = () => {
-    // setIsEditMode(!isEditMode);
   };
 
   const handleGuardar = () => {
@@ -157,7 +166,10 @@ export default function CitaModal({
     );
     if (serviceToUpdateIndex === -1) return;
     const updatedServicios = [...citaForm.servicios];
-    updatedServicios[serviceToUpdateIndex] = { ...updatedServicio, rowIndex: newRowIndex };
+    updatedServicios[serviceToUpdateIndex] = {
+      ...updatedServicio,
+      rowIndex: newRowIndex,
+    };
     setCitaForm((prev) => ({
       ...prev,
       servicios: updatedServicios,
@@ -177,11 +189,8 @@ export default function CitaModal({
   // }, [modalForm.horaInicio, modalForm.horaFin]);
 
   useEffect(() => {
-    // if (isCitaOpen) {
-    //   getCitaData();
-    // }
     getCitaData();
-    console.log({ cita });
+    getCitasData();
   }, []);
 
   // const handleChange = (inputName: string, value: any) => {
@@ -279,14 +288,18 @@ export default function CitaModal({
               updateServicioInCita={updateServicioInCita}
             />
           ) : (
-            <TotalCitaTbls cita={cita} />
+            <TotalCitaTbls
+              cita={cita}
+              citas={citas}
+              setTotalCita={setTotalCita}
+            />
           )}
         </DialogContent>
 
         <DialogActions>
-          <Typography variant="h6" fontWeight="bold">
+          {/* <Typography variant="h6" fontWeight="bold">
             {`Total Cita: $${totalCita}`}
-            </Typography>
+          </Typography> */}
           <Button autoFocus onClick={handleCancelar}>
             Cancelar
           </Button>

@@ -248,6 +248,15 @@ ipcMain.handle('get-citas-by-fecha', async (_event, fecha) => {
     }
 });
 
+ipcMain.handle('get-citas-by-fecha-cliente', async (_event, fecha, nombreCliente) => {
+    try {
+        return await Cita.find({ fecha, nombreCliente }).lean();
+    } catch (error) {
+        console.error('Error getting citas by fecha and cliente:', error);
+        throw error;
+    }
+});
+
 ipcMain.handle('get-cita-by-fecha-cliente', async (_event, fecha, nombreCliente) => {
     try {
         return await Cita.findOne({ fecha, nombreCliente }).lean();

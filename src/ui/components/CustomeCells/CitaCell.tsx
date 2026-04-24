@@ -30,7 +30,7 @@ const CitaCell = (params: CustomCellRendererProps) => {
       }}
     >
       <Card
-        sx={{ height: "100%", width: "100%", backgroundColor: "primary.main" }}
+        sx={{ height: "100%", width: "100%", backgroundColor: "#0D47A1" }}
       >
         <CardActionArea onClick={handleClick} sx={{ height: "100%" }}>
           <CardContent
@@ -49,10 +49,10 @@ const CitaCell = (params: CustomCellRendererProps) => {
             >
               {value.nombreCliente}
             </Typography>
-            <Typography variant="body1" component="div" color="white">
+            <Typography variant="body1" component="div" color="#90CAF9">
               {value.telefonoCliente}
             </Typography>
-            <Typography variant="body2" color="white">
+            <Typography variant="body2" color="#90CAF9">
               {`${servicio?.servicio.nombre} - $${servicio?.servicio.precio} | ${(value?.estado).charAt(0).toUpperCase() + (value?.estado).slice(1)}` ||
                 ""}
             </Typography>
