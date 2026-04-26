@@ -7,7 +7,7 @@ import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-const colsData = [
+const colDefServicios = [
   {
     field: "estilista",
     headerName: "Estilista",
@@ -40,11 +40,20 @@ const colsData = [
     field: "horaFin",
     headerName: "Hora Fin",
   },
-  {
-    field: "estado",
-    headerName: "Estado Cita",
-  },
 ];
+
+const colDefProductos = [
+      { field: "estilista", headerName: "Estilista" },
+    { field: "nombre", headerName: "Nombre del producto" },
+    { field: "precio", headerName: "Precio unitario" },
+    { field: "cantidad", headerName: "Cantidad" },
+    {
+      field: "total",
+      headerName: "Total",
+      valueGetter: (params: any) => params.data.precio * params.data.cantidad,
+    },
+
+]
 
 type Props = {
   reportesData: Array<any>;
@@ -52,34 +61,26 @@ type Props = {
   setDownload?: React.Dispatch<React.SetStateAction<boolean>>;
   currentDate: string;
   filtro?: string;
+  view: "servicios" | "productos";
 };
 
 let gridApi: GridApi;
+
 const ReportesTable = ({
   reportesData,
   download,
   setDownload,
   currentDate,
   filtro,
+  view,
 }: Props) => {
   const gridRef = React.useRef<AgGridReact>(null);
-  // Row Data: The data to be displayed.
-  // const [rowData, setRowData] = useState<null | Array<any>>(reportesData);
+  const [colDef, setColDef] = React.useState(colDefServicios);
 
-  // Column Definitions: Defines the columns to be displayed.
-  // const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
-
-  // React.useEffect(() => {
-  //   const totalCosto = reportesData.reduce((acc, reporte) => {
-  //     acc + Number(reporte.servicio.precio);
-  //     return acc;
-  //   }, 0);
-  //   setTotal(Number(totalCosto));
-  // }, [reportesData, setTotal]);
 
   const handleDownloadComplete = () => {
     if (download && setDownload) {
-      gridApi.exportDataAsCsv({ fileName: `reporte_${filtro}_${currentDate}` });
+      gridApi.exportDataAsCsv({ fileName: `reporte_${view}_${filtro}_${currentDate}` });
       setDownload(false);
     }
   };
@@ -102,13 +103,21 @@ const ReportesTable = ({
     }
   }, [download, setDownload]);
 
+  React.useEffect(() => {
+    if (view === "servicios") {
+      setColDef(colDefServicios);
+    } else {
+      setColDef(colDefProductos);
+    }
+  }, [view]);
+
   return (
     // Data Grid will fill the size of the parent container
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
         ref={gridRef}
         rowData={reportesData}
-        columnDefs={colsData}
+        columnDefs={colDef}
         gridOptions={gridOptions}
         defaultColDef={defaultColdef}
       />
