@@ -18,6 +18,7 @@ import EmojiPeopleIcon from '@mui/icons-material/EmojiPeople';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import LocalGroceryStoreIcon from '@mui/icons-material/LocalGroceryStore';
 import StorefrontIcon from '@mui/icons-material/Storefront';
+import PaymentIcon from '@mui/icons-material/Payment';
 import { Link } from 'react-router-dom';
 
 
@@ -46,6 +47,11 @@ const menuItems = [
     title: "Servicios",
     value: "servicios",
     icon: <StorefrontIcon />
+  },
+  {
+    title: "Gastos",
+    value: "gastos",
+    icon: <PaymentIcon />
   },
   {
     title: "Reportes",
