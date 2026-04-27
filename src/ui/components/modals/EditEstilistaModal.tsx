@@ -7,6 +7,10 @@ import {
   TextField,
   Button,
   Box,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import PhoneInput from "../Inputs/PhoneInput";
 import { set } from "mongoose";
@@ -16,6 +20,7 @@ interface Estilista {
   id: number;
   name: string;
   telefono: string;
+  role: string;
 }
 
 
@@ -35,14 +40,18 @@ const EditEstilistasModal: React.FC<ClientDialogProps> = ({
   // handleAlert = () => {},
 }) => {
   const [formData, setFormData] = useState<Estilista>(
-    initialData || { id: 0, name: "", telefono: "" }
+    initialData || { id: 0, name: "", telefono: "", role: "estilista" }
   );
   const [isNameError, setIsNameError] = useState(false);
   const { handleAlert, editEstilista } = useEstilistasCtx();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name!]: value }));
+  };
+
+  const handleRoleChange = (e: any) => {
+    setFormData((prev) => ({ ...prev, role: e.target.value }));
   };
 
   const handleChangePhone = (value: string) => {
@@ -110,6 +119,18 @@ const EditEstilistasModal: React.FC<ClientDialogProps> = ({
             dispatchContext={handleChangePhone}
             searchIcon={false}
           />
+          <FormControl fullWidth>
+            <InputLabel>Rol</InputLabel>
+            <Select
+              name="role"
+              value={formData.role}
+              onChange={handleRoleChange}
+              label="Rol"
+            >
+              <MenuItem value="estilista">Estilista</MenuItem>
+              <MenuItem value="vendedor">Vendedor</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
       </DialogContent>
       <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>

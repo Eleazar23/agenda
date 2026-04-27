@@ -42,7 +42,8 @@ const AgendaTable = () => {
     const loadEstilistas = async () => {
       try {
         const estilistasData = await window.api.getEstilistas();
-        const estilistasNames = estilistasData.map((est) => est.name);
+        const filteredEstilistas = estilistasData.filter((est) => est.role === "estilista");
+        const estilistasNames = filteredEstilistas.map((est) => est.name);
         setEstilistas(estilistasNames);
       } catch (error) {
         console.error("Error loading estilistas:", error);

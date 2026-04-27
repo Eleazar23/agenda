@@ -3,4 +3,5 @@ export type Estilista = {
   name: string;
   telefono: string;
   displayName?: string;
+  role: string;
 };

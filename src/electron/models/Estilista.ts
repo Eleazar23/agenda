@@ -5,6 +5,7 @@ export interface IEstilista {
   name: string;
   telefono: string;
   displayName?: string;
+  role: string;
 }
 
 const estilistaSchema = new Schema<IEstilista>({
@@ -12,6 +13,7 @@ const estilistaSchema = new Schema<IEstilista>({
   name: { type: String, required: true },
   telefono: { type: String, required: true },
   displayName: { type: String, required: false },
+  role: { type: String, required: true, default: 'estilista' },
 });
 
 export const Estilista = model<IEstilista>('Estilista', estilistaSchema);

@@ -26,6 +26,10 @@ const colsData: ColDef<any>[] = [
     headerName: "Telefono",
   },
   {
+    field: "role",
+    headerName: "Rol",
+  },
+  {
     field: "actions" as keyof Estilista,
     headerName: "Acciones",
     cellRenderer: EstilistasActionsCell,

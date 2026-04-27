@@ -7,6 +7,10 @@ import {
   TextField,
   Button,
   Box,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import PhoneInput from "../Inputs/PhoneInput";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
@@ -15,6 +19,7 @@ interface Estilista {
   id?: number;
   name: string;
   telefono: string;
+  role: string;
 }
 
 interface ClientDialogProps {
@@ -37,14 +42,18 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
   setIsOpenModal,
 }) => {
   const [formData, setFormData] = useState<Estilista>(
-    initialClient || { name: "", telefono: "" }
+    initialClient || { name: "", telefono: "", role: "estilista" }
   );
   const [isNameError, setIsNameError] = useState(false);
   const { addEstilista } = useEstilistasCtx();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name!]: value }));
+  };
+
+  const handleRoleChange = (e: any) => {
+    setFormData((prev) => ({ ...prev, role: e.target.value }));
   };
 
   const handleChangePhone = (value: string) => {
@@ -81,7 +90,7 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
     }
     addEstilista({ ...formData, id: Date.now() });
     setIsOpenModal(false);
-    setFormData({ name: "", telefono: "" });
+    setFormData({ name: "", telefono: "", role: "estilista" });
   };
 
   // if (!isOpen) return null;
@@ -121,6 +130,18 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
             dispatchContext={handleChangePhone}
             searchIcon={false}
           />
+          <FormControl fullWidth>
+            <InputLabel>Rol</InputLabel>
+            <Select
+              name="role"
+              value={formData.role}
+              onChange={handleRoleChange}
+              label="Rol"
+            >
+              <MenuItem value="estilista">Estilista</MenuItem>
+              <MenuItem value="vendedor">Vendedor</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
       </DialogContent>
       <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
