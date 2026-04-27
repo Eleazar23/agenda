@@ -12,6 +12,7 @@ type Estilista = {
   name: string;
   telefono: string;
   displayName?: string;
+  role: string;
 };
 
 type EstilistasContexType = {
@@ -76,6 +77,7 @@ export const EstilistasCtxProvider = ({ children }: Props) => {
         telefono: estilista.telefono,
         displayName:
           estilista.name.charAt(0).toUpperCase() + estilista.name.slice(1),
+        role: estilista.role,
       });
       setDataTable((prev) => [...prev, newEstilista]);
       handleAlert("Estilista agregado con éxito", "success");

@@ -87,6 +87,7 @@ const seedData = async () => {
         name: "mimi",
         displayName: "Mimi",
         telefono: "5559990000",
+        role: "vendedor",
       },
     ]);
     console.log(`Seeded ${estilistas.length} estilistas`);
