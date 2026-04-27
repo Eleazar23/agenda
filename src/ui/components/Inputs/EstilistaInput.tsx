@@ -24,7 +24,7 @@ export default function EstilistaInput({
   variant,
 }: Props) {
   const [estilistas, setEstilistas] = React.useState<Estilista[]>([]);
-  const [value, setValue] = React.useState<string>(ctxValue || "");
+  const [selected, setSelected] = React.useState<string>("");
 
   React.useEffect(() => {
     const fetchEstilistas = async () => {
@@ -32,9 +32,6 @@ export default function EstilistaInput({
         const data = await window.api.getEstilistas();
         console.log("Fetched estilistas:", data);
         setEstilistas(data);
-        if (!ctxValue && data.length > 0) {
-          setValue(data[0].name);
-        }
       } catch (error) {
         console.error("Error fetching estilistas:", error);
       }
@@ -42,11 +39,22 @@ export default function EstilistaInput({
     fetchEstilistas();
   }, []);
 
+  React.useEffect(() => {
+    if (estilistas.length > 0) {
+      const defaultValue = ctxValue || estilistas[0].name;
+      setSelected(defaultValue);
+
+      if (!ctxValue && ctxDispatch) {
+        ctxDispatch("estilista", defaultValue);
+      }
+    }
+  }, [ctxValue, estilistas, ctxDispatch]);
+
   const handleChange = (event: SelectChangeEvent) => {
+    const newValue = event.target.value as string;
+    setSelected(newValue);
     if (ctxDispatch) {
-      ctxDispatch("estilista", event.target.value as string);
-    } else {
-      setValue(event.target.value as string);
+      ctxDispatch("estilista", newValue);
     }
   };
 
@@ -56,7 +64,7 @@ export default function EstilistaInput({
       <Select
         labelId="demo-select-label"
         id="demo-select"
-        value={ctxValue || value}
+        value={selected}
         label="Estilista"
         onChange={handleChange}
         sx={styles.textField}
