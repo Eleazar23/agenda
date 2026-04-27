@@ -7,6 +7,7 @@ import Clientes from "./Clientes";
 import Reportes from "./Reportes";
 import Productos from "./Productos";
 import Servicios from "./Servicios";
+import Gastos from "./Gastos";
 
 export default function Home() {
   return (
@@ -25,6 +26,7 @@ export default function Home() {
           <Route path="/productos" element={<Productos />} />
           <Route path="/servicios" element={<Servicios />} />
           <Route path="/clientes" element={<Clientes />} />
+          <Route path="/gastos" element={<Gastos />} />
           <Route path="/reportes" element={<Reportes />} />
         </Routes>
       </Grid>

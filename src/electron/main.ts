@@ -7,6 +7,7 @@ import { Estilista } from './models/Estilista.js';
 import { Servicio } from './models/Servicio.js';
 import { Producto } from './models/Producto.js';
 import { Cita } from './models/Cita.js';
+import { Gasto } from './models/Gasto.js';
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -300,6 +301,94 @@ ipcMain.handle('delete-cita', async (_event, id) => {
         await Cita.deleteOne({ id });
     } catch (error) {
         console.error('Error deleting cita:', error);
+        throw error;
+    }
+});
+
+// ========== Gastos IPC Handlers ==========
+ipcMain.handle('get-gastos', async () => {
+    try {
+        return await Gasto.find().lean();
+    } catch (error) {
+        console.error('Error getting gastos:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-gastos-by-fecha', async (_event, fecha) => {
+    try {
+        // Simple date comparison assuming DD-MM-YYYY format
+        return await Gasto.find({ fecha }).lean();
+    } catch (error) {
+        console.error('Error getting gastos by fecha:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-gastos-by-categoria', async (_event, categoria) => {
+    try {
+        return await Gasto.find({ categoria }).lean();
+    } catch (error) {
+        console.error('Error getting gastos by categoria:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('add-gasto', async (_event, gasto) => {
+    try {
+        const maxId = await Gasto.findOne().sort('-id').lean();
+        const newId = maxId ? maxId.id + 1 : 1;
+        const newGasto = new Gasto({ ...gasto, id: newId });
+        await newGasto.save();
+        return newGasto.toObject();
+    } catch (error) {
+        console.error('Error adding gasto:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('update-gasto', async (_event, gasto) => {
+    try {
+        // Remove _id and __v fields that might come from MongoDB
+        const { _id, __v, ...gastoData } = gasto as any;
+        const updated = await Gasto.findOneAndUpdate(
+            { id: gasto.id },
+            gastoData,
+            { new: true }
+        ).lean();
+        return updated;
+    } catch (error) {
+        console.error('Error updating gasto:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('delete-gasto', async (_event, id) => {
+    try {
+        await Gasto.deleteOne({ id });
+    } catch (error) {
+        console.error('Error deleting gasto:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-gastos-totals', async () => {
+    try {
+        const totals = await Gasto.aggregate([
+            {
+                $group: {
+                    _id: '$categoria',
+                    total: { $sum: '$monto' },
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $sort: { _id: 1 }
+            }
+        ]);
+        return totals;
+    } catch (error) {
+        console.error('Error getting gastos totals:', error);
         throw error;
     }
 });
