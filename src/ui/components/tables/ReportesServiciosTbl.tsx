@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { AllCommunityModule, ModuleRegistry, GridApi } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
+import { Box } from "@mui/material";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -42,45 +43,31 @@ const colDefServicios = [
   },
 ];
 
-const colDefProductos = [
-      { field: "estilista", headerName: "Estilista" },
-    { field: "nombre", headerName: "Nombre del producto" },
-    { field: "precio", headerName: "Precio unitario" },
-    { field: "cantidad", headerName: "Cantidad" },
-    {
-      field: "total",
-      headerName: "Total",
-      valueGetter: (params: any) => params.data.precio * params.data.cantidad,
-    },
-
-]
+let gridApi: GridApi;
 
 type Props = {
-  reportesData: Array<any>;
+  serviciosData: Array<any>;
   download?: boolean;
   setDownload?: React.Dispatch<React.SetStateAction<boolean>>;
   currentDate: string;
   filtro?: string;
-  view: "servicios" | "productos" | "total" | "gastos";
+  view: "servicios" | "productos" | "total";
 };
 
-let gridApi: GridApi;
-
-const ReportesTable = ({
-  reportesData,
+function ReportesServiciosTbl({
+  serviciosData,
   download,
   setDownload,
   currentDate,
   filtro,
-  view,
-}: Props) => {
+}: Props) {
   const gridRef = React.useRef<AgGridReact>(null);
-  const [colDef, setColDef] = React.useState(colDefServicios);
-
 
   const handleDownloadComplete = () => {
     if (download && setDownload) {
-      gridApi.exportDataAsCsv({ fileName: `reporte_${view}_${filtro}_${currentDate}` });
+      gridApi.exportDataAsCsv({
+        fileName: `reporte_servicios_${filtro}_${currentDate}`,
+      });
       setDownload(false);
     }
   };
@@ -102,27 +89,18 @@ const ReportesTable = ({
       handleDownloadComplete();
     }
   }, [download, setDownload]);
-
-  React.useEffect(() => {
-    if (view === "servicios") {
-      setColDef(colDefServicios);
-    } else {
-      setColDef(colDefProductos);
-    }
-  }, [view]);
-
+  const [colDef, setColDef] = React.useState(colDefServicios);
   return (
-    // Data Grid will fill the size of the parent container
-    <div style={{ height: "100%", width: "100%" }}>
+    <Box component="div" style={{ width: "100%", height: "100%" }}>
       <AgGridReact
         ref={gridRef}
-        rowData={reportesData}
+        rowData={serviciosData}
         columnDefs={colDef}
         gridOptions={gridOptions}
         defaultColDef={defaultColdef}
       />
-    </div>
+    </Box>
   );
-};
+}
 
-export default ReportesTable;
+export default ReportesServiciosTbl;
