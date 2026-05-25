@@ -61,7 +61,7 @@ type Props = {
   setDownload?: React.Dispatch<React.SetStateAction<boolean>>;
   currentDate: string;
   filtro?: string;
-  view: "servicios" | "productos";
+  view: "servicios" | "productos" | "total" | "gastos";
 };
 
 let gridApi: GridApi;
