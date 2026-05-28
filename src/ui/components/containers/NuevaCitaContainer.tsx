@@ -33,7 +33,7 @@ const NuevaCitaContainer = () => {
     guardarCita();
   };
   return (
-    <Grid container alignContent="flex-start" size={12}>
+    <Grid container alignContent="flex-start" sx={{ height: "100%", width: "100%" }} gap={2}>
       <Grid
         sx={{ width: "100%" }}
         alignItems={"center"}

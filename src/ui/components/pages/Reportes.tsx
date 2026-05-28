@@ -310,7 +310,10 @@ const Reportes = () => {
       <Grid container sx={styles.tableContainer} size={12}>
         <ReportesTable
           reportesData={
-            view === "servicios" ? serviciosFiltred : productosFiltred
+            view === "servicios" &&  serviciosFiltred ||
+            view === "productos" &&  productosFiltred ||
+            view === "gastos" && gastos || serviciosFiltred
+            // view === "servicios" ? serviciosFiltred : productosFiltred
           }
           download={download}
           setDownload={setDownload}

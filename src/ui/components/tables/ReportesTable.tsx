@@ -55,6 +55,40 @@ const colDefProductos = [
 
 ]
 
+const colsData = [
+  {
+    field: "proveedorNombre",
+    headerName: "Proveedor",
+    editable: true,
+  },
+  {
+    field: "monto",
+    headerName: "Monto",
+    editable: true,
+    valueFormatter: (params: any) => `$${parseFloat(params.value).toFixed(2)}`,
+  },
+  {
+    field: "fecha",
+    headerName: "Fecha",
+    editable: false,
+  },
+  {
+    field: "categoria",
+    headerName: "Categoría",
+    editable: true,
+  },
+  {
+    field: "descripcion",
+    headerName: "Descripción",
+    editable: true,
+  },
+  {
+    field: "metodoPago",
+    headerName: "Método de Pago",
+    editable: true,
+  }
+];
+
 type Props = {
   reportesData: Array<any>;
   download?: boolean;
@@ -106,8 +140,10 @@ const ReportesTable = ({
   React.useEffect(() => {
     if (view === "servicios") {
       setColDef(colDefServicios);
-    } else {
+    } else if (view === "productos") {
       setColDef(colDefProductos);
+    } else if (view === "gastos") {
+      setColDef(colsData);
     }
   }, [view]);
 
