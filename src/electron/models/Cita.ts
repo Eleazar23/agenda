@@ -15,7 +15,6 @@ export interface IProductoInCita {
 }
 
 export interface IServicioAgendadoInCita {
-  id: number;
   rowIndex: number;
   cellID: string;
   servicio: IServicioInCita;
@@ -27,7 +26,7 @@ export interface IServicioAgendadoInCita {
 }
 
 export interface ICita {
-  id: number;
+  id: string;
   fecha: string;
   nombreCliente: string;
   telefonoCliente: string;
@@ -45,7 +44,7 @@ const servicioInCitaSchema = new Schema<IServicioInCita>({
 }, { _id: false });
 
 const citaSchema = new Schema<ICita>({
-  id: { type: Number, required: true, unique: true },
+  id: { type: String, required: true, unique: true },
   fecha: { type: String, required: true },
   nombreCliente: { type: String, required: true },
   telefonoCliente: { type: String, required: true },
