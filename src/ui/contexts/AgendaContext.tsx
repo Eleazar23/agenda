@@ -49,7 +49,7 @@ type AgendaContex = {
   setCurrentPage: React.Dispatch<React.SetStateAction<string>>;
   cita: Cita;
   setCita: React.Dispatch<React.SetStateAction<Cita>>;
-  handleEditCita: (idCita: number, newCitaData: Cita) => Promise<void>;
+  handleEditCita: (idCita: string, newCitaData: Cita) => Promise<void>;
   addServiceToCita: (servicio: ServicioAgendado) => void;
   removeServiceFromCita: (servicio: ServicioAgendado) => void;
   updateDuracion: (
@@ -78,7 +78,7 @@ const initialContextData = {
   isBooking: false,
   citas: [],
   cita: {
-    id: 0,
+    id: "",
     fecha: initialDate,
     nombreCliente: "",
     telefonoCliente: "",
@@ -90,8 +90,6 @@ const initialContextData = {
   },
   currentPage: "agenda",
 };
-
-
 
 export const AgendaContextProvider = ({ children }: Props) => {
   const { enqueueSnackbar } = useSnackbar();
@@ -114,22 +112,42 @@ export const AgendaContextProvider = ({ children }: Props) => {
     });
   };
 
-  const handleEditCita = async (idCita: number, newCitaData: Cita) => {
+  const getCitasFromDB = async (fecha: string) => {
+    try {
+      const citasFromDB = await window.api.getCitasByFecha(fecha);
+      // const citasActivas = citasFromDB.filter(
+      //   (cita) => cita.estado !== "cancelado",
+      // );
+      // console.log("Citas for fecha", fecha, citasActivas);
+      // setCitas(citasActivas);
+      setCitas(citasFromDB);
+    } catch (error) {
+      console.error("Error loading citas:", error);
+      handleAlert("Error al cargar las citas", "error");
+    }
+  };
+
+  const handleEditCita = async (idCita: string, newCitaData: Cita) => {
     try {
       if (newCitaData.estado === "cancelado") {
-        // await window.api.deleteCita(idCita);
-        await window.api.updateCita(newCitaData);
-        const updatedCitas = citas.filter((cita) => cita.id !== idCita);
-        setCitas(updatedCitas);
+        await window.api.deleteCita(idCita);
+        // await window.api.updateCita(newCitaData);
+        // const updatedCitas = citas.filter((cita) => cita.id !== idCita);
+        // setCitas(updatedCitas);
+        getCitasFromDB(fecha);
         handleAlert("Cita cancelada", "info");
         return;
       }
 
+      if (newCitaData.servicios.length === 0) {
+        await window.api.deleteCita(idCita);
+        getCitasFromDB(fecha);
+        handleAlert("Cita eliminada por no tener servicios", "info");
+        return;
+      }
+
       await window.api.updateCita(newCitaData);
-      const updatedCitas = citas.map((cita) =>
-        cita.id === idCita ? newCitaData : cita,
-      );
-      setCitas(updatedCitas);
+      getCitasFromDB(fecha);
       handleAlert("Cita actualizada", "success");
     } catch (error) {
       console.error("Error updating cita:", error);
@@ -227,8 +245,25 @@ export const AgendaContextProvider = ({ children }: Props) => {
       //   const savedCita = await window.api.addCita(citaData);
       //   savedCitas.push(savedCita);
       // }
+      const newID = `${fecha}-${cita.nombreCliente}`;
+      const isCitaInDB = await window.api.getCitaByFechaCliente(fecha, cita.nombreCliente);
+      if (isCitaInDB) {
+        const updateServicios = [...isCitaInDB.servicios, ...cita.servicios]
+        const updatedCitaData = {
+          ...isCitaInDB,
+          servicios: updateServicios,
+          estado: cita.estado,}
+        await window.api.updateCita(updatedCitaData);
+        getCitasFromDB(fecha);
+        handleAlert("Cita actualizada", "success");
+        return;
+      }
+      const citaToSave = {
+        ...cita,
+        id: newID,
+      };
       console.log("Cita to save:", cita);
-      const savedCita = await window.api.addCita(cita);
+      const savedCita = await window.api.addCita(citaToSave);
 
       setCitas((prevCitas) => [...prevCitas, savedCita]);
       setCita(initialContextData.cita);
@@ -250,7 +285,7 @@ export const AgendaContextProvider = ({ children }: Props) => {
     }
   };
 
-    const searchClientesByNombre = async (nombre: string) => {
+  const searchClientesByNombre = async (nombre: string) => {
     try {
       const cliente = await window.api.getClientesByNombre(nombre);
       return cliente || null;
@@ -294,21 +329,7 @@ export const AgendaContextProvider = ({ children }: Props) => {
   };
 
   useEffect(() => {
-    const loadCitas = async () => {
-      try {
-        const citasFromDB = await window.api.getCitasByFecha(fecha);
-        const citasActivas = citasFromDB.filter(
-          (cita) => cita.estado !== "cancelado",
-        );
-        console.log("Citas for fecha", fecha, citasActivas);
-        setCitas(citasActivas);
-      } catch (error) {
-        console.error("Error loading citas:", error);
-        handleAlert("Error al cargar las citas", "error");
-      }
-    };
-
-    loadCitas();
+    getCitasFromDB(fecha);
   }, [fecha]);
 
   return (

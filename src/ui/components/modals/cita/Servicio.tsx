@@ -1,8 +1,11 @@
 import React, { useEffect } from "react";
 import {
+  Box,
   Divider,
   Grid,
+  IconButton,
   InputAdornment,
+  Popover,
   Stack,
   TextField,
   Typography,
@@ -16,9 +19,10 @@ import StatusCita from "../../Inputs/StatusCita";
 import MetodoPagoInput from "../../Inputs/MetodoPagoInput";
 import { Producto, ProductoInCita } from "../../../types/Producto";
 import useGlobalAlert from "../../GlobalAlert";
-import { ServicioAgendado} from "../../../types/ServicioAgendado";
+import { ServicioAgendado } from "../../../types/ServicioAgendado";
 import { getDuracion } from "../../../utils/utils";
 import { Cita } from "../../../types/Cita";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 type ServicioFormProps = {
   servicio: ServicioAgendado;
@@ -26,24 +30,34 @@ type ServicioFormProps = {
   setCitaForm: React.Dispatch<React.SetStateAction<Cita>>;
   updateProductosInCita: (newProductos: Array<ProductoInCita>) => void;
   updateServicioInCita: (updatedServicio: ServicioAgendado) => void;
+  handleRemoveService: (servicio: ServicioAgendado) => void;
 };
 
 const initialServicioForm = {
-    id: 0,
-    rowIndex: 0,
-    cellID: "",
-    fecha: "",
-    estilista: "",
-    servicio: { id: 0, nombre: "", precio: 0 },
-    horaInicio: "",
-    horaFin: "",
-    duracion: 0,
-  }
+  rowIndex: 0,
+  cellID: "",
+  fecha: "",
+  estilista: "",
+  servicio: { id: 0, nombre: "", precio: 0 },
+  horaInicio: "",
+  horaFin: "",
+  duracion: 0,
+};
 
-function ServicioForm({ servicio, citaForm, setCitaForm, updateProductosInCita, updateServicioInCita }: ServicioFormProps) {
+function ServicioForm({
+  servicio,
+  citaForm,
+  setCitaForm,
+  updateProductosInCita,
+  updateServicioInCita,
+  handleRemoveService,
+}: ServicioFormProps) {
   const { showAlert } = useGlobalAlert();
+  const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
+    null,
+  );
   const [servicioForm, setModalForm] = React.useState<ServicioAgendado>({
-    id: servicio.id || 0,
     rowIndex: servicio.rowIndex || 0,
     cellID: servicio.cellID || "",
     fecha: servicio.fecha || "",
@@ -54,21 +68,21 @@ function ServicioForm({ servicio, citaForm, setCitaForm, updateProductosInCita, 
     duracion: servicio.duracion || 0,
   });
 
-//   {
-//   "id": 0,
-//   "rowIndex": 5,
-//   "cellID": "5-Mimi",
-//   "fecha": "17-03-2026",
-//   "estilista": "Mimi",
-//   "servicio": {
-//     "id": 1,
-//     "nombre": "Corte de cabello H",
-//     "precio": "150",
-//   },
-//   "horaInicio": "02:30",
-//   "horaFin": "02:30",
-//   "duracion": 0
-// }
+  //   {
+  //   "id": 0,
+  //   "rowIndex": 5,
+  //   "cellID": "5-Mimi",
+  //   "fecha": "17-03-2026",
+  //   "estilista": "Mimi",
+  //   "servicio": {
+  //     "id": 1,
+  //     "nombre": "Corte de cabello H",
+  //     "precio": "150",
+  //   },
+  //   "horaInicio": "02:30",
+  //   "horaFin": "02:30",
+  //   "duracion": 0
+  // }
 
   const [productos, setProductos] = React.useState<
     {
@@ -88,13 +102,26 @@ function ServicioForm({ servicio, citaForm, setCitaForm, updateProductosInCita, 
     }));
   };
 
-    const handleDuracionChange = () => {
-      const newDuracion = getDuracion(servicioForm.horaInicio, servicioForm.horaFin);
-      setModalForm({
-        ...servicioForm,
-        duracion: newDuracion,
-      });
-    };
+  const handleRemoveServiceClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    setIsPopoverOpen(true);
+    setAnchorEl(e.currentTarget);
+  };
+
+  const handleClosePopover = () => {
+    setIsPopoverOpen(false);
+    setAnchorEl(null);
+  };
+
+  const handleDuracionChange = () => {
+    const newDuracion = getDuracion(
+      servicioForm.horaInicio,
+      servicioForm.horaFin,
+    );
+    setModalForm({
+      ...servicioForm,
+      duracion: newDuracion,
+    });
+  };
 
   const handleAddProducto = (newProducto: {
     producto: Producto;
@@ -182,7 +209,7 @@ function ServicioForm({ servicio, citaForm, setCitaForm, updateProductosInCita, 
         </Typography>
       </Grid>
       <Grid container size={12} spacing={2} flexGrow={1}>
-        <Grid size={3}>
+        <Grid size={2}>
           <EstilistaInput
             ctxValue={servicioForm.estilista}
             ctxDispatch={handleChange}
@@ -190,7 +217,7 @@ function ServicioForm({ servicio, citaForm, setCitaForm, updateProductosInCita, 
         </Grid>
         <Grid size={3}>
           <ServiciosInput
-            value={servicioForm.servicio }
+            value={servicioForm.servicio}
             onChange={(newServicio) => {
               handleChange("servicio", newServicio);
             }}
@@ -228,6 +255,39 @@ function ServicioForm({ servicio, citaForm, setCitaForm, updateProductosInCita, 
             hora={servicioForm.horaFin}
             onChange={(newHora) => handleChange("horaFin", newHora)}
           />
+        </Grid>
+        <Grid size={1} sx={{display:"flex", justifyContent:"center", alignItems:"center"}}>
+          <IconButton onClick={handleRemoveServiceClick}>
+            <DeleteIcon fontSize="inherit" />
+          </IconButton>
+          <Popover
+            id="remove-service-popover"
+            open={isPopoverOpen}
+            anchorEl={anchorEl}
+            onClose={handleClosePopover}
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "left",
+            }}
+          >
+            <Typography sx={{ p: 2 }}>
+              Estas seguro que deseas eliminar este servicio?
+            </Typography>
+            <Box display="flex" justifyContent="space-around" padding={1}>
+              <IconButton color="primary" onClick={handleClosePopover}>
+                No
+              </IconButton>
+              <IconButton
+                color="error"
+                onClick={() => {
+                  handleRemoveService(servicioForm);
+                  handleClosePopover();
+                }}
+              >
+                Si
+              </IconButton>
+            </Box>
+          </Popover>
         </Grid>
       </Grid>
 

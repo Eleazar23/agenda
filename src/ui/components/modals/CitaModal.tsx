@@ -79,7 +79,7 @@ export default function CitaModal({
   const [view, setView] = useState("servicio");
   const [citaForm, setCitaForm] = useState<Cita>(
     cita || {
-      id: 0,
+      id: '',
       fecha,
       nombreCliente,
       telefonoCliente: telefonoCliente || "",
@@ -118,6 +118,17 @@ export default function CitaModal({
     setCitas((prev) => [...prev, ...citasData]);
   };
 
+  const handleRemoveService = (servicioToRemove: ServicioAgendado) => {
+    const updatedServicios = citaForm.servicios.filter((s) => s.cellID !== servicioToRemove.cellID);
+    const newCitaData = {
+      ...citaForm,
+      servicios: updatedServicios,
+    };
+    setCitaForm(newCitaData); 
+    console.log({ updatedServicios, citaForm });
+    handleEditCita(citaForm.id, newCitaData);
+  }
+
   const handleAlignmentChange = (
     event: React.MouseEvent<HTMLElement>,
     newAlignment: string,
@@ -138,8 +149,12 @@ export default function CitaModal({
   };
 
   const handleGuardar = () => {
+
+      handleEditCita(citaForm.id, citaForm);
+
     // Guardar los cambios realizados en el modal
-    handleEditCita(citaForm.id, citaForm);
+    // handleEditCita(citaForm.id, citaForm);
+
     // console.log({ modalForm, agendaData })
     // setAgendaData({ ...agendaData, isCitaOpen: false, modal: modalForm });
     // if (servicio && servicio.id !== undefined) {
@@ -162,7 +177,7 @@ export default function CitaModal({
     const newHr = getHrsObj(updatedServicio.horaInicio);
     const newRowIndex = newHr ? newHr.index : updatedServicio.rowIndex;
     const serviceToUpdateIndex = citaForm.servicios.findIndex(
-      (s) => s.id === updatedServicio.id,
+      (s) => s.cellID === updatedServicio.cellID,
     );
     if (serviceToUpdateIndex === -1) return;
     const updatedServicios = [...citaForm.servicios];
@@ -286,6 +301,7 @@ export default function CitaModal({
               setCitaForm={setCitaForm}
               updateProductosInCita={updateProductosInCita}
               updateServicioInCita={updateServicioInCita}
+              handleRemoveService={handleRemoveService}
             />
           ) : (
             <TotalCitaTbls

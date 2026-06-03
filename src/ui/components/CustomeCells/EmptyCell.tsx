@@ -2,7 +2,6 @@ import { Button } from "@mui/material";
 import { useState } from "react";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import type { CustomCellRendererProps } from "ag-grid-react";
-import Productos from "../pages/Productos";
 
 const EmptyCell = (params: CustomCellRendererProps) => {
   const { cita, fecha } = useAgendaContext();
@@ -31,11 +30,11 @@ const EmptyCell = (params: CustomCellRendererProps) => {
   const handleClick = async () => {
     if (!isSelected) {
       setIsSelected(() => true);
-      addServiceToCita({ id: 0, ...cellData });
+      addServiceToCita(cellData);
       return;
     }
     setIsSelected(() => false);
-    removeServiceFromCita({ ...cita, ...cellData });
+    removeServiceFromCita(cellData);
   };
 
   return (

@@ -12,9 +12,11 @@ import { Gasto } from './models/Gasto.js';
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const __dbUrl = 'mongodb://localhost:27017'
+const __dbName = 'agenda';
 
 // Connect to MongoDB using Mongoose
-mongoose.connect('mongodb://localhost:27017/agenda').then(() => {
+mongoose.connect(`${__dbUrl}/${__dbName}`).then(() => {
     console.log('Connected to MongoDB');
 }).catch((err: any) => {
     console.error('Failed to connect to MongoDB', err);
@@ -269,9 +271,10 @@ ipcMain.handle('get-cita-by-fecha-cliente', async (_event, fecha, nombreCliente)
 
 ipcMain.handle('add-cita', async (_event, cita) => {
     try {
-        const maxId = await Cita.findOne().sort('-id').lean();
-        const newId = maxId ? maxId.id + 1 : 1;
-        const newCita = new Cita({ ...cita, id: newId });
+        // const maxId = await Cita.findOne().sort('-id').lean();
+        // const newId = maxId ? maxId.id + 1 : 1;
+        // const newCita = new Cita({ ...cita, id: newId });
+        const newCita = new Cita({ ...cita });
         await newCita.save();
         return newCita.toObject();
     } catch (error) {

@@ -1,4 +1,3 @@
-import { Producto } from "../types/Producto";
 import { Servicio } from "./Servicio";
 
 // export type ServicioAgendado = {
@@ -15,7 +14,6 @@ import { Servicio } from "./Servicio";
 // }
 
 export type ServicioAgendado = {
-    id: number;
     rowIndex: number;
     cellID: string;
     servicio: Servicio;

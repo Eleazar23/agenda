@@ -5,7 +5,7 @@ import { ServicioAgendado } from "./ServicioAgendado";
 // type EstadoCita = "pendiente" | "confirmada" | "cancelada" | "completada";
 
 export type Cita = {
-    id: number;
+    id: string;
     fecha: string;
     nombreCliente: string;
     telefonoCliente: string;

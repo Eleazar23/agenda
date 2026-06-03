@@ -36,7 +36,7 @@ export interface IElectronAPI {
   getCitas: () => Promise<Cita[]>;
   addCita: (cita: Omit<Cita, 'id'>) => Promise<Cita>;
   updateCita: (cita: Cita) => Promise<Cita>;
-  deleteCita: (id: number) => Promise<void>;
+  deleteCita: (id: string) => Promise<void>;
   getCitasByFecha: (fecha: string) => Promise<Cita[]>;
   getCitasByFechaCliente: (fecha: string, nombreCliente: string) => Promise<Cita[]>;
   getCitaByFechaCliente: (fecha: string, nombreCliente: string) => Promise<Cita | null>;
