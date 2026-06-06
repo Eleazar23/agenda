@@ -276,7 +276,7 @@ export default function CitaModal({
               aria-label="Platform"
             >
               <ToggleButton value="servicio">Servicio</ToggleButton>
-              <ToggleButton value="total">Cita</ToggleButton>
+              <ToggleButton value="total">Total Cita</ToggleButton>
             </ToggleButtonGroup>
           </Box>
 

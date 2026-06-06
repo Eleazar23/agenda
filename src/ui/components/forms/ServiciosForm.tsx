@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Grid } from "@mui/material";
+import { Box, Grid, Stack, Typography } from "@mui/material";
 import EstilistaInput from "../Inputs/EstilistaInput";
 import ServiciosInput from "../Inputs/ServiciosInput";
 import HoraInput from "../Inputs/HoraInput";
@@ -14,11 +14,7 @@ type ServiciosFormProps = {
   hora: string;
 };
 
-const ServiciosForm = ({
-  estilista,
-  hora,
-  cellID,
-}: ServiciosFormProps) => {
+const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
   const { updateDuracion, updateService } = useAgendaContext();
   const [servicio, setServicio] = useState<Servicio | null>(null);
   const [horaFin, setHoraFin] = useState<string>(hora);
@@ -40,25 +36,28 @@ const ServiciosForm = ({
   }, [hora, horaFin]);
 
   return (
-    <Grid container gap={1} size={12} wrap="nowrap" sx={{ height: "100%" }}>
-      <Grid size={3}>
-        <EstilistaInput ctxValue={estilista} readOnly />
-      </Grid>
-      <Grid size={4}>
+      <Stack
+        sx={{
+          width: "100%",
+          backgroundColor: "grey.100",
+          borderRadius: 1,
+          p: 1,
+        }}
+        gap={1}
+        alignItems="center"
+      >
+        <Typography variant="h6">{estilista.toUpperCase()}</Typography>
         <ServiciosInput value={servicio} onChange={handleServicioChange} />
-      </Grid>
-      <Grid size={3}>
-        <HoraInput label="Inicio" hora={hora} readOnly={true} />
-      </Grid>
-      <Grid size={3}>
-        <HoraFinInput
-          label="Fin"
-          hora={horaFin}
-          readOnly={false}
-          onChange={handleChangeHoraFin}
-        />
-      </Grid>
-    </Grid>
+        <Box component="div" sx={{ display: "flex", gap: 1, width: "100%" }}>
+          <HoraInput label="Inicio" hora={hora} readOnly={true} />
+          <HoraFinInput
+            label="Fin"
+            hora={horaFin}
+            readOnly={false}
+            onChange={handleChangeHoraFin}
+          />
+        </Box>
+      </Stack>
   );
 };
 
