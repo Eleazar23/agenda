@@ -12,14 +12,14 @@ function Agenda() {
     <>
       <Grid container gap={1} spacing={1} flexWrap={"nowrap"} size={12}>
         {isBooking ? (
-          <Grid container size={4}>
+          <Grid container size={3}>
             <Paper elevation={1} sx={{ height: "100%", width: "100%" }}>
               <NuevaCitaContainer />
             </Paper>
           </Grid>
         ) : null}
 
-        <Grid container size={isBooking ? 8 : 12}>
+        <Grid container size={isBooking ? 9 : 12}>
           <Paper elevation={1} sx={{ height: "100%", width: "100%" }}>
             <AgendaTable />
           </Paper>
