@@ -2,18 +2,23 @@ import { styled, alpha } from "@mui/material/styles";
 import InputBase from "@mui/material/InputBase";
 import SearchIcon from "@mui/icons-material/Search";
 
+interface Props {
+  placeholder?: string;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
   borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  backgroundColor: theme.palette.grey[50],
   "&:hover": {
-    backgroundColor: alpha(theme.palette.common.white, 0.25),
+    backgroundColor: theme.palette.grey[100],
   },
   marginLeft: 0,
-  width: "100%",
+  width: "fit-content",
   [theme.breakpoints.up("sm")]: {
     marginLeft: theme.spacing(1),
-    width: "auto",
+    width: "fit-content",
   },
 }));
 
@@ -38,21 +43,22 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     [theme.breakpoints.up("sm")]: {
       width: "12ch",
       "&:focus": {
-        width: "20ch",
+        width: "35ch",
       },
     },
   },
 }));
 
-function SearchInput() {
+function SearchInput({ placeholder, onChange }: Props) {
   return (
     <Search>
       <SearchIconWrapper>
         <SearchIcon />
       </SearchIconWrapper>
       <StyledInputBase
-        placeholder="Buscar…"
+        placeholder={placeholder || "Buscar…"}
         inputProps={{ "aria-label": "search" }}
+        onChange={onChange}
       />
     </Search>
   );

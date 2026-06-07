@@ -8,7 +8,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import SearchBar from './SearchBar';
 import DateBar from './DateBar';
 import { useSideBarContext } from '../contexts/SideBarContext';
-import SearchInput from './Inputs/SearchInput';
 
 export default function MenuAppBar() {
   const [auth, setAuth] = React.useState(true);

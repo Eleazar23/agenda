@@ -3,6 +3,8 @@ import { Box, Button, Grid, Paper } from "@mui/material";
 import ClientsTables from "../tables/ClientsTable";
 import { ClientesCtxProvider } from "../../contexts/ClientesCtx";
 import { ClientesModal } from "../modals/clientes/ClientesModal";
+import SearchInput from "../Inputs/SearchInput";
+import { useThrottle } from "../../hooks/useThrottle";
 
 type Cliente = {
   nombre: string;
@@ -25,9 +27,9 @@ const STYLES = {
   },
   actionBar: {
     display: "flex",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
     width: "100%",
-    gap: 4,
+    gap: 1,
   },
   tableContainer: {
     height: "100%",
@@ -37,21 +39,31 @@ const STYLES = {
 const Clientes = () => {
   const [isEditing, setIsEditing] = useState(false);
   // const [clientesData, setClientesData] = useState<Cliente[]>(globalData.clientes);
-  const [editedClientes, setEditedClientes] = useState<Record<number, Cliente>>({});
+  const [editedClientes, setEditedClientes] = useState<Record<number, Cliente>>(
+    {},
+  );
   const [isOpenModal, setIsOpenModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleGuardar = useCallback(() => {
     console.log("Guardar cambios:", editedClientes);
     setIsEditing(false);
   }, [editedClientes]);
 
-  const handleEdit = useCallback((node: { rowIndex: number; data: Cliente }) => {
-    const { rowIndex, data } = node;
-    setEditedClientes((prev) => ({
-      ...prev,
-      [rowIndex]: data,
-    }));
-  }, []);
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const handleEdit = useCallback(
+    (node: { rowIndex: number; data: Cliente }) => {
+      const { rowIndex, data } = node;
+      setEditedClientes((prev) => ({
+        ...prev,
+        [rowIndex]: data,
+      }));
+    },
+    [],
+  );
 
   const handleCancelar = useCallback(() => {
     setEditedClientes({});
@@ -66,24 +78,27 @@ const Clientes = () => {
     setIsOpenModal(false);
   }, []);
 
-  const handleSaveClient = useCallback((client: { nombre: string; telefono: string; correo?: string }) => {
-    const today = new Date();
-    const lastVisit = `${String(today.getDate()).padStart(2, "0")}-${String(today.getMonth() + 1).padStart(2, "0")}-${today.getFullYear()}`;
-    
-    const newClient: Cliente = {
-      nombre: client.nombre,
-      telefono: client.telefono,
-      correo: client.correo || "",
-      lastVisit,
-    };
-    console.log("Cliente guardado:", newClient);
-    setIsOpenModal(false);
-  }, []);
+  const handleSaveClient = useCallback(
+    (client: { nombre: string; telefono: string; correo?: string }) => {
+      const today = new Date();
+      const lastVisit = `${String(today.getDate()).padStart(2, "0")}-${String(today.getMonth() + 1).padStart(2, "0")}-${today.getFullYear()}`;
+
+      const newClient: Cliente = {
+        nombre: client.nombre,
+        telefono: client.telefono,
+        correo: client.correo || "",
+        lastVisit,
+      };
+      console.log("Cliente guardado:", newClient);
+      setIsOpenModal(false);
+    },
+    [],
+  );
 
   // useEffect(() => {
   //   setClientesData(globalData.clientes);
   // }, []);
-  
+
   return (
     <ClientesCtxProvider>
       <Grid
@@ -94,21 +109,34 @@ const Clientes = () => {
       >
         <Grid container size={12}>
           <Paper sx={STYLES.paper}>
-            <Box component="div" sx={STYLES.actionBar}>
-              <Button 
-                variant="contained" 
-                color="primary" 
-                onClick={handleOpenModal}
+            <Grid component="div" sx={STYLES.actionBar}>
+              <Grid size={4} /> {/* Spacer */}
+              <Grid size={4} sx={{ display: "flex", justifyContent: "center" }}>
+                <SearchInput
+                  placeholder="Buscar cliente (nombre, teléfono, correo)"
+                  onChange={handleSearchChange}
+                />
+              </Grid>
+              <Grid
+                size={4}
+                sx={{ display: "flex", justifyContent: "flex-end" }}
               >
-                Agregar Cliente
-              </Button>
-            </Box>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleOpenModal}
+                >
+                  Agregar Cliente
+                </Button>
+              </Grid>
+            </Grid>
           </Paper>
         </Grid>
         <Grid container sx={STYLES.tableContainer} size={12}>
           <ClientsTables
             setIsEditing={setIsEditing}
             handleEdit={handleEdit}
+            searchTerm={searchTerm}
           />
         </Grid>
         <ClientesModal
