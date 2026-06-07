@@ -3,16 +3,12 @@ import { useState } from "react";
 
 import {
   AllCommunityModule,
-  CellClickedEvent,
   CellEditingStartedEvent,
   ModuleRegistry,
-  GridApi,
-  createGrid,
   CellValueChangedEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import ClientesActionsCell from "../CustomeCells/ClientesActionsCell";
-import { useEstilistasCtx } from "../../contexts/EstilistaContext";
 import { useClientesCtx } from "../../contexts/ClientesCtx";
 
 // Register all Community features
@@ -50,14 +46,12 @@ const colsData = [
 type Props = {
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   handleEdit?: (node: any) => void;
+  searchTerm?: string;
 };
 
-const ClientsTables = ({ setIsEditing, handleEdit }: Props) => {
+const ClientsTables = ({ setIsEditing, handleEdit, searchTerm }: Props) => {
   // Row Data: The data to be displayed.
-  // const [rowData, setRowData] = useState<null | Array<any>>(globalData.clientes);
   const {dataTable } = useClientesCtx();
-
-
   // Column Definitions: Defines the columns to be displayed.
   const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
 
@@ -68,6 +62,15 @@ const ClientsTables = ({ setIsEditing, handleEdit }: Props) => {
     }),
     []
   );
+
+  const filteredData = React.useMemo(() => {
+    if (!searchTerm) return dataTable;
+    return dataTable.filter((cliente) =>
+      cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cliente.telefono.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cliente.correo.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [dataTable, searchTerm]);
 
   const handleEditingStarted = (event: CellEditingStartedEvent) => {
     console.log("Cell editing started", event);
@@ -87,7 +90,7 @@ const ClientsTables = ({ setIsEditing, handleEdit }: Props) => {
     // Data Grid will fill the size of the parent container
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
-        rowData={dataTable}
+        rowData={filteredData}
         columnDefs={colDefs}
         defaultColDef={defaultColDef}
         onCellEditingStarted={handleEditingStarted}
