@@ -13,9 +13,6 @@ import { useClientesCtx } from "../../contexts/ClientesCtx";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
-
-// let gridApi: GridApi;
-
 const colsData = [
   {
     field: "nombre",
@@ -50,6 +47,7 @@ type Props = {
 };
 
 const ClientsTables = ({ setIsEditing, handleEdit, searchTerm }: Props) => {
+  const gridRef = React.useRef<AgGridReact<any>>(null);
   // Row Data: The data to be displayed.
   const {dataTable } = useClientesCtx();
   // Column Definitions: Defines the columns to be displayed.
@@ -95,6 +93,8 @@ const ClientsTables = ({ setIsEditing, handleEdit, searchTerm }: Props) => {
         defaultColDef={defaultColDef}
         onCellEditingStarted={handleEditingStarted}
         onCellValueChanged={hanldeCellChanged}
+        paginationAutoPageSize={true}
+        pagination={true}
       />
     </div>
   );
