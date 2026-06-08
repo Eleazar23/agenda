@@ -86,9 +86,6 @@ const Estilistas = () => {
         </Grid>
         <Grid container sx={styles.tableContainer} size={12}>
           <EstilistasTable
-            estilistasData={[]}
-            setIsEditing={() => {}}
-            handleAlert={handleAlert}
             searchTerm={searchTerm}
           />
         </Grid>

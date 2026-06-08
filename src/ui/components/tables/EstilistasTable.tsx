@@ -37,19 +37,12 @@ const colsData: ColDef<any>[] = [
 ];
 
 type Props = {
-  setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
-  estilistasData: Array<any>;
-  handleEdit?: (node: any) => void;
-  handleAlert?: (message: string, type: "success" | "error" | "info" | "warning") => void;
   searchTerm: string;
 };
 
-const EstilistasTable = ({ setIsEditing, estilistasData, handleEdit, handleAlert, searchTerm   }: Props) => {
+const EstilistasTable = ({ searchTerm }: Props) => {
   // Row Data: The data to be displayed.
   const {dataTable } = useEstilistasCtx();
-
-  // Column Definitions: Defines the columns to be displayed.
-  // const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
 
   const defaultColDef = React.useMemo(
     () => ({
@@ -67,17 +60,6 @@ const EstilistasTable = ({ setIsEditing, estilistasData, handleEdit, handleAlert
       estilista.telefono.toLowerCase().includes(lowerSearchTerm)
     );
   }, [dataTable, searchTerm]);
-
-  //   const getEstilistasData = () => {
-  //   // Lógica para obtener los datos de los clientes
-  //   console.log("Obteniendo datos de estilistas...");
-  //   setDataTable([...globalData.estilistas]);
-  //   return globalData.estilistas;
-  // };
-
-  // React.useEffect(() => {
-  //   getEstilistasData();
-  // }, [estilistasData]);
 
   return (
     // Data Grid will fill the size of the parent container
