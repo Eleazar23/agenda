@@ -115,6 +115,8 @@ const Clientes = () => {
                 <SearchInput
                   placeholder="Buscar cliente (nombre, teléfono, correo)"
                   onChange={handleSearchChange}
+                  value={searchTerm}
+                  onClear={() => setSearchTerm("")}
                 />
               </Grid>
               <Grid
