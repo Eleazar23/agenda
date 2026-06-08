@@ -100,6 +100,19 @@ export function getDayName(dayIndex: number) {
   return dayNames[dayIndex] || "";
 }
 
+export const getOfficeHours = () => {
+  const allDayHrs = getHrs();
+  const officeStart = "09:00";
+  const officeEnd = "20:00";
+  const officeHrs = allDayHrs.filter(
+    (hr) => hr.label24 >= officeStart && hr.label24 <= officeEnd,
+  );
+
+  const indexedHrs = officeHrs.map((hr, index) => ({ ...hr, index }));
+  return indexedHrs;
+
+}
+
 const hrsObj = {
   "00:00": { index: 0, label12: "12:00 AM", label24: "00:00", value: "00:00" },
   "00:30": { index: 1, label12: "12:30 AM", label24: "00:30", value: "00:30" },
@@ -153,33 +166,34 @@ const hrsObj = {
 
 export const getHrsObj = (hourValue: string) => {
   return hrsObj[hourValue as keyof typeof hrsObj];
-}
+};
 
-  const formatHoraFin = (hora: string) => {
-    const hrFinArry = hora.split(" ");
-    return hrFinArry[0];
-  };
+const formatHoraFin = (hora: string) => {
+  const hrFinArry = hora.split(" ");
+  return hrFinArry[0];
+};
 
-  export const getDuracion = (horaInicio: string, horaFin: string) => {
-    const formattedHoraFin = formatHoraFin(horaFin);
-    const [startHrs, startMins] = horaInicio.split(":").map(Number);
-    const [endHrs, endMins] = formattedHoraFin.split(":").map(Number);
-    const startTotalMins = startHrs * 60 + startMins;
-    const endTotalMins = endHrs * 60 + endMins;
-    const diffMins = endTotalMins - startTotalMins;
-    const realDiffMins = diffMins >= 0 ? diffMins : 0;
-    console.log("Duracion actualizada a:", diffMins);
-    return realDiffMins;
-  };
- export function throttle(func: any, limit: number) {
+export const getDuracion = (horaInicio: string, horaFin: string) => {
+  const formattedHoraFin = formatHoraFin(horaFin);
+  const [startHrs, startMins] = horaInicio.split(":").map(Number);
+  const [endHrs, endMins] = formattedHoraFin.split(":").map(Number);
+  const startTotalMins = startHrs * 60 + startMins;
+  const endTotalMins = endHrs * 60 + endMins;
+  const diffMins = endTotalMins - startTotalMins;
+  const realDiffMins = diffMins >= 0 ? diffMins : 0;
+  console.log("Duracion actualizada a:", diffMins);
+  return realDiffMins;
+};
+
+export function throttle(func: any, limit: number) {
   let inThrottle = false;
-  return function(this: any) {
+  return function (this: any) {
     const args = arguments;
     const context = this;
     if (!inThrottle) {
       func.apply(context, args);
       inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
+      setTimeout(() => (inThrottle = false), limit);
     }
-  }
+  };
 }
