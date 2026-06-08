@@ -90,7 +90,7 @@ const AgendaTable = () => {
     });
 
     setColDefs(newColDefs);
-    setRowInitData(newRowInitData);
+    setRowInitData(newRowInitData.slice(18, 41)); // Limit to 48 rows for a 24-hour schedule with 30-minute intervals
   }, [estilistas]);
 
   // Row Data: The data to be displayed.

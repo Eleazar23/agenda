@@ -20,6 +20,7 @@ import {
   formatDateFromHTML,
   formatDateToHTML,
   getDuracion,
+  getOfficeHours,
 } from "../../utils/utils";
 import { Cita } from "../../types/Cita";
 import { getHrs, getHrsObj } from "../../utils/utils";
@@ -174,7 +175,8 @@ export default function CitaModal({
   };
 
   const updateServicioInCita = (updatedServicio: ServicioAgendado) => {
-    const newHr = getHrsObj(updatedServicio.horaInicio);
+    // const newHr = getHrsObj(updatedServicio.horaInicio);
+    const newHr = getOfficeHours().find((hr) => hr.label24 === updatedServicio.horaInicio);
     const newRowIndex = newHr ? newHr.index : updatedServicio.rowIndex;
     const serviceToUpdateIndex = citaForm.servicios.findIndex(
       (s) => s.cellID === updatedServicio.cellID,
