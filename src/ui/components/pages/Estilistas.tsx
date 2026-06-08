@@ -4,8 +4,7 @@ import EstilistasTable from "../tables/EstilistasTable";
 import EstilistaModal from "../modals/EstilistaModal";
 import { useSnackbar } from "notistack";
 import { EstilistasCtxProvider } from "../../contexts/EstilistaContext";
-
-
+import SearchInput from "../Inputs/SearchInput";
 
 const styles = {
   clientesContainer: {
@@ -13,7 +12,7 @@ const styles = {
     height: "100%",
     justifyContent: "space-between",
     maxHeight: "100vh",
-    flexWrap: "nowrap",
+    flexWrap: "nowrap" as const,
   },
   paper: {
     padding: 2,
@@ -21,25 +20,31 @@ const styles = {
   },
   actionBar: {
     display: "flex",
-    justifyContent: "flex-end",
+    flexWrap: "nowrap",
+    justifyContent: "space-between",
     width: "100%",
-    gap: 4,
+    gap: 1,
   },
   tableContainer: {
     height: "100%",
   },
-};
+} as const;
 type Alert = "success" | "error" | "info" | "warning";
 
 const Estilistas = () => {
   const [isOpenModal, setIsOpenModal] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleAlert = (message: string, alertType: Alert) => {
     enqueueSnackbar(message, {
       variant: alertType,
       anchorOrigin: { vertical: "bottom", horizontal: "center" },
     });
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
   };
 
   const handleOpenModal = () => {
@@ -57,15 +62,26 @@ const Estilistas = () => {
       >
         <Grid container size={12}>
           <Paper sx={styles.paper}>
-            <Box component="div" sx={styles.actionBar}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleOpenModal}
-              >
-                Agregar Estilista
-              </Button>
-            </Box>
+            <Grid container component="div" sx={styles.actionBar}>
+              <Grid size={4} /> {/* Spacer */}
+              <Grid size={4} sx={{ display: "flex", justifyContent: "center" }}>
+                <SearchInput
+                  placeholder="Buscar estilista ( Nombre | Telefono)"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  onClear={() => setSearchTerm("")}
+                />
+              </Grid>
+              <Grid size={4} sx={{ display: "flex", justifyContent: "flex-end" }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleOpenModal}
+                >
+                  Agregar Estilista
+                </Button>
+              </Grid>
+            </Grid>
           </Paper>
         </Grid>
         <Grid container sx={styles.tableContainer} size={12}>
@@ -73,6 +89,7 @@ const Estilistas = () => {
             estilistasData={[]}
             setIsEditing={() => {}}
             handleAlert={handleAlert}
+            searchTerm={searchTerm}
           />
         </Grid>
         <EstilistaModal

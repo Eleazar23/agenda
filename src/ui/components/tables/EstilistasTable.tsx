@@ -41,9 +41,10 @@ type Props = {
   estilistasData: Array<any>;
   handleEdit?: (node: any) => void;
   handleAlert?: (message: string, type: "success" | "error" | "info" | "warning") => void;
+  searchTerm: string;
 };
 
-const EstilistasTable = ({ setIsEditing, estilistasData, handleEdit, handleAlert }: Props) => {
+const EstilistasTable = ({ setIsEditing, estilistasData, handleEdit, handleAlert, searchTerm   }: Props) => {
   // Row Data: The data to be displayed.
   const {dataTable } = useEstilistasCtx();
 
@@ -57,6 +58,15 @@ const EstilistasTable = ({ setIsEditing, estilistasData, handleEdit, handleAlert
     }),
     []
   );
+
+  const filteredData = React.useMemo(() => {
+    if (!searchTerm) return dataTable;
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return dataTable.filter((estilista) =>
+      estilista.name.toLowerCase().includes(lowerSearchTerm) ||
+      estilista.telefono.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [dataTable, searchTerm]);
 
   //   const getEstilistasData = () => {
   //   // Lógica para obtener los datos de los clientes
@@ -73,10 +83,12 @@ const EstilistasTable = ({ setIsEditing, estilistasData, handleEdit, handleAlert
     // Data Grid will fill the size of the parent container
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
-        rowData={dataTable}
+        rowData={filteredData}
         columnDefs={colsData}
         defaultColDef={defaultColDef}
         gridOptions={{enableCellTextSelection: true,}}
+        paginationAutoPageSize={true}
+        pagination={true}
       />
     </div>
   );

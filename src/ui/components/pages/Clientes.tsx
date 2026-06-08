@@ -27,6 +27,7 @@ const STYLES = {
   },
   actionBar: {
     display: "flex",
+    flexWrap: "nowrap",
     justifyContent: "space-between",
     width: "100%",
     gap: 1,
@@ -109,7 +110,7 @@ const Clientes = () => {
       >
         <Grid container size={12}>
           <Paper sx={STYLES.paper}>
-            <Grid component="div" sx={STYLES.actionBar}>
+            <Grid container component="div" sx={STYLES.actionBar}>
               <Grid size={4} /> {/* Spacer */}
               <Grid size={4} sx={{ display: "flex", justifyContent: "center" }}>
                 <SearchInput
