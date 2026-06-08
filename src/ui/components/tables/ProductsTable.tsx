@@ -23,6 +23,10 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 //   handleEdit?: (node: any) => void;
 // };
 
+interface Props {
+  searchTerm: string;
+}
+
 const colsData = [
   {
     field: "nombre",
@@ -51,7 +55,7 @@ const colsData = [
     }
 ];
 
-const ProductsTable = () => {
+const ProductsTable = ({ searchTerm }: Props) => {
   // Row Data: The data to be displayed.
   const { dataTable} = useProductosCtx();
 
@@ -66,14 +70,27 @@ const ProductsTable = () => {
     []
   );
 
+  const filteredData = React.useMemo(() => {
+    if (!searchTerm) return dataTable;
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return dataTable.filter((row) => {
+      return (
+        row.nombre.toLowerCase().includes(lowerSearchTerm) ||
+        row.marca.toLowerCase().includes(lowerSearchTerm)
+      );
+    });
+  }, [searchTerm, dataTable]);
+
 
   return (
     // Data Grid will fill the size of the parent container
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
-        rowData={dataTable}
+        rowData={filteredData}
         columnDefs={colDefs}
         defaultColDef={defaultColDef}
+        pagination={true}
+        paginationAutoPageSize={true}
       />
     </div>
   );

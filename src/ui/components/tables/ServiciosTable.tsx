@@ -26,7 +26,7 @@ const colsData = [
   },
 ];
 
-const ServiciosTable = () => {
+const ServiciosTable = ({ searchTerm }: { searchTerm: string }) => {
   const { dataTable } = useServiciosCtx();
   const [colDefs] = useState<Array<any>>(colsData);
 
@@ -38,12 +38,18 @@ const ServiciosTable = () => {
     []
   );
 
+  const filteredData = dataTable.filter((servicio) =>
+    servicio.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
-        rowData={dataTable}
+        rowData={filteredData}
         columnDefs={colDefs}
         defaultColDef={defaultColDef}
+        pagination={true}
+        paginationAutoPageSize={true}
       />
     </div>
   );

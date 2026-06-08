@@ -60,6 +60,7 @@ type Props = {
   fecha: string;
   download?: boolean;
   setDownload?: React.Dispatch<React.SetStateAction<boolean>>;
+  searchTerm: string;
 };
 
 let gridApi: GridApi;
@@ -70,6 +71,7 @@ const GastosTable = ({
   fecha,
   download,
   setDownload,
+  searchTerm
 }: Props) => {
   const { dataTable, getGastosByFecha, fechaGastos, setFechaGastos } =
     useGastosCtx();
@@ -92,6 +94,17 @@ const GastosTable = ({
     },
   };
 
+  const filteredData = React.useMemo(() => {
+    if (!searchTerm) return dataTable;
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return dataTable.filter((gasto) =>
+      gasto.proveedorNombre.toLowerCase().includes(lowerSearchTerm) ||
+      gasto.categoria.toLowerCase().includes(lowerSearchTerm) ||
+      gasto.descripcion.toLowerCase().includes(lowerSearchTerm) ||
+      gasto.metodoPago.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [dataTable, searchTerm]);
+
   const handleEditingStarted = (event: CellEditingStartedEvent) => {
     console.log("Cell editing started", event);
   };
@@ -101,8 +114,8 @@ const GastosTable = ({
   };
 
   const totalGastos = React.useMemo(() => {
-    return dataTable.reduce((total, gasto) => total + gasto.monto, 0);
-  }, [dataTable]);
+    return filteredData.reduce((total, gasto) => total + gasto.monto, 0);
+  }, [filteredData]);
 
   React.useEffect(() => {
     setTotalGastos(totalGastos);
@@ -130,7 +143,7 @@ const GastosTable = ({
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
-        rowData={dataTable}
+        rowData={filteredData}
         gridOptions={gridOptions}
         columnDefs={colDefs.map((col) => {
           if (col.field === "acciones") {
@@ -146,6 +159,8 @@ const GastosTable = ({
         defaultColDef={defaultColDef}
         onCellEditingStarted={handleEditingStarted}
         onCellValueChanged={handleCellChanged}
+        pagination={true}
+        paginationAutoPageSize={true}
       />
     </div>
   );

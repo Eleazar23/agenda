@@ -3,6 +3,8 @@ import { Box, Button, Grid, Paper } from "@mui/material";
 import ServiciosTable from "../tables/ServiciosTable";
 import { ServiciosCtxProvider } from "../../contexts/ServiciosContext";
 import AddServicioModal from "../modals/servicios/AddServicioModal";
+import { Search } from "@mui/icons-material";
+import SearchInput from "../Inputs/SearchInput";
 
 const styles = {
   serviciosContainer: {
@@ -18,9 +20,10 @@ const styles = {
   },
   actionBar: {
     display: "flex",
+    flexWrap: "nowrap",
     justifyContent: "flex-end",
     width: "100%",
-    gap: 4,
+    gap: 1,
   },
   tableContainer: {
     height: "100%",
@@ -29,6 +32,7 @@ const styles = {
 
 export default function Servicios() {
   const [isAdding, setIsAdding] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   return (
     <ServiciosCtxProvider>
@@ -40,19 +44,33 @@ export default function Servicios() {
       >
         <Grid container size={12}>
           <Paper sx={styles.paper}>
-            <Box component="div" sx={styles.actionBar}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => setIsAdding(true)}
+            <Grid component="div" sx={styles.actionBar}>
+              <Grid size={4} />
+              <Grid size={4} sx={{ display: "flex", justifyContent: "center" }}>
+                <SearchInput
+                  placeholder="Buscar servicio (Nombre)"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onClear={() => setSearchTerm("")}
+                />
+              </Grid>
+              <Grid
+                size={4}
+                sx={{ display: "flex", justifyContent: "flex-end" }}
               >
-                Agregar Servicio
-              </Button>
-            </Box>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setIsAdding(true)}
+                >
+                  Agregar Servicio
+                </Button>
+              </Grid>
+            </Grid>
           </Paper>
         </Grid>
         <Grid container sx={styles.tableContainer} size={12}>
-          <ServiciosTable />
+          <ServiciosTable searchTerm={searchTerm} />
         </Grid>
         <AddServicioModal
           isOpen={isAdding}

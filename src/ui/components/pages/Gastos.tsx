@@ -14,6 +14,8 @@ import GastoModal from "../modals/GastoModal";
 import { Gasto } from "../../types/Gasto";
 import FechaInput from "../Inputs/FechaInput";
 import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
+import { Search } from "@mui/icons-material";
+import SearchInput from "../Inputs/SearchInput";
 
 const STYLES = {
   gastosContainer: {
@@ -29,9 +31,10 @@ const STYLES = {
   },
   actionBar: {
     display: "flex",
+    flexWrap: "nowrap",
     justifyContent: "space-between",
     width: "100%",
-    gap: 4,
+    gap: 1,
   },
   tableContainer: {
     height: "100%",
@@ -50,6 +53,7 @@ const Gastos = () => {
   const [totalGastos, setTotalGastos] = useState(0);
   const [download, setDownload] = useState(false);
   const [fecha, setFecha] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleOpenModal = () => {
     setEditingGasto(undefined);
@@ -86,11 +90,22 @@ const Gastos = () => {
       >
         <Grid container size={12}>
           <Paper sx={STYLES.paper}>
-            <Box component="div" sx={STYLES.actionBar}>
-              <Box component="div" sx={{ width: "200px" }}>
+            <Grid container component="div" sx={STYLES.actionBar}>
+              <Grid size={4}>
                 <FechaInput ctxValue={fecha} ctxDispatch={handleFechaChange} />
-              </Box>
-              <Box component={"div"} display={"flex"} sx={{ gap: 2 }}>
+              </Grid>
+              <Grid size={4} sx={{ display: "flex", justifyContent: "center" }}>
+                <SearchInput
+                  placeholder="Buscar gasto"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onClear={() => setSearchTerm("")}
+                />
+              </Grid>
+              <Grid
+                size={4}
+                sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}
+              >
                 <Button
                   variant="contained"
                   color="primary"
@@ -98,11 +113,15 @@ const Gastos = () => {
                 >
                   Agregar Gasto
                 </Button>
-                <IconButton color="primary" aria-label="download Gastos" onClick={handleDownload}>
+                <IconButton
+                  color="primary"
+                  aria-label="download Gastos"
+                  onClick={handleDownload}
+                >
                   <DownloadForOfflineIcon />
                 </IconButton>
-              </Box>
-            </Box>
+              </Grid>
+            </Grid>
           </Paper>
         </Grid>
 
@@ -113,6 +132,7 @@ const Gastos = () => {
             fecha={fecha}
             download={download}
             setDownload={setDownload}
+            searchTerm={searchTerm}
           />
         </Grid>
         <Grid container size={12}>
