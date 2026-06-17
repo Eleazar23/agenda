@@ -65,7 +65,7 @@ const ClientsTables = ({ setIsEditing, handleEdit, searchTerm }: Props) => {
     if (!searchTerm) return dataTable;
     return dataTable.filter((cliente) =>
       cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cliente.telefono.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cliente?.telefono?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cliente.correo.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [dataTable, searchTerm]);

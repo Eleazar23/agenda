@@ -11,7 +11,7 @@ export interface IProducto {
 
 const productoSchema = new Schema<IProducto>({
   id: { type: Number, required: true, unique: true },
-  nombre: { type: String, required: true },
+  nombre: { type: String, required: true, unique: true },
   marca: { type: String, required: true },
   precio: { type: String, required: true },
   descripcion: { type: String, required: false },

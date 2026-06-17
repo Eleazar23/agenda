@@ -8,7 +8,7 @@ export interface IServicio {
 
 const servicioSchema = new Schema<IServicio>({
   id: { type: Number, required: true, unique: true },
-  nombre: { type: String, required: true },
+  nombre: { type: String, required: true, unique: true },
   precio: { type: String, required: true },
 });
 
