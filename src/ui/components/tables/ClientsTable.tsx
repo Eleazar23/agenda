@@ -17,17 +17,14 @@ const colsData = [
   {
     field: "nombre",
     headerName: "Nombre",
-    editable: true,
   },
   {
     field: "telefono",
     headerName: "Telefono",
-    editable: true,
   },
   {
     field: "correo",
     headerName: "Correo",
-    editable: true,
   },
   {
     field: "lastVisit",
@@ -91,10 +88,9 @@ const ClientsTables = ({ setIsEditing, handleEdit, searchTerm }: Props) => {
         rowData={filteredData}
         columnDefs={colDefs}
         defaultColDef={defaultColDef}
-        onCellEditingStarted={handleEditingStarted}
-        onCellValueChanged={hanldeCellChanged}
         paginationAutoPageSize={true}
         pagination={true}
+        enableCellTextSelection={true}
       />
     </div>
   );

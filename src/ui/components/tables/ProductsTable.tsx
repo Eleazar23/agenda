@@ -91,6 +91,7 @@ const ProductsTable = ({ searchTerm }: Props) => {
         defaultColDef={defaultColDef}
         pagination={true}
         paginationAutoPageSize={true}
+        enableCellTextSelection={true}
       />
     </div>
   );

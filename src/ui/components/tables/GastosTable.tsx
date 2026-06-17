@@ -161,6 +161,7 @@ const GastosTable = ({
         onCellValueChanged={handleCellChanged}
         pagination={true}
         paginationAutoPageSize={true}
+        enableCellTextSelection={true}
       />
     </div>
   );
