@@ -50,6 +50,7 @@ const ServiciosTable = ({ searchTerm }: { searchTerm: string }) => {
         defaultColDef={defaultColDef}
         pagination={true}
         paginationAutoPageSize={true}
+        enableCellTextSelection={true}
       />
     </div>
   );

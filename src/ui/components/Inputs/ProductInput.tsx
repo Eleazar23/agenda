@@ -60,14 +60,13 @@ export default function ProductInput({ value, onChange }: Props) {
       )}
       onChange={handleChange}
       onInputChange={(event, newInputValue) => {
-        console.log(event);
         setInputValue(newInputValue);
       }}
       inputValue={inputValue}
       renderOption={(props, option) => {
         const { key, ...optionProps } = props;
         return (
-          <Box component="li" key={key} {...optionProps}>
+          <Box component="li" key={`${option.id}-${option.nombre}`} {...optionProps}>
             {`${option.nombre} - $${option.precio} | Stock: ${option.stock}`}
           </Box>
         );

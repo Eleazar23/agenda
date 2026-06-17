@@ -156,6 +156,7 @@ const ReportesTable = ({
         columnDefs={colDef}
         gridOptions={gridOptions}
         defaultColDef={defaultColdef}
+        enableCellTextSelection={true}
       />
     </div>
   );
