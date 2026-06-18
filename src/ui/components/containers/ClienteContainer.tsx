@@ -1,11 +1,11 @@
 import React from 'react'
 import { Grid } from "@mui/material";
-import ClienteCard from '../cards/ClienteCard';
+import ClienteForm from '../forms/ClienteForm';
 
 const ClienteContainer = () => {
     return (
         <Grid size={12}>
-            <ClienteCard />
+            <ClienteForm />
         </Grid>
     )
 }

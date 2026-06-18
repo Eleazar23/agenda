@@ -6,7 +6,7 @@ import CitaCell from './CitaCell';
 function CutomeCellRenderer(params:CustomCellRendererProps) {
   return (
     <>
-    {params.value === "" ? <EmptyCell params={params} /> : <CitaCell params={params}/>}
+    {params.value === "" ? <EmptyCell {...params} /> : <CitaCell {...params}/>}
     </>
   )
 }

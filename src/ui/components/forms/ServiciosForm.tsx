@@ -1,36 +1,64 @@
-import { Grid } from "@mui/material";
+import { useEffect, useState } from "react";
+import { Box, Grid, Stack, Typography } from "@mui/material";
 import EstilistaInput from "../Inputs/EstilistaInput";
-import SeriviceInput from "../Inputs/ServiceInput";
+import ServiciosInput from "../Inputs/ServiciosInput";
 import HoraInput from "../Inputs/HoraInput";
-import DuracionInput from "../Inputs/DuracionInput";
+import { Servicio } from "../../types/Servicio";
+import HoraFinInput from "../Inputs/HoraFinInput";
+import { useAgendaContext } from "../../contexts/AgendaContext";
+import { getDuracion } from "../../utils/utils";
 
-type Servicio = {
-  rowIndex: null | number;
+type ServiciosFormProps = {
+  cellID: string;
   estilista: string;
-//   servicio: string;
   hora: string;
-  serviceIndex: number;
 };
 
-const ServiciosForm = ({estilista, hora, serviceIndex}:Servicio) => {
-    // const {agendaData, setAgendaData, updateService } = useAgendaContext();
+const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
+  const { updateDuracion, updateService } = useAgendaContext();
+  const [servicio, setServicio] = useState<Servicio | null>(null);
+  const [horaFin, setHoraFin] = useState<string>(hora);
 
-    return (
-        <Grid container gap={1} size={12} wrap="nowrap" sx={{height:"100%"}}>
-            <Grid size={3}>
-                <EstilistaInput estilista={estilista} />
-            </Grid>
-            <Grid size={4}>
-                <SeriviceInput serviceIndex={serviceIndex} />
-            </Grid>
-            <Grid size={3}>
-                <HoraInput hora={hora} />
-            </Grid>
-            <Grid size={2}>
-                <DuracionInput serviceIndex={serviceIndex} />
-            </Grid>
-        </Grid>
-    )
-}
+  const handleChangeHoraFin = (newHoraFin: string) => {
+    setHoraFin(newHoraFin);
+  };
+
+  const handleServicioChange = (newServicio: Servicio | null) => {
+    if (newServicio) {
+      setServicio(newServicio);
+      updateService(cellID, newServicio);
+    }
+  };
+
+  useEffect(() => {
+    const duracion = getDuracion(hora, horaFin);
+    updateDuracion(cellID, horaFin, duracion);
+  }, [hora, horaFin]);
+
+  return (
+      <Stack
+        sx={{
+          width: "100%",
+          backgroundColor: "grey.100",
+          borderRadius: 1,
+          p: 1,
+        }}
+        gap={1}
+        alignItems="center"
+      >
+        <Typography variant="h6">{estilista.toUpperCase()}</Typography>
+        <ServiciosInput value={servicio} onChange={handleServicioChange} />
+        <Box component="div" sx={{ display: "flex", gap: 1, width: "100%" }}>
+          <HoraInput label="Inicio" hora={hora} readOnly={true} />
+          <HoraFinInput
+            label="Fin"
+            hora={horaFin}
+            readOnly={false}
+            onChange={handleChangeHoraFin}
+          />
+        </Box>
+      </Stack>
+  );
+};
 
 export default ServiciosForm;
