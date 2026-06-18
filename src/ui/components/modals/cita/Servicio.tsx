@@ -31,6 +31,8 @@ type ServicioFormProps = {
   updateProductosInCita: (newProductos: Array<ProductoInCita>) => void;
   updateServicioInCita: (updatedServicio: ServicioAgendado) => void;
   handleRemoveService: (servicio: ServicioAgendado) => void;
+  productosToUpdate: ProductoInCita[];
+  setProductosToUpdate: React.Dispatch<React.SetStateAction<ProductoInCita[]>>;
 };
 
 const initialServicioForm = {
@@ -51,6 +53,8 @@ function ServicioForm({
   updateProductosInCita,
   updateServicioInCita,
   handleRemoveService,
+  productosToUpdate,
+  setProductosToUpdate,
 }: ServicioFormProps) {
   const { showAlert } = useGlobalAlert();
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
@@ -123,6 +127,21 @@ function ServicioForm({
     });
   };
 
+  const handleUpdateProductoToUpdate = (updatedProducto: ProductoInCita) => {
+    setProductosToUpdate((prev) => {
+      const index = prev.findIndex((prod) => prod.id === updatedProducto.id);
+      if (index !== -1) {
+        console.log("Producto ya en productosToUpdate, actualizando:", updatedProducto);
+        let exisitngProducts = [...prev];
+        let existingProduct = exisitngProducts[index];
+        existingProduct.cantidad += updatedProducto.cantidad;
+        return exisitngProducts;
+      }
+      console.log("Agregando nuevo producto a productosToUpdate:", updatedProducto);
+      return [...prev, updatedProducto];
+    });
+  };
+
   const handleAddProducto = (newProducto: {
     producto: Producto;
     cantidad: number;
@@ -136,6 +155,7 @@ function ServicioForm({
       total: newProducto.producto.precio * newProducto.cantidad,
       estilista: newProducto.estilista,
     };
+    // handleUpdateProductoToUpdate(newRow);
     const existingIndex = productos.findIndex((prod) => prod.id === newRow.id);
     let succesAction = true;
     if (existingIndex !== -1) {
@@ -158,11 +178,13 @@ function ServicioForm({
         existingProduct.cantidad += newRow.cantidad;
         existingProduct.total =
           existingProduct.cantidad * existingProduct.precio;
+        handleUpdateProductoToUpdate(newRow)
 
         return updatedProducts;
       });
     } else {
       setProductos((prev) => [...prev, newRow]);
+      handleUpdateProductoToUpdate(newRow)
     }
     return succesAction;
   };

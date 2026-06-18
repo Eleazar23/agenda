@@ -28,6 +28,7 @@ export interface IElectronAPI {
 
   // Productos
   getProductos: () => Promise<Producto[]>;
+  getProductoById: (id: number) => Promise<Producto>;
   addProducto: (producto: Omit<Producto, 'id'>) => Promise<Producto>;
   updateProducto: (producto: Producto) => Promise<Producto>;
   deleteProducto: (id: number) => Promise<void>;

@@ -194,6 +194,15 @@ ipcMain.handle('get-productos', async () => {
     }
 });
 
+ipcMain.handle('get-producto-by-id', async (_event, id) => {
+    try {
+        return await Producto.findOne({ id }).lean();
+    } catch (error) {
+        console.error('Error getting producto by ID:', error);
+        throw error;
+    }
+});
+
 ipcMain.handle('add-producto', async (_event, producto) => {
     try {
         const maxId = await Producto.findOne().sort('-id').lean();
