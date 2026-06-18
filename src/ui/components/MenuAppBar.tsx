@@ -8,7 +8,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import SearchBar from './SearchBar';
 import DateBar from './DateBar';
 import { useSideBarContext } from '../contexts/SideBarContext';
-import SearchInput from './Inputs/SearchInput';
 
 export default function MenuAppBar() {
   const [auth, setAuth] = React.useState(true);
@@ -36,10 +35,10 @@ export default function MenuAppBar() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Status Salon
+            Status Salon | {sideBarData.currentPage.charAt(0).toUpperCase() + sideBarData.currentPage.slice(1)}
           </Typography>
           {/* {sideBarData.currentPage == "agenda" ? <DateBar /> : <SearchBar />} */}
-          {sideBarData.currentPage == "agenda" ? <DateBar /> : <SearchInput />}
+          {sideBarData.currentPage == "agenda" ? <DateBar /> : null}
         </Toolbar>
       </AppBar>
     </Box>

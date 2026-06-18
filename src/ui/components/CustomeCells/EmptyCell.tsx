@@ -1,43 +1,46 @@
 import { Button } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import type { CustomCellRendererProps } from "ag-grid-react";
 
-// type Params = {
-//   rowIndex: number;
-//   estilista: string;
-//   hr: string;
-//   column: object<T>
-// };
-
-// type Service = {
-//   rowIndex: number, estilista:string, hora: string 
-// }
-
-const EmptyCell = ({params}: any) => {
-  const estilista = params.column.colId;
-  const hr = params.data.hour;
-  const rowIndex = params.node.rowIndex;
+const EmptyCell = (params: CustomCellRendererProps) => {
+  const { cita, fecha } = useAgendaContext();
+  const estilista = (params.column as any)?.colId || "";
+  const hr = params.data?.hour;
+  const rowIndex = params.node?.rowIndex || 0;
   const [isSelected, setIsSelected] = useState(false);
-  const cellID = `${rowIndex}-${estilista}`
-  const [cellData, setCellData] = useState({cellID, rowIndex, estilista, hora: hr.label24});
-  const { agendaData, addService, removeService } = useAgendaContext();
+  const cellID = `${rowIndex}-${estilista}`;
+  const cellData = {
+    rowIndex,
+    cellID,
+    fecha: fecha,
+    servicio: {
+      id: 0,
+      nombre: "",
+      precio: 0,
+    },
+    estilista,
+    horaInicio: hr.label24,
+    horaFin: hr.label24,
+    duracion: 30,
+  };
+  const { removeServiceFromCita, addServiceToCita } = useAgendaContext();
   // console.log('Empty Cell Params:', params)
 
   const handleClick = async () => {
     if (!isSelected) {
-      addService(cellData);
-      setIsSelected(true);
-      return
+      setIsSelected(() => true);
+      addServiceToCita(cellData);
+      return;
     }
-    removeService(cellData);
-    setIsSelected(false);
+    setIsSelected(() => false);
+    removeServiceFromCita(cellData);
   };
 
   return (
     <>
       <Button
-      color="secondary"
+        color="secondary"
         sx={{ width: "100%" }}
         variant={isSelected ? "contained" : "text"}
         onClick={handleClick}
