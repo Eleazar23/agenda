@@ -1,21 +1,34 @@
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider, MobileTimePicker } from "@mui/x-date-pickers";
-import dayjs from 'dayjs';
-import { Input, TextField } from '@mui/material';
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { TextField } from "@mui/material";
 
 type Props = {
-  hora?: string
-}
+  label: string;
+  readOnly?: boolean;
+  hora?: string;
+  onChange?: (newHora: string) => void;
+  name?: string;
+};
 
-export default function HoraInput({hora}:Props) {
 
-  
+export default function HoraInput({ label, readOnly, hora, onChange, name }: Props) {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-        {/* <TextField type='time' variant='filled' label="Inicio" defaultValue={'09:00'} sx={{width: "100%"}} value={hora} /> */}
-        <TextField type='time' variant='filled' label="Inicio" sx={{width: "100%"}} slotProps={{input: {readOnly: true}}} value={hora ? hora : '09:00'} />
+      <TextField
+        type="time"
+        variant="filled"
+        label={label}
+        fullWidth
+        name={name}
+        slotProps={{ 
+          input: { 
+            readOnly: readOnly,
+          },
+          htmlInput: { step: "1800" }
+        }}
+        value={hora ? hora : "09:00"}
+        onChange={(e) => onChange?.(e.target.value)}
+      />
     </LocalizationProvider>
-  )
+  );
 }
-
-

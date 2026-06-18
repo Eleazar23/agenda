@@ -1,62 +1,43 @@
 import React from "react";
-import { Button, Grid, Paper, Typography } from "@mui/material";
+import { Box, Button, Grid, Paper, Stack, Typography } from "@mui/material";
 import ClienteContainer from "./ClienteContainer";
-import ServiciosContainer from "./ServiciosContainer";
 import { useAgendaContext } from "../../contexts/AgendaContext";
-import { useSnackbar } from "notistack";
-
-type Alert = "success" | "error" | "info" | "warning"
+import ClienteForm from "../forms/ClienteForm";
+import ServiciosCard from "../cards/ServiciosCard";
 
 const NuevaCitaContainer = () => {
-  const { agendaData, setAgendaData, addCita } = useAgendaContext();
-  const { enqueueSnackbar } = useSnackbar();
-  const { isBooking, cita } = agendaData;
-
-  const handleAlert = (message:string, alertType:Alert) =>{
-        enqueueSnackbar(message, {
-      variant: alertType,
-      anchorOrigin: { vertical: "bottom", horizontal: "center" },
-    });
-
-  }
-
-  const hanldeClose = () => {
-    setAgendaData({
-      ...agendaData,
-      isBooking: false,
-      cita: { ...cita, servicios: [] },
-    });
-  };
+  const { cita, handleCancelarCita, guardarCita, handleAlert } =
+    useAgendaContext();
 
   const handleCancelar = () => {
-    hanldeClose();
+    handleCancelarCita();
   };
 
   const handleGuardar = () => {
-    const {cita} = agendaData
-    const {cliente} = cita
-    const nombreteLen = cliente.nombre.length
-    const phoneLen = cliente.phone.length
-    if (nombreteLen < 1){
-      return handleAlert("Nombre de cliente incorrecto", "error")
-    }
-    if (phoneLen > 1 && phoneLen < 10){
-      return handleAlert(`\"Telefono\" debe contener 10 digitos | Ingreso: ${phoneLen}`, "error")
-    }
-    if (cliente.phone.length < 1){
-      return handleAlert("Falta ingresar \"Telefono\"", "error")
-    }
-    addCita();
-    handleAlert("Cita Guardada", "success")
+    // const {cita} = agendaData
+    const nombreLen = cita.nombreCliente.length;
+    const phoneLen = cita.telefonoCliente.length;
 
+    if (nombreLen < 1) {
+      return handleAlert("Nombre de cliente incorrecto", "error");
+    }
+    if (phoneLen > 1 && phoneLen < 10) {
+      return handleAlert(
+        `\"Telefono\" debe contener 10 digitos | Ingreso: ${phoneLen}`,
+        "error",
+      );
+    }
+    if (phoneLen < 1) {
+      return handleAlert('Falta ingresar "Telefono"', "error");
+    }
+    guardarCita();
   };
   return (
-    <Grid container alignContent="flex-start" size={12}>
-      <Grid
-        sx={{ width: "100%" }}
-        alignItems={"center"}
-        justifyItems={"center"}
-      >
+    <Stack
+      alignContent="flex-start"
+      sx={{ height: "100%", width: "100%", backgroundColor: "grey.50" }}
+      gap={2}
+    >
         <Paper
           elevation={0}
           sx={{
@@ -68,38 +49,21 @@ const NuevaCitaContainer = () => {
             padding: "5px 0px",
           }}
         >
-          <Typography variant="h6" align="center">
+          <Typography variant="h5" align="center">
             Nueva Cita
           </Typography>
         </Paper>
-      </Grid>
-      <Grid container size={12} gap={2}>
-        <Grid size={12} gap={2}>
-          <ClienteContainer />
-        </Grid>
-        <Grid size={12} gap={2}>
-          <ServiciosContainer />
-        </Grid>
-        <Grid
-          container
-          size={12}
-          gap={4}
-          justifyContent={"flex-end"}
-          sx={{ margin: "2rem 1rem" }}
-        >
-          <Grid>
+          <ClienteForm />
+          <ServiciosCard />
+          <Box sx={{ display: "flex", justifyContent: "flex-end", width: "100%", p:1}} gap={1}>
             <Button variant="text" onClick={handleCancelar}>
               Cancelar
             </Button>
-          </Grid>
-          <Grid>
             <Button variant="contained" onClick={handleGuardar}>
               Guardar
             </Button>
-          </Grid>
-        </Grid>
-      </Grid>
-    </Grid>
+          </Box>
+    </Stack>
   );
 };
 

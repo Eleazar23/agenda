@@ -1,16 +1,17 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useCallback } from "react";
 import { useState } from "react";
 import {
   AllCommunityModule,
   ModuleRegistry,
   themeQuartz,
-  SpanRowsParams,
-  GridOptions,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
-import { hrs12f, getHrs } from "../../utils/utils";
+import { getHrs } from "../../utils/utils";
 import CutomeCellRenderer from "../CustomeCells/CutomeCellRenderer";
-import { Cita, Servicio, useAgendaContext } from "../../contexts/AgendaContext";
+import { useAgendaContext } from "../../contexts/AgendaContext";
+import { Cita } from "../../types/Cita";
+import { ServicioAgendado } from "../../types/ServicioAgendado";
+import { Servicio } from "../../types/Servicio";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 // Register all Community features
@@ -18,90 +19,113 @@ interface DynamicObject {
   [key: string]: any; // Keys are strings, values can be any type
 }
 
-const estilistas = ["tomi", "felix", "magi", "arturo", "mimi"];
-const estilistasDayData: DynamicObject = {};
-
-
 const customSpanFunc = (params: any) => {
   const { valueA, valueB } = params;
   if (valueA === "" || valueB === "") {
   } else {
-    if (valueA.servicio.cellID === valueB.servicio.cellID) {
+    const isSameCellID = valueA.servicio.cellID === valueB.servicio.cellID;
+    const isSameService = valueA.servicio.servicio === valueB.servicio.servicio;
+    if (isSameCellID && isSameService) {
       return true;
     }
   }
   return false;
 };
 
-const conlDefsData = estilistas.map((estilista) => {
-  estilistasDayData[estilista] = "";
-  return {
-    field: estilista,
-    headerName: estilista.toUpperCase(),
-    spanRows: customSpanFunc,
-    cellRenderer: CutomeCellRenderer,
-    cellStyle: {
-      display: "flex",
-      justifyContent: "center",
-      alignContent: "center",
-      padding: ".1rem",
-    },
-  };
-});
-
-const colsData = [
-  {
-    headerName: "",
-    field: "hour.label12",
-    flex: 1,
-    minWidth: 104,
-    cellStyle: { fontWeight: "bold" },
-  },
-  ...conlDefsData,
-];
-
-const horas = getHrs()
-console.log({horas})
-
-// const rowInitData = hrs12f.map((hour) => {
-//   return { hr: hour, ...estilistasDayData, isSelected: false };
-// });
-
-const rowInitData = horas.map((hour) => {
-  return { hour, ...estilistasDayData, isSelected: false };
-});
-
-
-
-
 const AgendaTable = () => {
-  // Row Data: The data to be displayed.
-  const [rowsData, setRowsData] = useState<[] | Array<any>>(rowInitData);
-  // Column Definitions: Defines the columns to be displayed.
-  const [colDefs, setColDefs] = useState<[] | Array<any>>(colsData);
-  const { agendaData } = useAgendaContext();
-  const { citas } = agendaData;
+  const [estilistas, setEstilistas] = useState<string[]>([]);
+  const [colDefs, setColDefs] = useState<any[]>([]);
+  const [rowInitData, setRowInitData] = useState<any[]>([]);
+  
+  // Load estilistas from MongoDB
+  useEffect(() => {
+    const loadEstilistas = async () => {
+      try {
+        const estilistasData = await window.api.getEstilistas();
+        const filteredEstilistas = estilistasData.filter((est) => est.role === "estilista");
+        const estilistasNames = filteredEstilistas.map((est) => est.name);
+        setEstilistas(estilistasNames);
+      } catch (error) {
+        console.error("Error loading estilistas:", error);
+      }
+    };
+    loadEstilistas();
+  }, []);
 
-  const defaultColdef = React.useMemo(
+  // Update column definitions and initial row data when estilistas change
+  useEffect(() => {
+    if (estilistas.length === 0) return;
+
+    const estilistasDayData: DynamicObject = {};
+    const conlDefsData = estilistas.map((estilista) => {
+      estilistasDayData[estilista] = "";
+      return {
+        field: estilista,
+        headerName: estilista.toUpperCase(),
+        spanRows: customSpanFunc,
+        cellRenderer: CutomeCellRenderer,
+        cellStyle: {
+          display: "flex",
+          justifyContent: "center",
+          alignContent: "center",
+          padding: ".1rem",
+        },
+      };
+    });
+
+    const newColDefs = [
+      {
+        headerName: "",
+        field: "hour.label12",
+        flex: 1,
+        minWidth: 104,
+        cellStyle: { fontWeight: "bold" },
+      },
+      ...conlDefsData,
+    ];
+
+    const horas = getHrs();
+    const newRowInitData = horas.map((hour) => {
+      return { hour, ...estilistasDayData, isSelected: false };
+    });
+
+    setColDefs(newColDefs);
+    setRowInitData(newRowInitData.slice(18, 41)); // Limit to 48 rows for a 24-hour schedule with 30-minute intervals
+  }, [estilistas]);
+
+  // Row Data: The data to be displayed.
+  const [rowsData, setRowsData] = useState<[] | Array<any>>([]);
+  const { citas, fecha } = useAgendaContext();
+
+  const todaysCitas = useMemo(
+    () => citas.filter((cita) => cita.fecha === fecha),
+    [citas, fecha],
+  );
+
+  const defaultColdef = useMemo(
     () => ({
-      cellRendererParams: { rowsData, setRowsData },
       flex: 2,
       headerStyle: { textAlign: "center" },
     }),
-    []
+    [],
   );
 
   // to use myTheme in an application, pass it to the theme grid option
-  const myTheme = themeQuartz.withParams({
-    columnBorder: true,
-    rowBorder: false,
-    oddRowBackgroundColor: "#F9FAFB",
-  });
+  const myTheme = useMemo(
+    () =>
+      themeQuartz.withParams({
+        columnBorder: true,
+        rowBorder: false,
+        oddRowBackgroundColor: "#F9FAFB",
+      }),
+    [],
+  );
 
-  const genarateRowsByService = (servicio: Servicio) => {
-    const { duracion } = servicio;
+  const genarateRowsByService = useCallback((servicio: ServicioAgendado) => {
+    const { duracion, servicio: servicioName } = servicio;
     let counter = duracion / 30 - 1;
     let rowsToAdd = [servicio];
+    const lowerCaseName = servicioName.nombre.toLowerCase();
 
     while (counter > 0) {
       const refService = rowsToAdd[rowsToAdd.length - 1];
@@ -110,10 +134,17 @@ const AgendaTable = () => {
       counter--;
     }
 
+    if (lowerCaseName === "tinte"  && rowsToAdd.length >=3) {
+      const firstElement = rowsToAdd[0];
+      const elementsToMove = rowsToAdd.slice(2);
+      rowsToAdd = [firstElement, ...elementsToMove];
+    }
+
     return rowsToAdd;
-  };
-  const getRealServicesArray = (servicios: Array<Servicio>) => {
-    let arrNewServices: Array<Servicio> = [];
+  }, []);
+
+  const getRealServicesArray = useCallback((servicios: Array<ServicioAgendado>) => {
+    let arrNewServices: Array<ServicioAgendado> = [];
 
     servicios.forEach((servicio) => {
       if (servicio.duracion <= 30) {
@@ -126,30 +157,46 @@ const AgendaTable = () => {
       }
     });
     return arrNewServices;
-  };
+  }, [genarateRowsByService]);
 
-  const updateRows = (cita: Cita) => {
-    const { cliente, fecha, servicios } = cita;
-    let newRowsData = [...rowsData];
-    const realServices = getRealServicesArray(servicios);
-    realServices.forEach((servicio) => {
-      const { rowIndex } = servicio;
-      const { estilista } = servicio;
-      let rowToModify = newRowsData[rowIndex];
-      rowToModify[estilista] = { cliente, fecha, servicio };
+  const updateRowsDataByCitas = useCallback(() => {
+    if (rowInitData.length === 0) return;
+    
+    console.log("Updating rows data by citas...", todaysCitas.length, "appointments for", fecha);
+    
+    if (todaysCitas.length === 0) {
+      setRowsData(rowInitData);
+      return;
+    }
+
+    // Build new rows in one pass instead of multiple setState calls
+    const newRowsData: Array<any> = rowInitData.map(row => ({ ...row }));
+    
+    todaysCitas.forEach((cita) => {
+      const { nombreCliente, telefonoCliente, fecha, estado } = cita;
+      const realServices = getRealServicesArray(cita.servicios);
+      
+      realServices.forEach((servicio) => {
+        const { rowIndex, estilista } = servicio;
+        if (newRowsData[rowIndex]) {
+          (newRowsData[rowIndex] as DynamicObject)[estilista] = {
+            nombreCliente,
+            telefonoCliente,
+            fecha,
+            servicio,
+            estado,
+          };
+        }
+      });
     });
+    
     setRowsData(newRowsData);
-  };
-
-  const updateRowsDataByCitas = () => {
-    citas.forEach((cita) => {
-      updateRows(cita);
-    });
-  };
+  }, [todaysCitas, fecha, getRealServicesArray, rowInitData]);
 
   useEffect(() => {
+    console.log("Citas or fecha changed, updating rows data...");
     updateRowsDataByCitas();
-  }, [citas]);
+  }, [updateRowsDataByCitas]);
 
   return (
     // Data Grid will fill the size of the parent container
