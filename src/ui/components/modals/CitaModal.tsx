@@ -78,9 +78,10 @@ export default function CitaModal({
   // const { isCitaOpen, setIsCitaOpen } = useState(false);
   // const [isEditMode, setIsEditMode] = useState(false);
   const [view, setView] = useState("servicio");
+  const [productosToUpdate, setProductosToUpdate] = useState<ProductoInCita[]>([]);
   const [citaForm, setCitaForm] = useState<Cita>(
     cita || {
-      id: '',
+      id: "",
       fecha,
       nombreCliente,
       telefonoCliente: telefonoCliente || "",
@@ -120,15 +121,17 @@ export default function CitaModal({
   };
 
   const handleRemoveService = (servicioToRemove: ServicioAgendado) => {
-    const updatedServicios = citaForm.servicios.filter((s) => s.cellID !== servicioToRemove.cellID);
+    const updatedServicios = citaForm.servicios.filter(
+      (s) => s.cellID !== servicioToRemove.cellID,
+    );
     const newCitaData = {
       ...citaForm,
       servicios: updatedServicios,
     };
-    setCitaForm(newCitaData); 
+    setCitaForm(newCitaData);
     console.log({ updatedServicios, citaForm });
-    handleEditCita(citaForm.id, newCitaData);
-  }
+    handleEditCita(citaForm.id, newCitaData, productosToUpdate);
+  };
 
   const handleAlignmentChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -149,22 +152,10 @@ export default function CitaModal({
     setIsCitaOpen(false);
   };
 
-  const handleGuardar = () => {
-
-      handleEditCita(citaForm.id, citaForm);
-
-    // Guardar los cambios realizados en el modal
-    // handleEditCita(citaForm.id, citaForm);
-
-    // console.log({ modalForm, agendaData })
-    // setAgendaData({ ...agendaData, isCitaOpen: false, modal: modalForm });
-    // if (servicio && servicio.id !== undefined) {
-    // }
-    // setIsEditMode(false);
-
-    console.log({ citaForm });
-
-    // setIsCitaOpen(false);
+  const handleGuardar = async () => {
+    console.log({ citaForm, productosToUpdate });
+    await handleEditCita(citaForm.id, citaForm, productosToUpdate);
+    setProductosToUpdate([]); // Reiniciar el array después de guardar los cambios
   };
 
   const updateProductosInCita = (newProductos: Array<ProductoInCita>) => {
@@ -176,7 +167,9 @@ export default function CitaModal({
 
   const updateServicioInCita = (updatedServicio: ServicioAgendado) => {
     // const newHr = getHrsObj(updatedServicio.horaInicio);
-    const newHr = getOfficeHours().find((hr) => hr.label24 === updatedServicio.horaInicio);
+    const newHr = getOfficeHours().find(
+      (hr) => hr.label24 === updatedServicio.horaInicio,
+    );
     const newRowIndex = newHr ? newHr.index : updatedServicio.rowIndex;
     const serviceToUpdateIndex = citaForm.servicios.findIndex(
       (s) => s.cellID === updatedServicio.cellID,
@@ -304,6 +297,8 @@ export default function CitaModal({
               updateProductosInCita={updateProductosInCita}
               updateServicioInCita={updateServicioInCita}
               handleRemoveService={handleRemoveService}
+              productosToUpdate={productosToUpdate}
+              setProductosToUpdate={setProductosToUpdate}
             />
           ) : (
             <TotalCitaTbls

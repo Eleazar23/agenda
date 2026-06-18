@@ -6,6 +6,7 @@ import { useSnackbar } from "notistack";
 import { Cliente } from "../types/Cliente";
 // import { Producto } from "../types/Producto";
 import { ServicioAgendado } from "../types/ServicioAgendado";
+import { ProductoInCita } from "../types/Producto";
 
 type Props = {
   children: React.ReactNode;
@@ -49,7 +50,7 @@ type AgendaContex = {
   setCurrentPage: React.Dispatch<React.SetStateAction<string>>;
   cita: Cita;
   setCita: React.Dispatch<React.SetStateAction<Cita>>;
-  handleEditCita: (idCita: string, newCitaData: Cita) => Promise<void>;
+  handleEditCita: (idCita: string, newCitaData: Cita, productosToUpdate: ProductoInCita[]) => Promise<void>;
   addServiceToCita: (servicio: ServicioAgendado) => void;
   removeServiceFromCita: (servicio: ServicioAgendado) => void;
   updateDuracion: (
@@ -127,13 +128,29 @@ export const AgendaContextProvider = ({ children }: Props) => {
     }
   };
 
-  const handleEditCita = async (idCita: string, newCitaData: Cita) => {
+  const updateProductosStock = async (productos: ProductoInCita[]) => {
     try {
+      for (const producto of productos) {
+        const productoInDB = await window.api.getProductoById(producto.id);
+        if (productoInDB) {
+          const newStock = productoInDB.stock - producto.cantidad;
+          await window.api.updateProducto({
+            ...productoInDB,
+            stock: newStock >= 0 ? newStock : 0, // Evitar stock negativo
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error updating producto stock:", error);
+      handleAlert("Error al actualizar el stock de productos", "error");
+    }
+  };
+
+  const handleEditCita = async (idCita: string, newCitaData: Cita, productosToUpdate: ProductoInCita[]) => {
+    try {
+
       if (newCitaData.estado === "cancelado") {
         await window.api.deleteCita(idCita);
-        // await window.api.updateCita(newCitaData);
-        // const updatedCitas = citas.filter((cita) => cita.id !== idCita);
-        // setCitas(updatedCitas);
         getCitasFromDB(fecha);
         handleAlert("Cita cancelada", "info");
         return;
@@ -146,6 +163,8 @@ export const AgendaContextProvider = ({ children }: Props) => {
         return;
       }
 
+      console.log("Updating cita with ID:", idCita, "New data:", newCitaData);
+      await updateProductosStock(productosToUpdate);
       await window.api.updateCita(newCitaData);
       getCitasFromDB(fecha);
       handleAlert("Cita actualizada", "success");
