@@ -1,7 +1,432 @@
-import {app, BrowserWindow} from 'electron';
-import path from 'path'
+import { app, BrowserWindow, ipcMain } from 'electron';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import mongoose from 'mongoose';
+import { Cliente } from './models/Cliente.js';
+import { Estilista } from './models/Estilista.js';
+import { Servicio } from './models/Servicio.js';
+import { Producto } from './models/Producto.js';
+import { Cita } from './models/Cita.js';
+import { Gasto } from './models/Gasto.js';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const __dbUrl = 'mongodb://localhost:27017'
+const __dbName = 'agenda';
+
+// Connect to MongoDB using Mongoose
+mongoose.connect(`${__dbUrl}/${__dbName}`).then(() => {
+    console.log('Connected to MongoDB');
+}).catch((err: any) => {
+    console.error('Failed to connect to MongoDB', err);
+});
+
+// ========== Clientes IPC Handlers ==========
+ipcMain.handle('get-clientes', async () => {
+    try {
+        return await Cliente.find().lean();
+    } catch (error) {
+        console.error('Error getting clientes:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-cliente', async (_event, nombre) => {
+    try {
+        return await Cliente.findOne({ nombre }).collation({ locale: 'en', strength: 2 }).lean();
+    } catch (error) {
+        console.error('Error getting cliente:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-clientes-by-nombre', async (_event, nombre) => {
+    try {
+        return await Cliente.find({ nombre }).collation({ locale: 'en', strength: 2 }).lean();
+    } catch (error) {
+        console.error('Error getting cliente:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('add-cliente', async (_event, cliente) => {
+    try {
+        const maxId = await Cliente.findOne().sort('-id').lean();
+        const newId = maxId ? maxId.id + 1 : 1;
+        const newCliente = new Cliente({ ...cliente, id: newId });
+        await newCliente.save();
+        return newCliente.toObject();
+    } catch (error) {
+        console.error('Error adding cliente:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('update-cliente', async (_event, cliente) => {
+    try {
+        // Remove _id and __v fields that might come from MongoDB
+        const { _id, __v, ...clienteData } = cliente as any;
+        const updated = await Cliente.findOneAndUpdate(
+            { id: cliente.id },
+            clienteData,
+            { new: true }
+        ).lean();
+        return updated;
+    } catch (error) {
+        console.error('Error updating cliente:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('delete-cliente', async (_event, id) => {
+    try {
+        await Cliente.deleteOne({ id });
+    } catch (error) {
+        console.error('Error deleting cliente:', error);
+        throw error;
+    }
+});
+
+// ========== Estilistas IPC Handlers ==========
+ipcMain.handle('get-estilistas', async () => {
+    try {
+        return await Estilista.find().lean();
+    } catch (error) {
+        console.error('Error getting estilistas:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('add-estilista', async (_event, estilista) => {
+    try {
+        const maxId = await Estilista.findOne().sort('-id').lean();
+        const newId = maxId ? maxId.id + 1 : 1;
+        const newEstilista = new Estilista({ ...estilista, id: newId });
+        await newEstilista.save();
+        return newEstilista.toObject();
+    } catch (error) {
+        console.error('Error adding estilista:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('update-estilista', async (_event, estilista) => {
+    try {
+        // Remove _id and __v fields that might come from MongoDB
+        const { _id, __v, ...estilistaData } = estilista as any;
+        const updated = await Estilista.findOneAndUpdate(
+            { id: estilista.id },
+            estilistaData,
+            { new: true }
+        ).lean();
+        return updated;
+    } catch (error) {
+        console.error('Error updating estilista:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('delete-estilista', async (_event, id) => {
+    try {
+        await Estilista.deleteOne({ id });
+    } catch (error) {
+        console.error('Error deleting estilista:', error);
+        throw error;
+    }
+});
+
+// ========== Servicios IPC Handlers ==========
+ipcMain.handle('get-servicios', async () => {
+    try {
+        return await Servicio.find().lean();
+    } catch (error) {
+        console.error('Error getting servicios:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('add-servicio', async (_event, servicio) => {
+    try {
+        const maxId = await Servicio.findOne().sort('-id').lean();
+        const newId = maxId ? maxId.id + 1 : 1;
+        const newServicio = new Servicio({ ...servicio, id: newId });
+        await newServicio.save();
+        return newServicio.toObject();
+    } catch (error) {
+        console.error('Error adding servicio:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('update-servicio', async (_event, servicio) => {
+    try {
+        // Remove _id and __v fields that might come from MongoDB
+        const { _id, __v, ...servicioData } = servicio as any;
+        const updated = await Servicio.findOneAndUpdate(
+            { id: servicio.id },
+            servicioData,
+            { new: true }
+        ).lean();
+        return updated;
+    } catch (error) {
+        console.error('Error updating servicio:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('delete-servicio', async (_event, id) => {
+    try {
+        await Servicio.deleteOne({ id });
+    } catch (error) {
+        console.error('Error deleting servicio:', error);
+        throw error;
+    }
+});
+
+// ========== Productos IPC Handlers ==========
+ipcMain.handle('get-productos', async () => {
+    try {
+        return await Producto.find().lean();
+    } catch (error) {
+        console.error('Error getting productos:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-producto-by-id', async (_event, id) => {
+    try {
+        return await Producto.findOne({ id }).lean();
+    } catch (error) {
+        console.error('Error getting producto by ID:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('add-producto', async (_event, producto) => {
+    try {
+        const maxId = await Producto.findOne().sort('-id').lean();
+        const newId = maxId ? maxId.id + 1 : 1;
+        const newProducto = new Producto({ ...producto, id: newId });
+        await newProducto.save();
+        return newProducto.toObject();
+    } catch (error) {
+        console.error('Error adding producto:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('update-producto', async (_event, producto) => {
+    try {
+        // Remove _id and __v fields that might come from MongoDB
+        const { _id, __v, ...productoData } = producto as any;
+        const updated = await Producto.findOneAndUpdate(
+            { id: producto.id },
+            productoData,
+            { new: true }
+        ).lean();
+        return updated;
+    } catch (error) {
+        console.error('Error updating producto:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('delete-producto', async (_event, id) => {
+    try {
+        await Producto.deleteOne({ id });
+    } catch (error) {
+        console.error('Error deleting producto:', error);
+        throw error;
+    }
+});
+
+// ========== Citas IPC Handlers ==========
+ipcMain.handle('get-citas', async () => {
+    try {
+        return await Cita.find().lean();
+    } catch (error) {
+        console.error('Error getting citas:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-citas-by-fecha', async (_event, fecha) => {
+    try {
+        return await Cita.find({ fecha }).lean();
+    } catch (error) {
+        console.error('Error getting citas by fecha:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-citas-by-fecha-cliente', async (_event, fecha, nombreCliente) => {
+    try {
+        return await Cita.find({ fecha, nombreCliente }).lean();
+    } catch (error) {
+        console.error('Error getting citas by fecha and cliente:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-cita-by-fecha-cliente', async (_event, fecha, nombreCliente) => {
+    try {
+        return await Cita.findOne({ fecha, nombreCliente }).lean();
+    } catch (error) {
+        console.error('Error getting citas by fecha and cliente:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('add-cita', async (_event, cita) => {
+    try {
+        // const maxId = await Cita.findOne().sort('-id').lean();
+        // const newId = maxId ? maxId.id + 1 : 1;
+        // const newCita = new Cita({ ...cita, id: newId });
+        const newCita = new Cita({ ...cita });
+        await newCita.save();
+        return newCita.toObject();
+    } catch (error) {
+        console.error('Error adding cita:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('update-cita', async (_event, cita) => {
+    try {
+        // Remove _id and __v fields that might come from MongoDB
+        const { _id, __v, ...citaData } = cita as any;
+        const updated = await Cita.findOneAndUpdate(
+            { id: cita.id },
+            citaData,
+            { new: true }
+        ).lean();
+        return updated;
+    } catch (error) {
+        console.error('Error updating cita:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('delete-cita', async (_event, id) => {
+    try {
+        await Cita.deleteOne({ id });
+    } catch (error) {
+        console.error('Error deleting cita:', error);
+        throw error;
+    }
+});
+
+// ========== Gastos IPC Handlers ==========
+ipcMain.handle('get-gastos', async () => {
+    try {
+        return await Gasto.find().lean();
+    } catch (error) {
+        console.error('Error getting gastos:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-gastos-by-fecha', async (_event, fecha) => {
+    try {
+        // Simple date comparison assuming DD-MM-YYYY format
+        return await Gasto.find({ fecha }).lean();
+    } catch (error) {
+        console.error('Error getting gastos by fecha:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-gastos-by-categoria', async (_event, categoria) => {
+    try {
+        return await Gasto.find({ categoria }).lean();
+    } catch (error) {
+        console.error('Error getting gastos by categoria:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('add-gasto', async (_event, gasto) => {
+    try {
+        const maxId = await Gasto.findOne().sort('-id').lean();
+        const newId = maxId ? maxId.id + 1 : 1;
+        const newGasto = new Gasto({ ...gasto, id: newId });
+        await newGasto.save();
+        return newGasto.toObject();
+    } catch (error) {
+        console.error('Error adding gasto:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('update-gasto', async (_event, gasto) => {
+    try {
+        // Remove _id and __v fields that might come from MongoDB
+        const { _id, __v, ...gastoData } = gasto as any;
+        const updated = await Gasto.findOneAndUpdate(
+            { id: gasto.id },
+            gastoData,
+            { new: true }
+        ).lean();
+        return updated;
+    } catch (error) {
+        console.error('Error updating gasto:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('delete-gasto', async (_event, id) => {
+    try {
+        await Gasto.deleteOne({ id });
+    } catch (error) {
+        console.error('Error deleting gasto:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-gastos-totals', async () => {
+    try {
+        const totals = await Gasto.aggregate([
+            {
+                $group: {
+                    _id: '$categoria',
+                    total: { $sum: '$monto' },
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $sort: { _id: 1 }
+            }
+        ]);
+        return totals;
+    } catch (error) {
+        console.error('Error getting gastos totals:', error);
+        throw error;
+    }
+});
 
 app.on("ready", ()=>{
-    const mainWindow = new BrowserWindow({});
+    const preloadPath = path.join(__dirname, 'preload.js');
+    // console.log('Preload path:', preloadPath);
+    // console.log('__dirname:', __dirname);
+    
+    const mainWindow = new BrowserWindow({
+        autoHideMenuBar: true,
+        webPreferences: {
+            preload: preloadPath,
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: false // Disable sandbox to allow preload script
+        }
+    });
+    
+    // Open DevTools for debugging
+    // mainWindow.webContents.openDevTools();
+    
     mainWindow.loadFile(path.join(app.getAppPath(), "/dist-react/index.html"));
+    
+    // Check if preload script loaded
+    mainWindow.webContents.on('did-finish-load', () => {
+        console.log('Window loaded successfully');
+    });
 });

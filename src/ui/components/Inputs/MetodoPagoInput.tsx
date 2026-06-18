@@ -26,7 +26,7 @@ function MetodoPagoInput({ ctxValue, ctxDispatch, readOnly }: Props) {
 
   const handleChange = (event: any) => {
     if (ctxDispatch) {
-      ctxDispatch("metododepago", event.target.value as string);
+      ctxDispatch("metodoDePago", event.target.value as string);
     } else {
       setValue(event.target.value as string);
     }
