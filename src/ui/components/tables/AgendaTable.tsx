@@ -206,8 +206,9 @@ const AgendaTable = () => {
         columnDefs={colDefs}
         defaultColDef={defaultColdef}
         theme={myTheme}
-        rowHeight={104}
+        // rowHeight={104}
         enableCellSpan={true}
+        rowHeight={160}
       />
     </div>
   );

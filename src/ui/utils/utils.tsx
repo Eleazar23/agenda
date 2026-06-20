@@ -113,6 +113,14 @@ export const getOfficeHours = () => {
 
 }
 
+export function toTitleString(str: string) {
+  const words = str.split(" ");
+  const titleCasedWords = words.map(
+    (word) => word.charAt(0).toUpperCase() + word.slice(1),
+  );
+  return titleCasedWords.join(" ");
+}
+
 const hrsObj = {
   "00:00": { index: 0, label12: "12:00 AM", label24: "00:00", value: "00:00" },
   "00:30": { index: 1, label12: "12:30 AM", label24: "00:30", value: "00:30" },
