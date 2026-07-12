@@ -25,7 +25,6 @@ function ProductosActionsCell(params: any) {
         <DeleteBtn onClick={handleDeleteClick} />
       </Box>
       <EditProductoModal
-        rowIndex={params.node.rowIndex}
         isOpen={isEditing}
         onClose={() => setIsEditing(false)}
         initialData={params.data}

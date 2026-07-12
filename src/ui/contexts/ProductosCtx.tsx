@@ -19,7 +19,7 @@ type ProductosContextType = {
   setDataTable: React.Dispatch<React.SetStateAction<Array<Producto>>>;
   handleAlert: (message: string, alertType: Alert) => void;
   addProducto: (producto: Producto) => Promise<void>;
-  editProducto: (rowIndex: number, updatedProducto: Producto) => Promise<void>;
+  editProducto: (updatedProducto: Producto) => Promise<void>;
   removeProducto: (id: number) => Promise<void>;
 };
 
@@ -80,12 +80,12 @@ export const ProductosCtxProvider = ({ children }: Props) => {
     }
   };
 
-  const editProducto = async (rowIndex: number, updatedProducto: Producto) => {
+  const editProducto = async (updatedProducto: Producto) => {
     try {
       await window.api.updateProducto(updatedProducto);
       setDataTable((prev) =>
-        prev.map((producto, index) =>
-          index === rowIndex ? updatedProducto : producto
+        prev.map((producto) =>
+          producto.id === updatedProducto.id ? updatedProducto : producto
         )
       );
       handleAlert("Producto actualizado con éxito", "success");

@@ -14,12 +14,11 @@ import CantidadInput from "../../Inputs/CantidadInput";
 
 type Props = {
   isOpen: boolean;
-  rowIndex: number;
   onClose?: () => void;
   initialData?: any;
 };
 
-function EditProductoModal({ isOpen, rowIndex, onClose, initialData }: Props) {
+function EditProductoModal({ isOpen, onClose, initialData }: Props) {
   const [formData, setFormData] = useState<Producto>(
     initialData || {
       id: 0,
@@ -68,7 +67,7 @@ function EditProductoModal({ isOpen, rowIndex, onClose, initialData }: Props) {
     const validationErrors = validate(formData);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length) return;
-    editProducto(rowIndex, { id, nombre, marca, precio, descripcion, stock });
+    editProducto({ id, nombre, marca, precio, descripcion, stock });
     if (onClose) onClose();
   };
 
