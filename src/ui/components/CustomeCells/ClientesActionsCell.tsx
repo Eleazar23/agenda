@@ -35,7 +35,6 @@ function ClientesActionsCell(params: any) {
         <BitacoraBtn onClick={handleBitacoraClick} />
       </Box>
       <EditClienteModal
-        rowIndex={params.node.rowIndex}
         isOpen={isEditing}
         onClose={() => setIsEditing(false)}
         initialData={params.data}

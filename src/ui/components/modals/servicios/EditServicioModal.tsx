@@ -13,12 +13,11 @@ import { useServiciosCtx } from "../../../contexts/ServiciosContext";
 
 type Props = {
   isOpen: boolean;
-  rowIndex: number;
   onClose?: () => void;
   initialData?: any;
 };
 
-function EditServicioModal({ isOpen, rowIndex, onClose, initialData }: Props) {
+function EditServicioModal({ isOpen, onClose, initialData }: Props) {
   const [formData, setFormData] = useState<Servicio>(
     initialData || {
       id: 0,
@@ -58,7 +57,7 @@ function EditServicioModal({ isOpen, rowIndex, onClose, initialData }: Props) {
     const validationErrors = validate(formData);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length) return;
-    editServicio(rowIndex, { id, nombre, precio });
+    editServicio({ id, nombre, precio });
     if (onClose) onClose();
   };
 

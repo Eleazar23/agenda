@@ -22,14 +22,12 @@ interface Cliente {
 
 interface EditClienteModalProps {
   isOpen: boolean;
-  rowIndex: number;
   onClose?: () => void;
   initialData?: Cliente;
 }
 
 const EditClienteModal: React.FC<EditClienteModalProps> = ({
   isOpen,
-  rowIndex,
   onClose,
   initialData,
 }) => {
@@ -91,8 +89,7 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
       return;
     }
 
-    // onSave(rowIndex, formData);
-    editCliente(rowIndex, formData);
+    editCliente(formData);
     onClose?.();
   };
 

@@ -33,7 +33,7 @@ type ClientesContextType = {
   setDataTable: React.Dispatch<React.SetStateAction<Array<Cliente>>>;
   handleAlert: (message: string, alertType: Alert) => void;
   addCliente: (cliente: Cliente) => Promise<void>;
-  editCliente: (rowIndex: number, updatedCliente: Cliente) => Promise<void>;
+  editCliente: (updatedCliente: Cliente) => Promise<void>;
   removeCliente: (id: number) => Promise<void>;
 };
 
@@ -91,12 +91,12 @@ export const ClientesCtxProvider = ({ children }: Props) => {
     }
   };
 
-  const editCliente = async (rowIndex: number, updatedCliente: Cliente) => {
+  const editCliente = async (updatedCliente: Cliente) => {
     try {
       await window.api.updateCliente(updatedCliente);
       setDataTable((prev) =>
-        prev.map((cliente, index) =>
-          index === rowIndex ? updatedCliente : cliente
+        prev.map((cliente) =>
+          cliente.id === updatedCliente.id ? updatedCliente : cliente
         )
       );
       handleAlert("Cliente actualizado con éxito", "success");

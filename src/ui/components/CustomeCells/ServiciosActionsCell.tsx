@@ -26,7 +26,6 @@ function ServiciosActionsCell(params: any) {
         <DeleteBtn onClick={handleDeleteClick} />
       </Box>
       <EditServicioModal
-        rowIndex={params.node.rowIndex}
         isOpen={isEditing}
         onClose={() => setIsEditing(false)}
         initialData={params.data}

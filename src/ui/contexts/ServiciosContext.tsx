@@ -19,7 +19,7 @@ type ServiciosContextType = {
   setDataTable: React.Dispatch<React.SetStateAction<Array<Servicio>>>;
   handleAlert: (message: string, alertType: Alert) => void;
   addServicio: (servicio: Servicio) => Promise<void>;
-  editServicio: (rowIndex: number, updatedServicio: Servicio) => Promise<void>;
+  editServicio: (updatedServicio: Servicio) => Promise<void>;
   removeServicio: (id: number) => Promise<void>;
 };
 
@@ -83,12 +83,12 @@ export const ServiciosCtxProvider = ({ children }: Props) => {
     }
   };
 
-  const editServicio = async (rowIndex: number, updatedServicio: Servicio) => {
+  const editServicio = async (updatedServicio: Servicio) => {
     try {
       await window.api.updateServicio(updatedServicio);
       setDataTable((prev) =>
-        prev.map((servicio, index) =>
-          index === rowIndex ? updatedServicio : servicio
+        prev.map((servicio) =>
+          servicio.id === updatedServicio.id ? updatedServicio : servicio
         )
       );
       handleAlert("Servicio actualizado con éxito", "success");
