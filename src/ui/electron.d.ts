@@ -4,6 +4,7 @@ import { Servicio } from './types/Servicio';
 import { Producto } from './types/Producto';
 import { Cita } from './types/Cita';
 import { Gasto } from './types/Gasto';
+import { Nota } from './types/Nota';
 
 export interface IElectronAPI {
   // Clientes
@@ -50,6 +51,14 @@ export interface IElectronAPI {
   updateGasto: (gasto: Gasto) => Promise<Gasto>;
   deleteGasto: (id: number) => Promise<void>;
   getGastosTotals: () => Promise<Array<{ _id: string; total: number; count: number }>>;
+
+  // Notas
+  getNotas: () => Promise<Nota[]>;
+  getNotasByEstilista: (estilistaId: number) => Promise<Nota[]>;
+  getNotasByFecha: (fecha: string) => Promise<Nota[]>;
+  addNota: (nota: Omit<Nota, 'id'>) => Promise<Nota>;
+  updateNota: (nota: Nota) => Promise<Nota>;
+  deleteNota: (id: number) => Promise<void>;
 }
 
 declare global {

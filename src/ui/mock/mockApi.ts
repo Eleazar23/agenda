@@ -5,6 +5,7 @@ import type { Servicio } from "../types/Servicio";
 import type { Producto, ProductoInCita } from "../types/Producto";
 import type { Cita } from "../types/Cita";
 import type { Gasto } from "../types/Gasto";
+import type { Nota } from "../types/Nota";
 import type { ServicioAgendado } from "../types/ServicioAgendado";
 import { getCurrentDate, getOfficeHours } from "../utils/utils";
 
@@ -168,6 +169,11 @@ let gastos: Gasto[] = [
   { id: 2, proveedorNombre: "CFE", monto: 620, fecha: today, categoria: "servicios", descripcion: "Recibo de luz", metodoPago: "transferencia" },
 ];
 
+let notas: Nota[] = [
+  { id: 1, nota: "Confirmar cliente de las 10am", estilistaId: 1, estilistaNombre: "Tomi", estado: false, fecha: today },
+  { id: 2, nota: "Pedir más tinte color chocolate", estilistaId: 2, estilistaNombre: "Felix", estado: false, fecha: today },
+];
+
 // ---------- API ----------
 
 export function createMockApi(): IElectronAPI {
@@ -288,6 +294,24 @@ export function createMockApi(): IElectronAPI {
         totals.set(g.categoria, entry);
       });
       return delay([...totals.values()].sort((a, b) => a._id.localeCompare(b._id)));
+    },
+
+    // Notas
+    getNotas: () => delay([...notas]),
+    getNotasByEstilista: (estilistaId) => delay(notas.filter((n) => n.estilistaId === estilistaId)),
+    getNotasByFecha: (fecha) => delay(notas.filter((n) => n.fecha === fecha)),
+    addNota: (nota) => {
+      const newNota = { ...nota, id: nextId(notas) } as Nota;
+      notas = [...notas, newNota];
+      return delay(newNota);
+    },
+    updateNota: (nota) => {
+      notas = notas.map((n) => (n.id === nota.id ? { ...n, ...nota } : n));
+      return delay(nota);
+    },
+    deleteNota: (id) => {
+      notas = notas.filter((n) => n.id !== id);
+      return delay(undefined);
     },
   };
 }

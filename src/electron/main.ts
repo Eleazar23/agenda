@@ -8,6 +8,7 @@ import { Servicio } from './models/Servicio.js';
 import { Producto } from './models/Producto.js';
 import { Cita } from './models/Cita.js';
 import { Gasto } from './models/Gasto.js';
+import { Nota } from './models/Nota.js';
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -400,6 +401,71 @@ ipcMain.handle('get-gastos-totals', async () => {
         return totals;
     } catch (error) {
         console.error('Error getting gastos totals:', error);
+        throw error;
+    }
+});
+
+// ========== Notas IPC Handlers ==========
+ipcMain.handle('get-notas', async () => {
+    try {
+        return await Nota.find().lean();
+    } catch (error) {
+        console.error('Error getting notas:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-notas-by-estilista', async (_event, estilistaId) => {
+    try {
+        return await Nota.find({ estilistaId }).lean();
+    } catch (error) {
+        console.error('Error getting notas by estilista:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-notas-by-fecha', async (_event, fecha) => {
+    try {
+        return await Nota.find({ fecha }).lean();
+    } catch (error) {
+        console.error('Error getting notas by fecha:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('add-nota', async (_event, nota) => {
+    try {
+        const maxId = await Nota.findOne().sort('-id').lean();
+        const newId = maxId ? maxId.id + 1 : 1;
+        const newNota = new Nota({ ...nota, id: newId });
+        await newNota.save();
+        return newNota.toObject();
+    } catch (error) {
+        console.error('Error adding nota:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('update-nota', async (_event, nota) => {
+    try {
+        const { _id, __v, ...notaData } = nota as any;
+        const updated = await Nota.findOneAndUpdate(
+            { id: nota.id },
+            notaData,
+            { new: true }
+        ).lean();
+        return updated;
+    } catch (error) {
+        console.error('Error updating nota:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('delete-nota', async (_event, id) => {
+    try {
+        await Nota.deleteOne({ id });
+    } catch (error) {
+        console.error('Error deleting nota:', error);
         throw error;
     }
 });

@@ -46,4 +46,12 @@ contextBridge.exposeInMainWorld('api', {
   updateGasto: (gasto: any) => ipcRenderer.invoke('update-gasto', gasto),
   deleteGasto: (id: number) => ipcRenderer.invoke('delete-gasto', id),
   getGastosTotals: () => ipcRenderer.invoke('get-gastos-totals'),
+
+  // Notas
+  getNotas: () => ipcRenderer.invoke('get-notas'),
+  getNotasByEstilista: (estilistaId: number) => ipcRenderer.invoke('get-notas-by-estilista', estilistaId),
+  getNotasByFecha: (fecha: string) => ipcRenderer.invoke('get-notas-by-fecha', fecha),
+  addNota: (nota: any) => ipcRenderer.invoke('add-nota', nota),
+  updateNota: (nota: any) => ipcRenderer.invoke('update-nota', nota),
+  deleteNota: (id: number) => ipcRenderer.invoke('delete-nota', id),
 });
