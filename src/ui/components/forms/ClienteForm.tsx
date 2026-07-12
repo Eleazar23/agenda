@@ -26,18 +26,22 @@ const ClienteForm = () => {
   const [allClientes, setAllClientes] = useState<Cliente[]>([]);
 
 
-  const updateCitaCliente = (nombre: string, telefono: string) => {
+  const updateCitaCliente = (nombre: string, telefono: string, clienteId: number) => {
     setCita((prev) => ({
       ...prev,
       nombreCliente: nombre,
       telefonoCliente: telefono,
+      clienteId,
     }));
   };
 
   const dispatchCliente = (value: string) => {
+    // Cualquier edición manual del nombre invalida la selección previa:
+    // se requiere volver a seleccionar/crear el cliente antes de guardar.
     setCita((prevCita) => ({
       ...prevCita,
       nombreCliente: value,
+      clienteId: 0,
     }));
   };
 
@@ -52,25 +56,28 @@ const ClienteForm = () => {
     const cliente = await searchClienteByPhone(telefono);
     if (cliente) {
       handleAlert("Cliente encontrado", "success");
-      updateCitaCliente(cliente.nombre, cliente.telefono);
+      updateCitaCliente(cliente.nombre, cliente.telefono, cliente.id);
       return;
     }
     setIsNewCliente(() => true);
     handleAlert("Cliente no encontrado", "error");
   };
 
-  const handleGuardarNuevoCliente = () => {
+  const handleGuardarNuevoCliente = async () => {
     if (!cita.nombreCliente || !cita.telefonoCliente) {
       handleAlert("Nombre y teléfono son obligatorios", "error");
       return;
     }
-    addCliente({
+    const newCliente = await addCliente({
       nombre: cita.nombreCliente,
       telefono: cita.telefonoCliente,
       correo: "",
       lastVisit: "",
-    } as any);
-    setIsNewCliente(false);
+    } as Cliente);
+    if (newCliente) {
+      updateCitaCliente(newCliente.nombre, newCliente.telefono, newCliente.id);
+      setIsNewCliente(false);
+    }
   };
 
     useEffect(() => {
@@ -101,7 +108,7 @@ const ClienteForm = () => {
               dispatchContext={dispatchCliente}
               autoFocus={true}
               onSelectCliente={(cliente) =>
-                updateCitaCliente(cliente.nombre, cliente.telefono)
+                updateCitaCliente(cliente.nombre, cliente.telefono, cliente.id)
               }
               ctxOptions={allClientes}
             />

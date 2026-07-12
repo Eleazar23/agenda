@@ -6,6 +6,7 @@ import { ServicioAgendado } from "./ServicioAgendado";
 
 export type Cita = {
     id: string;
+    clienteId: number;
     fecha: string;
     nombreCliente: string;
     telefonoCliente: string;

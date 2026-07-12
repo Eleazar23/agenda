@@ -65,7 +65,7 @@ type AgendaContex = {
   searchClienteByNombre: (nombre: string) => Promise<Cliente | null>;
   searchClientesByNombre: (nombre: string) => Promise<Cliente[] | null>;
   searchClienteByPhone: (telefono: string) => Promise<Cliente | null>;
-  addCliente: (cliente: Cliente) => Promise<void>;
+  addCliente: (cliente: Cliente) => Promise<Cliente | null>;
 };
 
 export const AgendaContext = createContext<AgendaContex | null>(null);
@@ -80,6 +80,7 @@ const initialContextData = {
   citas: [],
   cita: {
     id: "",
+    clienteId: 0,
     fecha: initialDate,
     nombreCliente: "",
     telefonoCliente: "",
@@ -264,8 +265,16 @@ export const AgendaContextProvider = ({ children }: Props) => {
       //   const savedCita = await window.api.addCita(citaData);
       //   savedCitas.push(savedCita);
       // }
-      const newID = `${fecha}-${cita.nombreCliente}`;
-      const isCitaInDB = await window.api.getCitaByFechaCliente(fecha, cita.nombreCliente);
+      if (!cita.clienteId) {
+        handleAlert(
+          "Selecciona un cliente de la lista o guárdalo como nuevo antes de continuar",
+          "error",
+        );
+        return;
+      }
+      const nombreClienteNormalizado = cita.nombreCliente.trim();
+      const newID = `${fecha}-${cita.clienteId}`;
+      const isCitaInDB = await window.api.getCitaByFechaClienteId(fecha, cita.clienteId);
       if (isCitaInDB) {
         const updateServicios = [...isCitaInDB.servicios, ...cita.servicios]
         const updatedCitaData = {
@@ -275,10 +284,12 @@ export const AgendaContextProvider = ({ children }: Props) => {
         await window.api.updateCita(updatedCitaData);
         getCitasFromDB(fecha);
         handleAlert("Cita actualizada", "success");
+        setIsBooking(false);
         return;
       }
       const citaToSave = {
         ...cita,
+        nombreCliente: nombreClienteNormalizado,
         id: newID,
       };
       console.log("Cita to save:", cita);
@@ -330,7 +341,7 @@ export const AgendaContextProvider = ({ children }: Props) => {
   const addCliente = async (cliente: Cliente) => {
     if (!cliente.nombre || !cliente.telefono) {
       handleAlert("Nombre y teléfono son obligatorios", "error");
-      return;
+      return null;
     }
 
     try {
@@ -341,9 +352,11 @@ export const AgendaContextProvider = ({ children }: Props) => {
         lastVisit: cliente.lastVisit || "",
       });
       handleAlert("Cliente agregado con éxito", "success");
+      return newCliente;
     } catch (error) {
       console.error("Error adding cliente:", error);
       handleAlert("Error al agregar cliente", "error");
+      return null;
     }
   };
 

@@ -4,11 +4,27 @@ import { Estilista } from './models/Estilista.js';
 import { Servicio } from './models/Servicio.js';
 import { Producto } from './models/Producto.js';
 
+const __dbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/agenda';
+
 const seedData = async () => {
   try {
     // Connect to MongoDB
-    await mongoose.connect('mongodb://localhost:27017/agenda');
-    console.log('Connected to MongoDB for seeding...');
+    await mongoose.connect(__dbUri);
+    console.log(`Connected to MongoDB for seeding... (${__dbUri})`);
+
+    // Este script BORRA todos los clientes, estilistas, servicios y productos
+    // existentes antes de sembrar datos de prueba. Es solo para desarrollo:
+    // exige confirmación explícita para evitar destruir datos reales por accidente.
+    if (process.env.SEED_CONFIRM !== 'yes') {
+      console.error(
+        '\nABORTADO: este script borra todos los clientes, estilistas, servicios y productos ' +
+        `de la base "${__dbUri}" antes de sembrar datos de prueba.\n` +
+        'Si estás seguro de que quieres hacer esto (normalmente solo en desarrollo), ' +
+        'vuelve a correrlo con la variable de entorno SEED_CONFIRM=yes.\n',
+      );
+      await mongoose.connection.close();
+      process.exit(1);
+    }
 
     // Clear existing data
     await Promise.all([

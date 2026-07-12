@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import type { CustomCellRendererProps } from "ag-grid-react";
 import EmptyCell from './EmptyCell';
 import CitaCell from './CitaCell';
@@ -11,4 +11,7 @@ function CutomeCellRenderer(params:CustomCellRendererProps) {
   )
 }
 
-export default CutomeCellRenderer
+export default React.memo(
+  CutomeCellRenderer,
+  (prevProps, nextProps) => prevProps.value === nextProps.value,
+)

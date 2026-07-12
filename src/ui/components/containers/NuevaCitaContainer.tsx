@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Button, Grid, Paper, Stack, Typography } from "@mui/material";
 import ClienteContainer from "./ClienteContainer";
 import { useAgendaContext } from "../../contexts/AgendaContext";
@@ -8,14 +8,16 @@ import ServiciosCard from "../cards/ServiciosCard";
 const NuevaCitaContainer = () => {
   const { cita, handleCancelarCita, guardarCita, handleAlert } =
     useAgendaContext();
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleCancelar = () => {
     handleCancelarCita();
   };
 
-  const handleGuardar = () => {
+  const handleGuardar = async () => {
+    if (isSaving) return;
     // const {cita} = agendaData
-    const nombreLen = cita.nombreCliente.length;
+    const nombreLen = cita.nombreCliente.trim().length;
     const phoneLen = cita.telefonoCliente.length;
 
     if (nombreLen < 1) {
@@ -30,7 +32,18 @@ const NuevaCitaContainer = () => {
     if (phoneLen < 1) {
       return handleAlert('Falta ingresar "Telefono"', "error");
     }
-    guardarCita();
+    if (!cita.clienteId) {
+      return handleAlert(
+        "Selecciona un cliente de la lista o guárdalo como nuevo antes de continuar",
+        "error",
+      );
+    }
+    setIsSaving(true);
+    try {
+      await guardarCita();
+    } finally {
+      setIsSaving(false);
+    }
   };
   return (
     <Stack
@@ -59,7 +72,7 @@ const NuevaCitaContainer = () => {
             <Button variant="text" onClick={handleCancelar}>
               Cancelar
             </Button>
-            <Button variant="contained" onClick={handleGuardar}>
+            <Button variant="contained" onClick={handleGuardar} disabled={isSaving}>
               Guardar
             </Button>
           </Box>

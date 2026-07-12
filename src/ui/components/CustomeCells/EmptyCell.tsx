@@ -1,5 +1,5 @@
 import { Button } from "@mui/material";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import type { CustomCellRendererProps } from "ag-grid-react";
 
@@ -52,4 +52,7 @@ const EmptyCell = (params: CustomCellRendererProps) => {
   );
 };
 
-export default EmptyCell;
+export default React.memo(
+  EmptyCell,
+  (prevProps, nextProps) => prevProps.value === nextProps.value,
+);

@@ -2,7 +2,7 @@
   "name": "agenda",
   "author": "Eleazar Celis",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
@@ -13,6 +13,7 @@
     "preview": "vite preview",
     "transpile:electron": "tsc --project src/electron/tsconfig.json",
     "seed:db": "tsc --project src/electron/tsconfig.json && node dist-electron/seed.js",
+    "migrate:clienteid": "tsc --project src/electron/tsconfig.json && node dist-electron/migrateClienteId.js",
     "dist:win": "electron-builder --win --x64"
   },
   "dependencies": {

@@ -5,14 +5,17 @@ import {
   CardActions,
   CardContent,
   Chip,
+  Menu,
+  MenuItem,
   Stack,
   Typography,
 } from "@mui/material";
-// import { useAgendaContext } from "../../contexts/AgendaContext";
+import { useAgendaContext } from "../../contexts/AgendaContext";
 import type { CustomCellRendererProps } from "ag-grid-react";
 import CitaModal from "../modals/CitaModal";
-import { useState } from "react";
+import React, { useState } from "react";
 import { toTitleString } from "../../utils/utils";
+import { statusOptions } from "../../constants/statusOptions";
 
 interface Estados {
   "sin confirmar": string;
@@ -88,14 +91,52 @@ const nombreClienteColor: Estados = {
 };
 
 const CitaCell = (params: CustomCellRendererProps) => {
-  // const { setIsCitaOpen } = useAgendaContext();
+  const { citas, handleEditCita } = useAgendaContext();
   const [isCitaOpen, setIsCitaOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isUpdatingEstado, setIsUpdatingEstado] = useState(false);
   const { value } = params;
   const { servicio, estado } = value;
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     console.log("Opening modal for:", value);
     setIsCitaOpen(true);
+  };
+
+  const handleChipClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (isUpdatingEstado) return;
+    setAnchorEl(e.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEstadoSelect = async (
+    e: React.MouseEvent<HTMLLIElement>,
+    nuevoEstado: string,
+  ) => {
+    e.stopPropagation();
+    setAnchorEl(null);
+    if (nuevoEstado === estado || isUpdatingEstado) return;
+
+    const citaCompleta = citas.find(
+      (c) => c.clienteId === value.clienteId && c.fecha === value.fecha,
+    );
+    if (!citaCompleta) return;
+
+    setIsUpdatingEstado(true);
+    try {
+      await handleEditCita(
+        citaCompleta.id,
+        { ...citaCompleta, estado: nuevoEstado },
+        [],
+      );
+    } finally {
+      setIsUpdatingEstado(false);
+    }
   };
 
   return (
@@ -106,7 +147,7 @@ const CitaCell = (params: CustomCellRendererProps) => {
           ...STYLES.bgCardColors[estado as keyof Estados],
         }}
       >
-        <CardActionArea onClick={handleClick}>
+        <CardActionArea onClick={(e) => handleClick(e)}>
           <CardContent sx={STYLES.cardContent}>
             <Typography
               variant="body1"
@@ -125,20 +166,39 @@ const CitaCell = (params: CustomCellRendererProps) => {
                 ""}
             </Typography>
           </CardContent>
+          {/* </CardActionArea> */}
+          <CardActions sx={STYLES.cardActions}>
+            <Chip
+              id="estadoChip"
+              label={
+                value.estado.charAt(0).toUpperCase() + (value?.estado).slice(1)
+              }
+              onClick={handleChipClick}
+              sx={STYLES.chipColor[value.estado as keyof Estados]}
+            />
+          </CardActions>
         </CardActionArea>
-        <CardActions sx={STYLES.cardActions}>
-          <Chip
-            label={
-              value.estado.charAt(0).toUpperCase() + (value?.estado).slice(1)
-            }
-            onClick={() => console.log("Chip clicked")}
-            sx={STYLES.chipColor[value.estado as keyof Estados]}
-          />
-        </CardActions>
       </Card>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {statusOptions.map((option) => (
+          <MenuItem
+            key={option.id}
+            selected={option.value === value.estado}
+            onClick={(e) => handleEstadoSelect(e, option.value)}
+          >
+            {option.label}
+          </MenuItem>
+        ))}
+      </Menu>
       <CitaModal
         key={servicio?.id}
         fecha={value.fecha}
+        clienteId={value.clienteId}
         nombreCliente={value.nombreCliente}
         telefonoCliente={value.telefonoCliente}
         servicio={servicio}
@@ -150,4 +210,7 @@ const CitaCell = (params: CustomCellRendererProps) => {
   );
 };
 
-export default CitaCell;
+export default React.memo(
+  CitaCell,
+  (prevProps, nextProps) => prevProps.value === nextProps.value,
+);

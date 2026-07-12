@@ -33,10 +33,11 @@ import TotalCitaTbls from "../tables/TotalCitaTbls";
 import ServicioForm from "./cita/Servicio";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
 import { Producto, ProductoInCita } from "../../types/Producto";
-import { getCitasByFechaCliente } from "../../services/citasApi";
+import { getCitasByFechaClienteId } from "../../services/citasApi";
 
 type CitaModalProps = {
   fecha: string;
+  clienteId: number;
   nombreCliente: string;
   telefonoCliente?: string;
   servicio: ServicioAgendado;
@@ -62,6 +63,7 @@ const CustomeInputField = styled(TextField)(() => ({
 
 export default function CitaModal({
   fecha,
+  clienteId,
   nombreCliente,
   telefonoCliente,
   servicio,
@@ -79,9 +81,11 @@ export default function CitaModal({
   // const [isEditMode, setIsEditMode] = useState(false);
   const [view, setView] = useState("servicio");
   const [productosToUpdate, setProductosToUpdate] = useState<ProductoInCita[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
   const [citaForm, setCitaForm] = useState<Cita>(
     cita || {
       id: "",
+      clienteId,
       fecha,
       nombreCliente,
       telefonoCliente: telefonoCliente || "",
@@ -103,9 +107,9 @@ export default function CitaModal({
 
   const getCitaData = async () => {
     try {
-      const citaData = await window.api.getCitaByFechaCliente(
+      const citaData = await window.api.getCitaByFechaClienteId(
         fecha,
-        nombreCliente,
+        clienteId,
       );
       setCita(() => citaData);
       setCitaForm((prev) => ({ ...prev, ...citaData }));
@@ -115,7 +119,7 @@ export default function CitaModal({
   };
 
   const getCitasData = async () => {
-    const citasData = await getCitasByFechaCliente(fecha, nombreCliente);
+    const citasData = await getCitasByFechaClienteId(fecha, clienteId);
     console.log({ citasData });
     setCitas((prev) => [...prev, ...citasData]);
   };
@@ -153,9 +157,15 @@ export default function CitaModal({
   };
 
   const handleGuardar = async () => {
+    if (isSaving) return;
     console.log({ citaForm, productosToUpdate });
-    await handleEditCita(citaForm.id, citaForm, productosToUpdate);
-    setProductosToUpdate([]); // Reiniciar el array después de guardar los cambios
+    setIsSaving(true);
+    try {
+      await handleEditCita(citaForm.id, citaForm, productosToUpdate);
+      setProductosToUpdate([]); // Reiniciar el array después de guardar los cambios
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const updateProductosInCita = (newProductos: Array<ProductoInCita>) => {
@@ -316,7 +326,7 @@ export default function CitaModal({
           <Button autoFocus onClick={handleCancelar}>
             Cancelar
           </Button>
-          <Button autoFocus onClick={handleGuardar} variant="contained">
+          <Button autoFocus onClick={handleGuardar} variant="contained" disabled={isSaving}>
             Guardar
           </Button>
         </DialogActions>

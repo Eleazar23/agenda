@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback } from "react";
+import React, { useEffect, useMemo, useCallback, useRef } from "react";
 import { useState } from "react";
 import {
   AllCommunityModule,
@@ -159,27 +159,51 @@ const AgendaTable = () => {
     return arrNewServices;
   }, [genarateRowsByService]);
 
+  const prevRowsDataRef = useRef<Array<DynamicObject>>([]);
+
+  const isSameCellValue = useCallback((a: any, b: any) => {
+    if (a === "" || b === "") return a === b;
+    if (!a || !b) return a === b;
+    if (
+      a.clienteId !== b.clienteId ||
+      a.nombreCliente !== b.nombreCliente ||
+      a.telefonoCliente !== b.telefonoCliente ||
+      a.estado !== b.estado
+    ) {
+      return false;
+    }
+    const servicioA = a.servicio;
+    const servicioB = b.servicio;
+    return (
+      servicioA?.cellID === servicioB?.cellID &&
+      servicioA?.duracion === servicioB?.duracion &&
+      servicioA?.horaInicio === servicioB?.horaInicio &&
+      servicioA?.horaFin === servicioB?.horaFin &&
+      servicioA?.servicio?.id === servicioB?.servicio?.id &&
+      servicioA?.servicio?.nombre === servicioB?.servicio?.nombre &&
+      servicioA?.servicio?.precio === servicioB?.servicio?.precio
+    );
+  }, []);
+
   const updateRowsDataByCitas = useCallback(() => {
     if (rowInitData.length === 0) return;
-    
-    console.log("Updating rows data by citas...", todaysCitas.length, "appointments for", fecha);
-    
-    if (todaysCitas.length === 0) {
-      setRowsData(rowInitData);
-      return;
-    }
 
-    // Build new rows in one pass instead of multiple setState calls
-    const newRowsData: Array<any> = rowInitData.map(row => ({ ...row }));
-    
+    console.log("Updating rows data by citas...", todaysCitas.length, "appointments for", fecha);
+
+    const prevRowsData = prevRowsDataRef.current;
+
+    // Compute the target cell values for every row (estilista columns only)
+    const targetRows: Array<DynamicObject> = rowInitData.map((row) => ({ ...row }));
+
     todaysCitas.forEach((cita) => {
-      const { nombreCliente, telefonoCliente, fecha, estado } = cita;
+      const { clienteId, nombreCliente, telefonoCliente, fecha, estado } = cita;
       const realServices = getRealServicesArray(cita.servicios);
-      
+
       realServices.forEach((servicio) => {
         const { rowIndex, estilista } = servicio;
-        if (newRowsData[rowIndex]) {
-          (newRowsData[rowIndex] as DynamicObject)[estilista] = {
+        if (targetRows[rowIndex]) {
+          targetRows[rowIndex][estilista] = {
+            clienteId,
             nombreCliente,
             telefonoCliente,
             fecha,
@@ -189,9 +213,31 @@ const AgendaTable = () => {
         }
       });
     });
-    
+
+    // Reuse previous row/cell object references when the content hasn't changed,
+    // so ag-grid (getRowId) and React.memo can skip re-rendering unaffected cells.
+    const newRowsData: Array<DynamicObject> = targetRows.map((targetRow, rowIndex) => {
+      const prevRow = prevRowsData[rowIndex];
+      if (!prevRow) return targetRow;
+
+      let rowChanged = false;
+      const mergedRow: DynamicObject = { ...targetRow };
+
+      Object.keys(targetRow).forEach((key) => {
+        if (key === "hour" || key === "isSelected") return;
+        if (isSameCellValue(targetRow[key], prevRow[key])) {
+          mergedRow[key] = prevRow[key];
+        } else {
+          rowChanged = true;
+        }
+      });
+
+      return rowChanged ? mergedRow : prevRow;
+    });
+
+    prevRowsDataRef.current = newRowsData;
     setRowsData(newRowsData);
-  }, [todaysCitas, fecha, getRealServicesArray, rowInitData]);
+  }, [todaysCitas, fecha, getRealServicesArray, rowInitData, isSameCellValue]);
 
   useEffect(() => {
     console.log("Citas or fecha changed, updating rows data...");
@@ -203,6 +249,8 @@ const AgendaTable = () => {
     <div style={{ height: "100%" }}>
       <AgGridReact
         rowData={rowsData}
+        getRowId={(params) => params.data.hour.label24}
+        animateRows={true}
         columnDefs={colDefs}
         defaultColDef={defaultColdef}
         theme={myTheme}

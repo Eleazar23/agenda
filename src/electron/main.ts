@@ -12,12 +12,11 @@ import { Gasto } from './models/Gasto.js';
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const __dbUrl = 'mongodb://localhost:27017'
-const __dbName = 'agenda';
+const __dbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/agenda';
 
 // Connect to MongoDB using Mongoose
-mongoose.connect(`${__dbUrl}/${__dbName}`).then(() => {
-    console.log('Connected to MongoDB');
+mongoose.connect(__dbUri).then(() => {
+    console.log(`Connected to MongoDB (${__dbUri})`);
 }).catch((err: any) => {
     console.error('Failed to connect to MongoDB', err);
 });
@@ -260,20 +259,20 @@ ipcMain.handle('get-citas-by-fecha', async (_event, fecha) => {
     }
 });
 
-ipcMain.handle('get-citas-by-fecha-cliente', async (_event, fecha, nombreCliente) => {
+ipcMain.handle('get-citas-by-fecha-clienteid', async (_event, fecha, clienteId) => {
     try {
-        return await Cita.find({ fecha, nombreCliente }).lean();
+        return await Cita.find({ fecha, clienteId }).lean();
     } catch (error) {
-        console.error('Error getting citas by fecha and cliente:', error);
+        console.error('Error getting citas by fecha and clienteId:', error);
         throw error;
     }
 });
 
-ipcMain.handle('get-cita-by-fecha-cliente', async (_event, fecha, nombreCliente) => {
+ipcMain.handle('get-cita-by-fecha-clienteid', async (_event, fecha, clienteId) => {
     try {
-        return await Cita.findOne({ fecha, nombreCliente }).lean();
+        return await Cita.findOne({ fecha, clienteId }).lean();
     } catch (error) {
-        console.error('Error getting citas by fecha and cliente:', error);
+        console.error('Error getting cita by fecha and clienteId:', error);
         throw error;
     }
 });
