@@ -1,10 +1,9 @@
-import React, { useState, createContext, useContext, useEffect } from "react";
+import React, { useState, createContext, useContext, useEffect, useRef } from "react";
 import { getCurrentDate } from "../utils/utils";
 import { Cita } from "../types/Cita";
 import { Servicio } from "../types/Servicio";
 import { useSnackbar } from "notistack";
 import { Cliente } from "../types/Cliente";
-// import { Producto } from "../types/Producto";
 import { ServicioAgendado } from "../types/ServicioAgendado";
 import { ProductoInCita } from "../types/Producto";
 
@@ -13,27 +12,6 @@ type Props = {
 };
 
 type Alert = "success" | "error" | "info" | "warning";
-
-// type NewCita = Cita & {
-//   servicios: [] | Array<any>;
-// };
-
-// type ServicioAgendado = Cita & {
-//   cellID: string;
-//   estilista: string;
-//   horaInicio: string;
-//   duracion: number;
-// };
-
-// type AgendaData = {
-//   fecha: string;
-//   minDuration: number;
-//   isCitaOpen: boolean;
-//   isBooking: boolean;
-//   citas: [] | Array<Cita>;
-//   cita: NewCita;
-//   currentPage: string;
-// };
 
 type AgendaContex = {
   fecha: string;
@@ -106,6 +84,8 @@ export const AgendaContextProvider = ({ children }: Props) => {
   const [currentPage, setCurrentPage] = useState(
     initialContextData.currentPage,
   );
+  const isGuardandoCitaRef = useRef(false);
+  const isEditandoCitaRef = useRef(false);
 
   const handleAlert = (message: string, alertType: Alert) => {
     enqueueSnackbar(message, {
@@ -117,11 +97,6 @@ export const AgendaContextProvider = ({ children }: Props) => {
   const getCitasFromDB = async (fecha: string) => {
     try {
       const citasFromDB = await window.api.getCitasByFecha(fecha);
-      // const citasActivas = citasFromDB.filter(
-      //   (cita) => cita.estado !== "cancelado",
-      // );
-      // console.log("Citas for fecha", fecha, citasActivas);
-      // setCitas(citasActivas);
       setCitas(citasFromDB);
     } catch (error) {
       console.error("Error loading citas:", error);
@@ -148,8 +123,9 @@ export const AgendaContextProvider = ({ children }: Props) => {
   };
 
   const handleEditCita = async (idCita: string, newCitaData: Cita, productosToUpdate: ProductoInCita[]) => {
+    if (isEditandoCitaRef.current) return;
+    isEditandoCitaRef.current = true;
     try {
-
       if (newCitaData.estado === "cancelado") {
         await window.api.deleteCita(idCita);
         getCitasFromDB(fecha);
@@ -164,7 +140,6 @@ export const AgendaContextProvider = ({ children }: Props) => {
         return;
       }
 
-      console.log("Updating cita with ID:", idCita, "New data:", newCitaData);
       await updateProductosStock(productosToUpdate);
       await window.api.updateCita(newCitaData);
       getCitasFromDB(fecha);
@@ -172,47 +147,43 @@ export const AgendaContextProvider = ({ children }: Props) => {
     } catch (error) {
       console.error("Error updating cita:", error);
       handleAlert("Error al actualizar la cita", "error");
+    } finally {
+      isEditandoCitaRef.current = false;
     }
   };
 
   const addServiceToCita = (servicio: ServicioAgendado) => {
-    console.log("Adding service to cita:", servicio);
-    setIsBooking(() => true);
-    setCita((prev) => {
-      return {
-        ...prev,
-        fecha: fecha,
-        servicios: [...prev.servicios, servicio],
-      };
-    });
-  };
-
-  const removeServiceFromCita = (servicio: ServicioAgendado) => {
-    const updatedServicios = cita.servicios.filter(
-      (s) => s.cellID !== servicio.cellID,
-    );
+    setIsBooking(true);
     setCita((prev) => ({
       ...prev,
-      servicios: updatedServicios,
+      fecha,
+      servicios: [...prev.servicios, servicio],
     }));
   };
 
+  const removeServiceFromCita = (servicio: ServicioAgendado) => {
+    setCita((prev) => ({
+      ...prev,
+      servicios: prev.servicios.filter((s) => s.cellID !== servicio.cellID),
+    }));
+  };
+
+  const updateServicioAgendado = (
+    cellID: string,
+    changes: Partial<ServicioAgendado>,
+  ) => {
+    setCita((prev) => {
+      const index = prev.servicios.findIndex((s) => s.cellID === cellID);
+      if (index === -1) return prev;
+
+      const updatedServicios = [...prev.servicios];
+      updatedServicios[index] = { ...updatedServicios[index], ...changes };
+      return { ...prev, fecha, servicios: updatedServicios };
+    });
+  };
+
   const updateService = (cellID: string, updatedService: Servicio) => {
-    const serviceToUpdateIndex = cita.servicios.findIndex(
-      (s) => s.cellID === cellID,
-    );
-    if (serviceToUpdateIndex !== -1) {
-      const updatedServicios = [...cita.servicios];
-      updatedServicios[serviceToUpdateIndex] = {
-        ...updatedServicios[serviceToUpdateIndex],
-        servicio: updatedService,
-      };
-      setCita((prev) => ({
-        ...prev,
-        fecha: fecha,
-        servicios: updatedServicios,
-      }));
-    }
+    updateServicioAgendado(cellID, { servicio: updatedService });
   };
 
   const updateDuracion = (
@@ -220,21 +191,7 @@ export const AgendaContextProvider = ({ children }: Props) => {
     horaFin: string,
     newDuracion: number,
   ) => {
-    const servicioToUpdateIndex = cita.servicios.findIndex(
-      (s) => s.cellID === cellID,
-    );
-    if (servicioToUpdateIndex !== -1) {
-      const updatedServicios = [...cita.servicios];
-      updatedServicios[servicioToUpdateIndex] = {
-        ...updatedServicios[servicioToUpdateIndex],
-        duracion: newDuracion,
-        horaFin: horaFin,
-      };
-      setCita((prev) => ({
-        ...prev,
-        servicios: updatedServicios,
-      }));
-    }
+    updateServicioAgendado(cellID, { duracion: newDuracion, horaFin });
   };
 
   const handleCancelarCita = () => {
@@ -242,29 +199,50 @@ export const AgendaContextProvider = ({ children }: Props) => {
     setIsBooking(() => false);
   };
 
-  const guardarCita = async () => {
-    try {
-      // const nuevasCitas = cita.servicios.map((servicio) => ({
-      //   rowIndex: servicio.rowIndex,
-      //   fecha: servicio.fecha,
-      //   estilista: servicio.estilista,
-      //   nombreCliente: cita.nombreCliente,
-      //   telefonoCliente: cita.telefonoCliente,
-      //   servicio: servicio.servicio,
-      //   horaInicio: servicio.horaInicio,
-      //   horaFin: servicio.horaFin,
-      //   duracion: servicio.duracion,
-      //   estado: cita.estado,
-      //   metodoDePago: cita.metodoDePago,
-      //   notas: cita.notas,
-      // }));
+  const guardarCitaExistente = async (citaExistente: Cita) => {
+    const cellIDsExistentes = new Set(
+      citaExistente.servicios.map((s) => s.cellID),
+    );
+    const nuevosServicios = cita.servicios.filter(
+      (s) => !cellIDsExistentes.has(s.cellID),
+    );
+    const huboDuplicados = nuevosServicios.length < cita.servicios.length;
+    if (huboDuplicados) {
+      handleAlert(
+        `Servicio ya agendado para cliente: "${citaExistente.nombreCliente}"`,
+        "error",
+      );
+    }
+    if (nuevosServicios.length === 0) return;
 
-      // Save citas sequentially to avoid race condition with auto-increment IDs
-      // const savedCitas: Cita[] = [];
-      // for (const citaData of nuevasCitas) {
-      //   const savedCita = await window.api.addCita(citaData);
-      //   savedCitas.push(savedCita);
-      // }
+    await window.api.updateCita({
+      ...citaExistente,
+      servicios: [...citaExistente.servicios, ...nuevosServicios],
+      estado: cita.estado,
+    });
+    getCitasFromDB(fecha);
+    setCita(initialContextData.cita);
+    setIsBooking(false);
+    handleAlert("Cita actualizada", "success");
+  };
+
+  const guardarCitaNueva = async () => {
+    const citaToSave = {
+      ...cita,
+      nombreCliente: cita.nombreCliente.trim(),
+      id: `${fecha}-${cita.clienteId}`,
+    };
+    const savedCita = await window.api.addCita(citaToSave);
+    setCitas((prevCitas) => [...prevCitas, savedCita]);
+    setCita(initialContextData.cita);
+    setIsBooking(false);
+    handleAlert("Cita guardada con éxito", "success");
+  };
+
+  const guardarCita = async () => {
+    if (isGuardandoCitaRef.current) return;
+    isGuardandoCitaRef.current = true;
+    try {
       if (!cita.clienteId) {
         handleAlert(
           "Selecciona un cliente de la lista o guárdalo como nuevo antes de continuar",
@@ -272,36 +250,20 @@ export const AgendaContextProvider = ({ children }: Props) => {
         );
         return;
       }
-      const nombreClienteNormalizado = cita.nombreCliente.trim();
-      const newID = `${fecha}-${cita.clienteId}`;
-      const isCitaInDB = await window.api.getCitaByFechaClienteId(fecha, cita.clienteId);
-      if (isCitaInDB) {
-        const updateServicios = [...isCitaInDB.servicios, ...cita.servicios]
-        const updatedCitaData = {
-          ...isCitaInDB,
-          servicios: updateServicios,
-          estado: cita.estado,}
-        await window.api.updateCita(updatedCitaData);
-        getCitasFromDB(fecha);
-        handleAlert("Cita actualizada", "success");
-        setIsBooking(false);
-        return;
+      const citaExistente = await window.api.getCitaByFechaClienteId(
+        fecha,
+        cita.clienteId,
+      );
+      if (citaExistente) {
+        await guardarCitaExistente(citaExistente);
+      } else {
+        await guardarCitaNueva();
       }
-      const citaToSave = {
-        ...cita,
-        nombreCliente: nombreClienteNormalizado,
-        id: newID,
-      };
-      console.log("Cita to save:", cita);
-      const savedCita = await window.api.addCita(citaToSave);
-
-      setCitas((prevCitas) => [...prevCitas, savedCita]);
-      setCita(initialContextData.cita);
-      setIsBooking(false);
-      handleAlert("Cita guardada con éxito", "success");
     } catch (error) {
       console.error("Error saving cita:", error);
       handleAlert("Error al guardar la cita", "error");
+    } finally {
+      isGuardandoCitaRef.current = false;
     }
   };
 
