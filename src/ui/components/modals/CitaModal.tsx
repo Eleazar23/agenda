@@ -10,7 +10,10 @@ import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import {
+  Avatar,
   Box,
+  Divider,
+  Stack,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -24,7 +27,6 @@ import {
 } from "../../utils/utils";
 import { Cita } from "../../types/Cita";
 import { getHrs, getHrsObj } from "../../utils/utils";
-import IconText from "../IconText";
 //Icons
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import CallOutlinedIcon from "@mui/icons-material/CallOutlined";
@@ -75,10 +77,7 @@ export default function CitaModal({
   const [cita, setCita] = useState<Cita | null>(null);
   const [citas, setCitas] = useState<Cita[]>([]);
   const [totalCita, setTotalCita] = useState(0);
-  // const { isCitaOpen, setIsCitaOpen, handleEditCita } = useAgendaContext();
   const { handleEditCita } = useAgendaContext();
-  // const { isCitaOpen, setIsCitaOpen } = useState(false);
-  // const [isEditMode, setIsEditMode] = useState(false);
   const [view, setView] = useState("servicio");
   const [productosToUpdate, setProductosToUpdate] = useState<ProductoInCita[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -96,14 +95,6 @@ export default function CitaModal({
       notas: "",
     },
   );
-
-  // const totalCita =
-  //   citaForm.servicios.reduce((acumulador, servicio) => {
-  //     return acumulador + Number(servicio.servicio.precio);
-  //   }, 0) +
-  //   citaForm.productos.reduce((acumulador, producto) => {
-  //     return acumulador + Number(producto.precio) * Number(producto.cantidad);
-  //   }, 0);
 
   const getCitaData = async () => {
     try {
@@ -163,6 +154,7 @@ export default function CitaModal({
     try {
       await handleEditCita(citaForm.id, citaForm, productosToUpdate);
       setProductosToUpdate([]); // Reiniciar el array después de guardar los cambios
+      setIsCitaOpen(false);
     } finally {
       setIsSaving(false);
     }
@@ -176,7 +168,6 @@ export default function CitaModal({
   };
 
   const updateServicioInCita = (updatedServicio: ServicioAgendado) => {
-    // const newHr = getHrsObj(updatedServicio.horaInicio);
     const newHr = getOfficeHours().find(
       (hr) => hr.label24 === updatedServicio.horaInicio,
     );
@@ -196,32 +187,12 @@ export default function CitaModal({
     }));
   };
 
-  // const handleDuracionChange = () => {
-  //   const newDuracion = getDuracion(citaForm.horaInicio, citaForm.horaFin);
-  //   setCitaForm({
-  //     ...citaForm,
-  //     duracion: newDuracion,
-  //   });
-  // };
-
-  // useEffect(() => {
-  //   handleDuracionChange();
-  // }, [modalForm.horaInicio, modalForm.horaFin]);
-
   useEffect(() => {
-    getCitaData();
-    getCitasData();
-  }, []);
-
-  // const handleChange = (inputName: string, value: any) => {
-  //   console.log({ modalForm, inputName, value });
-  //   const newRowIndex = getHrsObj(modalForm.horaInicio)?.index;
-  //   setModalForm({
-  //     ...modalForm,
-  //     [inputName]: value,
-  //     rowIndex: newRowIndex,
-  //   });
-  // };
+    if (isCitaOpen) {
+      getCitaData();
+      getCitasData();
+    }
+  }, [isCitaOpen]);
 
   const handleChangeFecha = (newDate: string) => {
     const fomattedDate = formatDateFromHTML(newDate);
@@ -230,13 +201,6 @@ export default function CitaModal({
       fecha: fomattedDate,
     });
   };
-
-  // useEffect(() => {
-  //   if (servicio) {
-  //     // setModalForm({ ...cita });
-  //     setIsEditMode(false);
-  //   }
-  // }, [servicio]);
 
   return (
     <>
@@ -247,55 +211,78 @@ export default function CitaModal({
         aria-labelledby="customized-dialog-title"
         open={isCitaOpen}
       >
-        <Box display="flex" justifyContent="space-between" margin={2}>
-          <Box
-            component="div"
-            display="flex"
-            justifyContent="flex-start"
-            alignContent="center"
-            gap={2}
-          >
-            <IconText
-              icon={<AccountCircleOutlinedIcon />}
-              label={nombreCliente || "Sin nombre"}
-            />
-            <IconText
-              icon={<CallOutlinedIcon />}
-              label={telefonoCliente || "Sin teléfono"}
-            />
-            <CustomeInputField
-              name="fecha"
-              type="date"
-              id="filled-basic"
-              label="Fecha"
-              variant="filled"
-              fullWidth
-              value={formatDateToHTML(citaForm.fecha)}
-              onChange={(e) => handleChangeFecha(e.target.value)}
-            />
-            <ToggleButtonGroup
-              color="primary"
-              value={view}
-              exclusive
-              onChange={handleAlignmentChange}
-              aria-label="Platform"
-            >
-              <ToggleButton value="servicio">Servicio</ToggleButton>
-              <ToggleButton value="total">Total Cita</ToggleButton>
-            </ToggleButtonGroup>
-          </Box>
-
-          <Box component={"div"} display="flex">
-            <IconButton
-              aria-label="close"
-              onClick={handleClose}
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          gap={2}
+          px={3}
+          py={2}
+          sx={(theme) => ({
+            borderBottom: `1px solid ${theme.palette.divider}`,
+          })}
+        >
+          <Stack direction="row" alignItems="center" gap={2}>
+            <Avatar
               sx={(theme) => ({
-                color: theme.palette.grey[500],
+                bgcolor: theme.palette.primary.main,
+                width: 44,
+                height: 44,
               })}
             >
-              <CloseIcon />
-            </IconButton>
-          </Box>
+              <AccountCircleOutlinedIcon />
+            </Avatar>
+
+            <Stack>
+              <Typography variant="subtitle1" fontWeight={600} lineHeight={1.2}>
+                {nombreCliente || "Sin nombre"}
+              </Typography>
+              <Stack direction="row" alignItems="center" gap={0.5}>
+                <CallOutlinedIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                <Typography variant="body2" color="text.secondary">
+                  {telefonoCliente || "Sin teléfono"}
+                </Typography>
+              </Stack>
+            </Stack>
+          </Stack>
+
+          <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
+
+          <CustomeInputField
+            name="fecha"
+            type="date"
+            id="filled-basic"
+            label="Fecha"
+            variant="filled"
+            size="small"
+            value={formatDateToHTML(citaForm.fecha)}
+            onChange={(e) => handleChangeFecha(e.target.value)}
+            sx={{ maxWidth: 190 }}
+          />
+
+          <Box flexGrow={1} />
+
+          <ToggleButtonGroup
+            color="primary"
+            value={view}
+            exclusive
+            onChange={handleAlignmentChange}
+            aria-label="Platform"
+            size="small"
+          >
+            <ToggleButton value="servicio">Servicio</ToggleButton>
+            <ToggleButton value="total">Total Cita</ToggleButton>
+          </ToggleButtonGroup>
+
+          <IconButton
+            aria-label="close"
+            onClick={handleClose}
+            sx={(theme) => ({
+              color: theme.palette.grey[500],
+            })}
+          >
+            <CloseIcon />
+          </IconButton>
         </Box>
 
         <DialogContent dividers>
@@ -320,9 +307,6 @@ export default function CitaModal({
         </DialogContent>
 
         <DialogActions>
-          {/* <Typography variant="h6" fontWeight="bold">
-            {`Total Cita: $${totalCita}`}
-          </Typography> */}
           <Button autoFocus onClick={handleCancelar}>
             Cancelar
           </Button>

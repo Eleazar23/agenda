@@ -147,7 +147,7 @@ const CitaCell = (params: CustomCellRendererProps) => {
           ...STYLES.bgCardColors[estado as keyof Estados],
         }}
       >
-        <CardActionArea onClick={(e) => handleClick(e)}>
+        <CardActionArea onClick={(e) => handleClick(e)} sx={{height: "100%", display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "flex-start", gap: 1}}>
           <CardContent sx={STYLES.cardContent}>
             <Typography
               variant="body1"
