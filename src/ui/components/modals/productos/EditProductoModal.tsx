@@ -47,8 +47,6 @@ function EditProductoModal({ isOpen, onClose, initialData }: Props) {
     const nextErrors: Partial<Record<keyof Producto, string>> = {};
     if (!data.nombre?.trim()) nextErrors.nombre = "El nombre es obligatorio.";
     if (!data.marca?.trim()) nextErrors.marca = "La marca es obligatoria.";
-    if (!data.descripcion?.trim())
-      nextErrors.descripcion = "La descripción es obligatoria.";
     if (
       !data.precio ||
       isNaN(Number(data.precio)) ||
@@ -147,7 +145,6 @@ function EditProductoModal({ isOpen, onClose, initialData }: Props) {
             fullWidth
             multiline
             rows={3}
-            required
             error={!!errors.descripcion}
             helperText={errors.descripcion}
           />

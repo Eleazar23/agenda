@@ -152,17 +152,6 @@ const AddProductoModal: React.FC<ClientDialogProps> = ({
               ctxValue={formData.stock}
               ctxOnChange={handleStockChange}
             />
-            {/* <TextField
-              type="number"
-              name="stock"
-              label="Stock"
-              variant="outlined"
-              value={formData.stock}
-              onChange={handleChange}
-              required
-              error={!!errors.stock}
-              slotProps={{ htmlInput: { min: "0" } }}
-            /> */}
           </Box>
           <TextField
             type="text"
