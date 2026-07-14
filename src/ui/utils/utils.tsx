@@ -181,6 +181,10 @@ const formatHoraFin = (hora: string) => {
   return hrFinArry[0];
 };
 
+export function addMinutesToHora(hora: string, minutes: number) {
+  return dayjs(hora, "HH:mm").add(minutes, "minute").format("HH:mm");
+}
+
 export const getDuracion = (horaInicio: string, horaFin: string) => {
   const formattedHoraFin = formatHoraFin(horaFin);
   const [startHrs, startMins] = horaInicio.split(":").map(Number);

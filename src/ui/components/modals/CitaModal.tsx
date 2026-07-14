@@ -111,8 +111,7 @@ export default function CitaModal({
 
   const getCitasData = async () => {
     const citasData = await getCitasByFechaClienteId(fecha, clienteId);
-    console.log({ citasData });
-    setCitas((prev) => [...prev, ...citasData]);
+    setCitas(citasData);
   };
 
   const handleRemoveService = (servicioToRemove: ServicioAgendado) => {

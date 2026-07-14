@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import EstilistaInput from "../../Inputs/EstilistaInput";
-import HoraInput from "../../Inputs/HoraInput";
+import HoraFinInput from "../../Inputs/HoraFinInput";
 import ServiciosInput from "../../Inputs/ServiciosInput";
 import ProductsCar from "../../tables/ProductsCar";
 import AddProductForm from "../../forms/AddProductForm";
@@ -104,6 +104,28 @@ function ServicioForm({
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleHoraInicioChange = (newHora: string) => {
+    if (servicioForm.horaFin && newHora >= servicioForm.horaFin) {
+      showAlert(
+        "La hora de inicio debe ser anterior a la hora de fin",
+        "error",
+      );
+      return;
+    }
+    handleChange("horaInicio", newHora);
+  };
+
+  const handleHoraFinChange = (newHora: string) => {
+    if (servicioForm.horaInicio && newHora <= servicioForm.horaInicio) {
+      showAlert(
+        "La hora de fin debe ser posterior a la hora de inicio",
+        "error",
+      );
+      return;
+    }
+    handleChange("horaFin", newHora);
   };
 
   const handleRemoveServiceClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -263,19 +285,19 @@ function ServicioForm({
           />
         </Grid>
         <Grid size={2}>
-          <HoraInput
+          <HoraFinInput
             label="Hora Inicio"
-            name="horaInicio"
             hora={servicioForm.horaInicio}
-            onChange={(newHora) => handleChange("horaInicio", newHora)}
+            readOnly={false}
+            onChange={handleHoraInicioChange}
           />
         </Grid>
         <Grid size={2}>
-          <HoraInput
+          <HoraFinInput
             label="Hora Fin"
-            name="horaFin"
             hora={servicioForm.horaFin}
-            onChange={(newHora) => handleChange("horaFin", newHora)}
+            readOnly={false}
+            onChange={handleHoraFinChange}
           />
         </Grid>
         <Grid size={1} sx={{display:"flex", justifyContent:"center", alignItems:"center"}}>

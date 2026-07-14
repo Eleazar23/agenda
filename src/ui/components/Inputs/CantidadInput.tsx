@@ -8,6 +8,7 @@ type Props = {
   variant?: "outlined" | "standard" | "filled";
   size?: "medium" | "small";
   name?: string;
+  disabled?: boolean;
   defaultProps?: any;
 };
 

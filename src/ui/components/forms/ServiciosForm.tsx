@@ -6,7 +6,7 @@ import HoraInput from "../Inputs/HoraInput";
 import { Servicio } from "../../types/Servicio";
 import HoraFinInput from "../Inputs/HoraFinInput";
 import { useAgendaContext } from "../../contexts/AgendaContext";
-import { getDuracion } from "../../utils/utils";
+import { getDuracion, addMinutesToHora } from "../../utils/utils";
 
 type ServiciosFormProps = {
   cellID: string;
@@ -15,11 +15,15 @@ type ServiciosFormProps = {
 };
 
 const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
-  const { updateDuracion, updateService } = useAgendaContext();
+  const { updateDuracion, updateService, handleAlert } = useAgendaContext();
   const [servicio, setServicio] = useState<Servicio | null>(null);
-  const [horaFin, setHoraFin] = useState<string>(hora);
+  const [horaFin, setHoraFin] = useState<string>(addMinutesToHora(hora, 30));
 
   const handleChangeHoraFin = (newHoraFin: string) => {
+    if (newHoraFin <= hora) {
+      handleAlert("La hora de fin debe ser posterior a la hora de inicio", "error");
+      return;
+    }
     setHoraFin(newHoraFin);
   };
 
