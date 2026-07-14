@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
@@ -278,6 +278,15 @@ ipcMain.handle('get-cita-by-fecha-clienteid', async (_event, fecha, clienteId) =
     }
 });
 
+ipcMain.handle('get-citas-by-cliente', async (_event, nombreCliente, telefonoCliente) => {
+    try {
+        return await Cita.find({ nombreCliente, telefonoCliente }).lean();
+    } catch (error) {
+        console.error('Error getting citas by cliente:', error);
+        throw error;
+    }
+});
+
 ipcMain.handle('add-cita', async (_event, cita) => {
     try {
         // const maxId = await Cita.findOne().sort('-id').lean();
@@ -470,11 +479,110 @@ ipcMain.handle('delete-nota', async (_event, id) => {
     }
 });
 
+// ========== Migración: rellenar clienteId en citas antiguas ==========
+// Busca el Cliente correspondiente por nombre + teléfono para citas guardadas
+// antes de que existiera el campo clienteId. Se dispara desde el menú
+// Herramientas (Alt para revelar la barra de menú) para poder correrla
+// en producción sin necesitar Node.js ni el proyecto de desarrollo.
+async function runMigrateClienteId(apply: boolean): Promise<string> {
+    const citasSinClienteId = await Cita.find({
+        $or: [{ clienteId: { $exists: false } }, { clienteId: null }],
+    }).lean();
+
+    if (citasSinClienteId.length === 0) {
+        return 'No hay citas sin clienteId. Nada que migrar.';
+    }
+
+    const lines: string[] = [`Encontradas ${citasSinClienteId.length} citas sin clienteId.`, ''];
+    let matched = 0;
+    let unmatched = 0;
+
+    for (const cita of citasSinClienteId) {
+        const cliente = await Cliente.findOne({
+            nombre: cita.nombreCliente,
+            telefono: cita.telefonoCliente,
+        })
+            .collation({ locale: 'en', strength: 2 })
+            .lean();
+
+        if (!cliente) {
+            unmatched++;
+            lines.push(`[SIN MATCH] cita id="${cita.id}" fecha=${cita.fecha} nombreCliente="${cita.nombreCliente}" telefonoCliente="${cita.telefonoCliente}"`);
+            continue;
+        }
+
+        matched++;
+        lines.push(`[OK] cita id="${cita.id}" -> clienteId=${cliente.id} (${cliente.nombre})`);
+
+        if (apply) {
+            await Cita.updateOne({ id: cita.id }, { $set: { clienteId: cliente.id } });
+        }
+    }
+
+    lines.push('', `Resumen: ${matched} citas ${apply ? 'actualizadas' : 'se actualizarían'}, ${unmatched} sin match.`);
+    if (!apply && matched > 0) {
+        lines.push('Corre "Migrar ClienteId (aplicar cambios)" para aplicar estos cambios.');
+    }
+
+    return lines.join('\n');
+}
+
+function buildAppMenu(mainWindow: BrowserWindow) {
+    const template: Electron.MenuItemConstructorOptions[] = [
+        {
+            label: 'Herramientas',
+            submenu: [
+                {
+                    label: 'Migrar ClienteId (simulación)',
+                    click: async () => {
+                        try {
+                            const report = await runMigrateClienteId(false);
+                            dialog.showMessageBox(mainWindow, {
+                                type: 'info',
+                                title: 'Migrar ClienteId - Simulación',
+                                message: report,
+                            });
+                        } catch (error: any) {
+                            dialog.showErrorBox('Error migrando clienteId', String(error?.message ?? error));
+                        }
+                    },
+                },
+                {
+                    label: 'Migrar ClienteId (aplicar cambios)',
+                    click: async () => {
+                        const confirmResult = await dialog.showMessageBox(mainWindow, {
+                            type: 'warning',
+                            buttons: ['Cancelar', 'Aplicar cambios'],
+                            defaultId: 0,
+                            cancelId: 0,
+                            title: 'Confirmar migración',
+                            message: 'Esto escribirá el campo clienteId en las citas encontradas. ¿Continuar?',
+                        });
+                        if (confirmResult.response !== 1) return;
+
+                        try {
+                            const report = await runMigrateClienteId(true);
+                            dialog.showMessageBox(mainWindow, {
+                                type: 'info',
+                                title: 'Migrar ClienteId - Cambios aplicados',
+                                message: report,
+                            });
+                        } catch (error: any) {
+                            dialog.showErrorBox('Error migrando clienteId', String(error?.message ?? error));
+                        }
+                    },
+                },
+            ],
+        },
+    ];
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+}
+
 app.on("ready", ()=>{
     const preloadPath = path.join(__dirname, 'preload.js');
     // console.log('Preload path:', preloadPath);
     // console.log('__dirname:', __dirname);
-    
+
     const mainWindow = new BrowserWindow({
         autoHideMenuBar: true,
         webPreferences: {
@@ -484,12 +592,14 @@ app.on("ready", ()=>{
             sandbox: false // Disable sandbox to allow preload script
         }
     });
-    
+
+    buildAppMenu(mainWindow);
+
     // Open DevTools for debugging
     // mainWindow.webContents.openDevTools();
-    
+
     mainWindow.loadFile(path.join(app.getAppPath(), "/dist-react/index.html"));
-    
+
     // Check if preload script loaded
     mainWindow.webContents.on('did-finish-load', () => {
         console.log('Window loaded successfully');

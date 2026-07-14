@@ -42,6 +42,7 @@ export interface IElectronAPI {
   getCitasByFecha: (fecha: string) => Promise<Cita[]>;
   getCitasByFechaClienteId: (fecha: string, clienteId: number) => Promise<Cita[]>;
   getCitaByFechaClienteId: (fecha: string, clienteId: number) => Promise<Cita | null>;
+  getCitasByCliente: (nombreCliente: string, telefonoCliente: string) => Promise<Cita[]>;
 
   // Gastos
   getGastos: () => Promise<Gasto[]>;

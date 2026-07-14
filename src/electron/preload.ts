@@ -37,6 +37,7 @@ contextBridge.exposeInMainWorld('api', {
   getCitasByFecha: (fecha: string) => ipcRenderer.invoke('get-citas-by-fecha', fecha),
   getCitasByFechaClienteId: (fecha: string, clienteId: number) => ipcRenderer.invoke('get-citas-by-fecha-clienteid', fecha, clienteId),
   getCitaByFechaClienteId: (fecha: string, clienteId: number) => ipcRenderer.invoke('get-cita-by-fecha-clienteid', fecha, clienteId),
+  getCitasByCliente: (nombreCliente: string, telefonoCliente: string) => ipcRenderer.invoke('get-citas-by-cliente', nombreCliente, telefonoCliente),
 
   // Gastos
   getGastos: () => ipcRenderer.invoke('get-gastos'),

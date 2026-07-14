@@ -3,6 +3,7 @@ import { Cliente } from './models/Cliente.js';
 import { Estilista } from './models/Estilista.js';
 import { Servicio } from './models/Servicio.js';
 import { Producto } from './models/Producto.js';
+import { Cita } from './models/Cita.js';
 
 const __dbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/agenda';
 
@@ -32,6 +33,7 @@ const seedData = async () => {
       Estilista.deleteMany({}),
       Servicio.deleteMany({}),
       Producto.deleteMany({}),
+      Cita.deleteMany({}),
     ]);
     console.log('Cleared existing data');
 
@@ -117,6 +119,136 @@ const seedData = async () => {
       { id: 5, nombre: "Laca para cabello", marca: "TRESemmé", precio: "80" },
     ]);
     console.log(`Seeded ${productos.length} productos`);
+
+    // Seed Citas (para probar la bitácora de historial de clientes)
+    const citas = await Cita.insertMany([
+      {
+        id: "cita-1",
+        clienteId: 1,
+        fecha: "10-01-2026",
+        nombreCliente: "Juan Perez",
+        telefonoCliente: "5551234567",
+        servicios: [
+          {
+            rowIndex: 0,
+            cellID: "cita-1-servicio-1",
+            servicio: { id: 1, nombre: "Corte de cabello H", precio: "150" },
+            estilista: "Tomi",
+            horaInicio: "10:00",
+            horaFin: "10:30",
+            duracion: 30,
+            fecha: "10-01-2026",
+          },
+        ],
+        productos: [],
+        estado: "completada",
+        metodoDePago: "Efectivo",
+        notas: "Cliente pidió corte más corto de los lados.",
+      },
+      {
+        id: "cita-2",
+        clienteId: 1,
+        fecha: "24-01-2026",
+        nombreCliente: "Juan Perez",
+        telefonoCliente: "5551234567",
+        servicios: [
+          {
+            rowIndex: 0,
+            cellID: "cita-2-servicio-1",
+            servicio: { id: 5, nombre: "Coloración", precio: "200" },
+            estilista: "Felix",
+            horaInicio: "11:00",
+            horaFin: "12:30",
+            duracion: 90,
+            fecha: "24-01-2026",
+          },
+          {
+            rowIndex: 1,
+            cellID: "cita-2-servicio-2",
+            servicio: { id: 6, nombre: "Peinado", precio: "90" },
+            estilista: "Felix",
+            horaInicio: "12:30",
+            horaFin: "13:00",
+            duracion: 30,
+            fecha: "24-01-2026",
+          },
+        ],
+        productos: [],
+        estado: "pagado",
+        metodoDePago: "Tarjeta",
+        notas: "",
+      },
+      {
+        id: "cita-3",
+        clienteId: 1,
+        fecha: "02-02-2026",
+        nombreCliente: "Juan Perez",
+        telefonoCliente: "5551234567",
+        servicios: [
+          {
+            rowIndex: 0,
+            cellID: "cita-3-servicio-1",
+            servicio: { id: 1, nombre: "Corte de cabello H", precio: "150" },
+            estilista: "Tomi",
+            horaInicio: "09:00",
+            horaFin: "09:30",
+            duracion: 30,
+            fecha: "02-02-2026",
+          },
+        ],
+        productos: [],
+        estado: "no asistio",
+        metodoDePago: "",
+        notas: "Cliente no llegó a la cita.",
+      },
+      {
+        id: "cita-4",
+        clienteId: 1,
+        fecha: "15-02-2026",
+        nombreCliente: "Juan Perez",
+        telefonoCliente: "5551234567",
+        servicios: [
+          {
+            rowIndex: 0,
+            cellID: "cita-4-servicio-1",
+            servicio: { id: 3, nombre: "Manicura", precio: "80" },
+            estilista: "Magi",
+            horaInicio: "16:00",
+            horaFin: "16:45",
+            duracion: 45,
+            fecha: "15-02-2026",
+          },
+        ],
+        productos: [],
+        estado: "cancelado",
+        metodoDePago: "",
+        notas: "Canceló por trabajo.",
+      },
+      {
+        id: "cita-5",
+        clienteId: 2,
+        fecha: "12-01-2026",
+        nombreCliente: "Maria Lopez",
+        telefonoCliente: "5559876543",
+        servicios: [
+          {
+            rowIndex: 0,
+            cellID: "cita-5-servicio-1",
+            servicio: { id: 4, nombre: "Pedicura", precio: "100" },
+            estilista: "Arturo",
+            horaInicio: "14:00",
+            horaFin: "14:45",
+            duracion: 45,
+            fecha: "12-01-2026",
+          },
+        ],
+        productos: [],
+        estado: "completada",
+        metodoDePago: "Efectivo",
+        notas: "",
+      },
+    ]);
+    console.log(`Seeded ${citas.length} citas`);
 
     console.log('Database seeded successfully!');
     await mongoose.connection.close();
