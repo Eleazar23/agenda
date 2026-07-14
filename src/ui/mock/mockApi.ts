@@ -162,6 +162,46 @@ let citas: Cita[] = [
     metodoDePago: "efectivo",
     notas: "",
   },
+  // Historial adicional de Juan Perez para probar filtros de la bitácora
+  {
+    id: "hist-1",
+    clienteId: 1,
+    fecha: "10-01-2026",
+    nombreCliente: "Juan Perez",
+    telefonoCliente: "5551234567",
+    servicios: [buildServicioAgendado(servicios[0], "tomi", "10:00", 30, "10-01-2026")],
+    productos: [],
+    estado: "completada",
+    metodoDePago: "efectivo",
+    notas: "Cliente pidió corte más corto de los lados.",
+  },
+  {
+    id: "hist-2",
+    clienteId: 1,
+    fecha: "24-01-2026",
+    nombreCliente: "Juan Perez",
+    telefonoCliente: "5551234567",
+    servicios: [
+      buildServicioAgendado(servicios[4], "felix", "11:00", 90, "24-01-2026"),
+      buildServicioAgendado(servicios[5], "felix", "12:30", 30, "24-01-2026"),
+    ],
+    productos: [],
+    estado: "pagado",
+    metodoDePago: "tarjeta",
+    notas: "",
+  },
+  {
+    id: "hist-3",
+    clienteId: 1,
+    fecha: "02-02-2026",
+    nombreCliente: "Juan Perez",
+    telefonoCliente: "5551234567",
+    servicios: [buildServicioAgendado(servicios[0], "tomi", "09:00", 30, "02-02-2026")],
+    productos: [],
+    estado: "no asistio",
+    metodoDePago: "",
+    notas: "Cliente no llegó a la cita.",
+  },
 ];
 
 let gastos: Gasto[] = [
@@ -267,6 +307,12 @@ export function createMockApi(): IElectronAPI {
       delay(citas.filter((c) => c.fecha === fecha && c.clienteId === clienteId)),
     getCitaByFechaClienteId: (fecha, clienteId) =>
       delay(citas.find((c) => c.fecha === fecha && c.clienteId === clienteId) ?? null),
+    getCitasByCliente: (nombreCliente, telefonoCliente) =>
+      delay(
+        citas.filter(
+          (c) => c.nombreCliente === nombreCliente && c.telefonoCliente === telefonoCliente,
+        ),
+      ),
 
     // Gastos
     getGastos: () => delay([...gastos]),
