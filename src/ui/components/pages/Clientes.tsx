@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Box, Button, Grid, Paper } from "@mui/material";
+import { useCallback, useState } from "react";
+import { Button, Grid, Paper } from "@mui/material";
 import ClientsTables from "../tables/ClientsTable";
 import { ClientesCtxProvider } from "../../contexts/ClientesCtx";
 import { ClientesModal } from "../modals/clientes/ClientesModal";
 import SearchInput from "../Inputs/SearchInput";
-import { useThrottle } from "../../hooks/useThrottle";
 
 type Cliente = {
   nombre: string;

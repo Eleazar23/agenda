@@ -15,16 +15,8 @@ import ClienteInput from "../Inputs/ClienteInput";
 import { Cliente } from "../../types/Cliente";
 
 const ClienteForm = () => {
-  const {
-    cita,
-    setCita,
-    searchClienteByPhone,
-    handleAlert,
-    addCliente,
-  } = useAgendaContext();
-  const [isNewCliente, setIsNewCliente] = useState(false);
+  const { cita, setCita, handleAlert, addCliente } = useAgendaContext();
   const [allClientes, setAllClientes] = useState<Cliente[]>([]);
-
 
   const updateCitaCliente = (nombre: string, telefono: string, clienteId: number) => {
     setCita((prev) => ({
@@ -46,25 +38,22 @@ const ClienteForm = () => {
   };
 
   const dispatchPhone = (value: string) => {
+    // Igual que con el nombre: editar el teléfono a mano invalida la
+    // selección previa hasta volver a elegir/crear el cliente.
     setCita((prevCita) => ({
       ...prevCita,
       telefonoCliente: value,
+      clienteId: 0,
     }));
   };
 
-  const searchByPhone = async (telefono: string) => {
-    const cliente = await searchClienteByPhone(telefono);
-    if (cliente) {
-      handleAlert("Cliente encontrado", "success");
-      updateCitaCliente(cliente.nombre, cliente.telefono, cliente.id);
-      return;
-    }
-    setIsNewCliente(() => true);
-    handleAlert("Cliente no encontrado", "error");
-  };
+  const isNombreValido = cita.nombreCliente.trim().length >= 3;
+  const isTelefonoValido = /^\d{10,}$/.test(cita.telefonoCliente || "");
+  const canGuardarNuevoCliente =
+    isNombreValido && isTelefonoValido && !cita.clienteId;
 
   const handleGuardarNuevoCliente = async () => {
-    if (!cita.nombreCliente || !cita.telefonoCliente) {
+    if (!canGuardarNuevoCliente) {
       handleAlert("Nombre y teléfono son obligatorios", "error");
       return;
     }
@@ -76,7 +65,6 @@ const ClienteForm = () => {
     } as Cliente);
     if (newCliente) {
       updateCitaCliente(newCliente.nombre, newCliente.telefono, newCliente.id);
-      setIsNewCliente(false);
     }
   };
 
@@ -115,20 +103,25 @@ const ClienteForm = () => {
             <PhoneInput
               valueContext={cita.telefonoCliente}
               dispatchContext={dispatchPhone}
-              handleSearch={searchByPhone}
+              onSelectCliente={(cliente) =>
+                updateCitaCliente(cliente.nombre, cliente.telefono, cliente.id)
+              }
+              ctxOptions={allClientes}
             />
-            {isNewCliente && (
-              <Box
-                component="div"
-                display={"flex"}
-                sx={{ width: "100%" }}
-                justifyContent={"flex-end"}
+            <Box
+              component="div"
+              display={"flex"}
+              sx={{ width: "100%" }}
+              justifyContent={"flex-end"}
+            >
+              <Button
+                variant="contained"
+                onClick={handleGuardarNuevoCliente}
+                disabled={!canGuardarNuevoCliente}
               >
-                <Button variant="contained" onClick={handleGuardarNuevoCliente}>
-                  Guardar nuevo cliente
-                </Button>
-              </Box>
-            )}
+                Guardar nuevo cliente
+              </Button>
+            </Box>
           </Grid>
         </CardContent>
       </Card>
