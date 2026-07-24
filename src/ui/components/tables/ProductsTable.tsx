@@ -39,6 +39,7 @@ const colsData = [
     {
     field: "precio",
     headerName: "Precio",
+    cellDataType: "text",
     },
     {
     field: "descripcion",
