@@ -43,6 +43,16 @@ function EditProductoModal({ isOpen, onClose, initialData }: Props) {
     }
   };
 
+  const handlePrecioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Permite dejar el campo vacío o en construcción (ej. "12.") mientras se escribe
+    if (value !== "" && !/^\d*\.?\d*$/.test(value)) return;
+    setFormData((prev) => ({ ...prev, precio: value as any }));
+    if (errors.precio) {
+      setErrors((prev) => ({ ...prev, precio: undefined }));
+    }
+  };
+
   const validate = (data: Producto) => {
     const nextErrors: Partial<Record<keyof Producto, string>> = {};
     if (!data.nombre?.trim()) nextErrors.nombre = "El nombre es obligatorio.";
@@ -111,10 +121,11 @@ function EditProductoModal({ isOpen, onClose, initialData }: Props) {
           <Box display={"flex"} gap={2}>
             <TextField
               label="Precio"
-              type="number"
+              type="text"
+              inputMode="decimal"
               name="precio"
               value={formData.precio}
-              onChange={handleChange}
+              onChange={handlePrecioChange}
               fullWidth
               required
               error={!!errors.precio}

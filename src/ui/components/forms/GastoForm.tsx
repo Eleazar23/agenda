@@ -32,6 +32,9 @@ const GastoForm = ({ onSubmit, onCancel, initialData }: Props) => {
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [montoInput, setMontoInput] = useState(
+    initialData ? String(initialData.monto) : "",
+  );
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -53,10 +56,21 @@ const GastoForm = ({ onSubmit, onCancel, initialData }: Props) => {
     const { name, value } = e.target as any;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "monto" ? parseFloat(value) || 0 : value,
+      [name]: value,
     }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleMontoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Permite dejar el campo vacío o en construcción (ej. "12.") mientras se escribe
+    if (value !== "" && !/^\d*\.?\d*$/.test(value)) return;
+    setMontoInput(value);
+    setFormData((prev) => ({ ...prev, monto: parseFloat(value) || 0 }));
+    if (errors.monto) {
+      setErrors((prev) => ({ ...prev, monto: "" }));
     }
   };
 
@@ -117,9 +131,10 @@ const GastoForm = ({ onSubmit, onCancel, initialData }: Props) => {
       <TextField
         label="Monto"
         name="monto"
-        type="number"
-        value={formData.monto}
-        onChange={handleChange}
+        type="text"
+        inputMode="decimal"
+        value={montoInput}
+        onChange={handleMontoChange}
         error={!!errors.monto}
         helperText={errors.monto}
         fullWidth
