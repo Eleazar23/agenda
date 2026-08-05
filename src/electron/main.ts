@@ -10,6 +10,13 @@ import { Cita } from './models/Cita.js';
 import { Gasto } from './models/Gasto.js';
 import { Nota } from './models/Nota.js';
 
+// Prevent a second instance of the app from running
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+    app.quit();
+    process.exit(0);
+}
+
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -578,12 +585,21 @@ function buildAppMenu(mainWindow: BrowserWindow) {
     Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
+let mainWindow: BrowserWindow | null = null;
+
+app.on('second-instance', () => {
+    if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.focus();
+    }
+});
+
 app.on("ready", ()=>{
     const preloadPath = path.join(__dirname, 'preload.js');
     // console.log('Preload path:', preloadPath);
     // console.log('__dirname:', __dirname);
 
-    const mainWindow = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         autoHideMenuBar: true,
         webPreferences: {
             preload: preloadPath,

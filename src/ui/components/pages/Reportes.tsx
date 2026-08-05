@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
-  ButtonGroup,
+  CircularProgress,
   Grid,
   Paper,
   Stack,
@@ -10,22 +10,14 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import ClientsTables from "../tables/ClientsTable";
 import ReportesTable from "../tables/ReportesTable";
-import EstilistaInput from "../Inputs/EstilistaInput";
 import FechaInput from "../Inputs/FechaInput";
-import { useAgendaContext } from "../../contexts/AgendaContext";
 import { Cita } from "../../types/Cita";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
 import { ProductoInCita } from "../../types/Producto";
 import EstilistaFilter from "../Inputs/EstilistaFilter";
-
-import Accordion from "@mui/material/Accordion";
-import AccordionActions from "@mui/material/AccordionActions";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
-// import Typography from '@mui/material/Typography';
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { getCurrentDate } from "../../utils/utils";
+import { Gasto } from "../../types/Gasto";
 
 import { styled } from "@mui/material/styles";
 import { toggleButtonClasses } from "@mui/material/ToggleButton";
@@ -87,17 +79,14 @@ const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
 }));
 
 const Reportes = () => {
-  // const { fecha } = useAgendaContext();
-  const [allCitas, setAllCitas] = useState<Cita[]>([]);
   const [servicios, setServicios] = useState<ServicioInReporte[]>([]);
   const [productos, setProductos] = useState<ProductoInCita[]>([]);
-  const [gastos, setGastos] = useState<any[]>([]);
-  const [reportesData, setReportesData] = useState<Cita[]>([]);
+  const [gastos, setGastos] = useState<Gasto[]>([]);
   const [estilistaFilter, setEstilistaFilter] = useState("");
-  const [fechaFilter, setFechaFilter] = useState("");
+  const [fechaFilter, setFechaFilter] = useState(getCurrentDate().formattedDate);
   const [download, setDownload] = useState(false);
   const [view, setView] = useState<ViewType>("servicios");
-  console.log("Reportes Data:", reportesData);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleViewChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -160,29 +149,6 @@ const Reportes = () => {
     }
   };
 
-  // Load all citas from MongoDB on mount
-  const getCitasByFecha = async (fecha: string) => {
-    try {
-      const allCitasFromDBByFecha = await window.api.getCitasByFecha(fecha);
-      const citasPagadas = allCitasFromDBByFecha.filter(
-        (cita: Cita) => cita.estado === "pagado",
-      );
-      setAllCitas(() => citasPagadas);
-      getServiciosProductosFromCitas(citasPagadas);
-    } catch (error) {
-      console.error("Error loading all citas:", error);
-    }
-  };
-
-  const getGastosByFecha = async (fecha: string) => {
-    try {
-      const gastosFromDBByFecha = await window.api.getGastosByFecha(fecha);
-      setGastos(() => gastosFromDBByFecha);
-    } catch (error) {
-      console.error("Error loading gastos:", error);
-    }
-  };
-
   const serviciosFiltred = useMemo(() => {
     if (estilistaFilter) {
       return servicios.filter(
@@ -223,11 +189,43 @@ const Reportes = () => {
     return totalServicios + totalProductos;
   }, [totalServicios, totalProductos]);
 
+  const currentViewData = useMemo(() => {
+    switch (view) {
+      case "servicios":
+        return serviciosFiltred;
+      case "productos":
+        return productosFiltred;
+      case "gastos":
+        return gastos;
+      default:
+        return serviciosFiltred;
+    }
+  }, [view, serviciosFiltred, productosFiltred, gastos]);
+
   useEffect(() => {
+    if (!fechaFilter) {
+      return;
+    }
     // Lógica para obtener los datos de los reportes
-    getCitasByFecha(fechaFilter);
-    getGastosByFecha(fechaFilter);
-    console.log({ servicios, productos, gastos });
+    const loadReportes = async () => {
+      setIsLoading(true);
+      try {
+        const [citasFromDB, gastosFromDB] = await Promise.all([
+          window.api.getCitasByFecha(fechaFilter),
+          window.api.getGastosByFecha(fechaFilter),
+        ]);
+        const citasPagadas = citasFromDB.filter(
+          (cita: Cita) => cita.estado === "pagado",
+        );
+        getServiciosProductosFromCitas(citasPagadas);
+        setGastos(gastosFromDB);
+      } catch (error) {
+        console.error("Error loading reportes:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadReportes();
   }, [fechaFilter]);
 
   return (
@@ -240,6 +238,11 @@ const Reportes = () => {
     >
       <Grid container size={12}>
         <Paper sx={styles.paper}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            {fechaFilter
+              ? `Reporte del ${fechaFilter}`
+              : "Selecciona una fecha para ver el reporte"}
+          </Typography>
           <Box component="div" sx={styles.actionBar}>
             <Box component="div" display={"flex"} sx={{ gap: 2 }}>
               <Box component="div" sx={{ width: "200px" }}>
@@ -259,6 +262,7 @@ const Reportes = () => {
               variant="contained"
               color="primary"
               onClick={handleDownload}
+              disabled={isLoading || currentViewData.length === 0}
             >
               Guardar Excel
             </Button>
@@ -308,19 +312,48 @@ const Reportes = () => {
         </StyledToggleButtonGroup>
       </Grid>
       <Grid container sx={styles.tableContainer} size={12}>
-        <ReportesTable
-          reportesData={
-            view === "servicios" &&  serviciosFiltred ||
-            view === "productos" &&  productosFiltred ||
-            view === "gastos" && gastos || serviciosFiltred
-            // view === "servicios" ? serviciosFiltred : productosFiltred
-          }
-          download={download}
-          setDownload={setDownload}
-          currentDate={fechaFilter}
-          filtro={estilistaFilter}
-          view={view}
-        />
+        {isLoading ? (
+          <Box
+            component="div"
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              gap: 2,
+              py: 6,
+            }}
+          >
+            <CircularProgress />
+            <Typography variant="body1" color="text.secondary">
+              Cargando reporte...
+            </Typography>
+          </Box>
+        ) : currentViewData.length === 0 ? (
+          <Box
+            component="div"
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              width: "100%",
+              py: 6,
+            }}
+          >
+            <Typography variant="body1" color="text.secondary">
+              No hay datos para mostrar con los filtros seleccionados.
+            </Typography>
+          </Box>
+        ) : (
+          <ReportesTable
+            reportesData={currentViewData}
+            download={download}
+            setDownload={setDownload}
+            currentDate={fechaFilter}
+            filtro={estilistaFilter}
+            view={view}
+          />
+        )}
       </Grid>
       <Grid container size={12}>
         <Paper sx={styles.paper}>

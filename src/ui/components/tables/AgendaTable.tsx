@@ -106,6 +106,7 @@ const AgendaTable = () => {
     () => ({
       flex: 2,
       headerStyle: { textAlign: "center" },
+      sortable: false
     }),
     [],
   );

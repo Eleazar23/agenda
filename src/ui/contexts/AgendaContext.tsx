@@ -186,11 +186,48 @@ export const AgendaContextProvider = ({ children }: Props) => {
     updateServicioAgendado(cellID, { servicio: updatedService });
   };
 
+  const getOccupiedRows = (servicio: ServicioAgendado) => {
+    const rowsSpan = servicio.duracion / 30;
+    return Array.from({ length: rowsSpan }, (_, i) => servicio.rowIndex + i);
+  };
+
   const updateDuracion = (
     cellID: string,
     horaFin: string,
     newDuracion: number,
   ) => {
+    const [rowIndexStr, ...estilistaParts] = cellID.split("-");
+    const rowIndex = Number(rowIndexStr);
+    const estilista = estilistaParts.join("-");
+    const rowsSpan = newDuracion / 30;
+    const newRowIndexes = Array.from({ length: rowsSpan }, (_, i) => rowIndex + i);
+
+    const citasDelDia = citas.filter((c) => c.fecha === fecha);
+    const overlapsExistingCita = citasDelDia.some((c) =>
+      c.servicios.some(
+        (s) =>
+          s.estilista === estilista &&
+          getOccupiedRows(s).some((r) => newRowIndexes.includes(r)),
+      ),
+    );
+
+    const otrosServiciosEnCita = cita.servicios.filter(
+      (s) => s.cellID !== cellID,
+    );
+    const overlapsOwnCita = otrosServiciosEnCita.some(
+      (s) =>
+        s.estilista === estilista &&
+        getOccupiedRows(s).some((r) => newRowIndexes.includes(r)),
+    );
+
+    if (overlapsExistingCita || overlapsOwnCita) {
+      handleAlert(
+        "La hora de fin se sobrepone con otro servicio ya agendado",
+        "error",
+      );
+      return;
+    }
+
     updateServicioAgendado(cellID, { duracion: newDuracion, horaFin });
   };
 
@@ -200,11 +237,11 @@ export const AgendaContextProvider = ({ children }: Props) => {
   };
 
   const guardarCitaExistente = async (citaExistente: Cita) => {
-    const cellIDsExistentes = new Set(
-      citaExistente.servicios.map((s) => s.cellID),
+    const horasExistentes = new Set(
+      citaExistente.servicios.map((s) => s.horaInicio),
     );
     const nuevosServicios = cita.servicios.filter(
-      (s) => !cellIDsExistentes.has(s.cellID),
+      (s) => !horasExistentes.has(s.horaInicio),
     );
     const huboDuplicados = nuevosServicios.length < cita.servicios.length;
     if (huboDuplicados) {

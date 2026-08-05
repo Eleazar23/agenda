@@ -13,6 +13,7 @@
     "preview": "vite preview",
     "transpile:electron": "tsc --project src/electron/tsconfig.json",
     "seed:db": "tsc --project src/electron/tsconfig.json && node dist-electron/seed.js",
+    "seed:reportes": "tsc --project src/electron/tsconfig.json && node dist-electron/seedReportes.js",
     "migrate:clienteid": "tsc --project src/electron/tsconfig.json && node dist-electron/migrateClienteId.js",
     "dist:win": "electron-builder --win --x64"
   },
