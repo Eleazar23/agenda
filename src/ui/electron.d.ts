@@ -33,6 +33,7 @@ export interface IElectronAPI {
   addProducto: (producto: Omit<Producto, 'id'>) => Promise<Producto>;
   updateProducto: (producto: Producto) => Promise<Producto>;
   deleteProducto: (id: number) => Promise<void>;
+  decrementProductoStock: (id: number, cantidad: number) => Promise<Producto | null>;
 
   // Citas
   getCitas: () => Promise<Cita[]>;

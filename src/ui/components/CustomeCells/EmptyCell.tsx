@@ -1,15 +1,19 @@
 import { Button } from "@mui/material";
-import React, { useState } from "react";
+import React from "react";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import type { CustomCellRendererProps } from "ag-grid-react";
 
 const EmptyCell = (params: CustomCellRendererProps) => {
-  const { cita, fecha } = useAgendaContext();
+  const { cita, fecha, removeServiceFromCita, addServiceToCita } =
+    useAgendaContext();
   const estilista = (params.column as any)?.colId || "";
   const hr = params.data?.hour;
   const rowIndex = params.node?.rowIndex || 0;
-  const [isSelected, setIsSelected] = useState(false);
   const cellID = `${rowIndex}-${estilista}`;
+  // Derivado directamente del draft de la cita (no estado local), para que
+  // se mantenga en sincronía cuando se cancela la cita o se remueve el
+  // servicio desde otro lugar.
+  const isSelected = cita.servicios.some((s) => s.cellID === cellID);
   const cellData = {
     rowIndex,
     cellID,
@@ -24,16 +28,13 @@ const EmptyCell = (params: CustomCellRendererProps) => {
     horaFin: hr.label24,
     duracion: 30,
   };
-  const { removeServiceFromCita, addServiceToCita } = useAgendaContext();
   // console.log('Empty Cell Params:', params)
 
   const handleClick = async () => {
     if (!isSelected) {
-      setIsSelected(() => true);
       addServiceToCita(cellData);
       return;
     }
-    setIsSelected(() => false);
     removeServiceFromCita(cellData);
   };
 

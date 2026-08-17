@@ -12,7 +12,6 @@ import { useClientesCtx } from "../../../contexts/ClientesCtx";
 import { getCurrentDate } from "../../../utils/utils";
 
 interface Client {
-  id?: string;
   nombre: string;
   telefono: string;
   correo?: string;
@@ -94,7 +93,6 @@ export const ClientesModal: React.FC<ClientDialogProps> = ({
     }
 
     addCliente({
-      id: Date.now(),
       nombre: formData.nombre,
       telefono: formData.telefono,
       correo: formData.correo || "",

@@ -29,6 +29,45 @@ mongoose.connect(__dbUri).then(() => {
     console.error('Failed to connect to MongoDB', err);
 });
 
+// Calcula el siguiente id numérico y guarda, reintentando si otro documento
+// tomó el mismo id entre el cálculo y el guardado (E11000 sobre "id"). Si el
+// duplicado es sobre otro campo único (p.ej. "nombre"), no tiene sentido
+// reintentar: se relanza con un mensaje identificable por el frontend.
+interface MongoDuplicateKeyError extends Error {
+    code?: number;
+    keyPattern?: Record<string, number>;
+}
+
+async function addWithAutoId<T extends { id: number }>(
+    Model: mongoose.Model<T>,
+    data: Record<string, unknown>,
+    entityLabel: string,
+    maxRetries = 3,
+) {
+    let lastError: MongoDuplicateKeyError | undefined;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        const maxDoc = await Model.findOne().sort('-id').lean();
+        const newId = maxDoc ? maxDoc.id + 1 : 1;
+        try {
+            const doc = new Model({ ...data, id: newId });
+            await doc.save();
+            return doc.toObject();
+        } catch (error) {
+            const mongoError = error as MongoDuplicateKeyError;
+            lastError = mongoError;
+            if (mongoError?.code === 11000 && mongoError?.keyPattern?.id) {
+                continue;
+            }
+            if (mongoError?.code === 11000) {
+                const dupField = Object.keys(mongoError.keyPattern ?? {})[0] ?? 'campo';
+                throw new Error(`DUPLICATE_FIELD:${dupField}:Ya existe un ${entityLabel} con ese ${dupField}`);
+            }
+            throw error;
+        }
+    }
+    throw lastError;
+}
+
 // ========== Clientes IPC Handlers ==========
 ipcMain.handle('get-clientes', async () => {
     try {
@@ -59,11 +98,7 @@ ipcMain.handle('get-clientes-by-nombre', async (_event, nombre) => {
 
 ipcMain.handle('add-cliente', async (_event, cliente) => {
     try {
-        const maxId = await Cliente.findOne().sort('-id').lean();
-        const newId = maxId ? maxId.id + 1 : 1;
-        const newCliente = new Cliente({ ...cliente, id: newId });
-        await newCliente.save();
-        return newCliente.toObject();
+        return await addWithAutoId(Cliente, cliente, 'cliente');
     } catch (error) {
         console.error('Error adding cliente:', error);
         throw error;
@@ -77,7 +112,7 @@ ipcMain.handle('update-cliente', async (_event, cliente) => {
         const updated = await Cliente.findOneAndUpdate(
             { id: cliente.id },
             clienteData,
-            { new: true }
+            { new: true, runValidators: true }
         ).lean();
         return updated;
     } catch (error) {
@@ -107,11 +142,7 @@ ipcMain.handle('get-estilistas', async () => {
 
 ipcMain.handle('add-estilista', async (_event, estilista) => {
     try {
-        const maxId = await Estilista.findOne().sort('-id').lean();
-        const newId = maxId ? maxId.id + 1 : 1;
-        const newEstilista = new Estilista({ ...estilista, id: newId });
-        await newEstilista.save();
-        return newEstilista.toObject();
+        return await addWithAutoId(Estilista, estilista, 'estilista');
     } catch (error) {
         console.error('Error adding estilista:', error);
         throw error;
@@ -125,7 +156,7 @@ ipcMain.handle('update-estilista', async (_event, estilista) => {
         const updated = await Estilista.findOneAndUpdate(
             { id: estilista.id },
             estilistaData,
-            { new: true }
+            { new: true, runValidators: true }
         ).lean();
         return updated;
     } catch (error) {
@@ -155,11 +186,7 @@ ipcMain.handle('get-servicios', async () => {
 
 ipcMain.handle('add-servicio', async (_event, servicio) => {
     try {
-        const maxId = await Servicio.findOne().sort('-id').lean();
-        const newId = maxId ? maxId.id + 1 : 1;
-        const newServicio = new Servicio({ ...servicio, id: newId });
-        await newServicio.save();
-        return newServicio.toObject();
+        return await addWithAutoId(Servicio, servicio, 'servicio');
     } catch (error) {
         console.error('Error adding servicio:', error);
         throw error;
@@ -173,7 +200,7 @@ ipcMain.handle('update-servicio', async (_event, servicio) => {
         const updated = await Servicio.findOneAndUpdate(
             { id: servicio.id },
             servicioData,
-            { new: true }
+            { new: true, runValidators: true }
         ).lean();
         return updated;
     } catch (error) {
@@ -212,11 +239,7 @@ ipcMain.handle('get-producto-by-id', async (_event, id) => {
 
 ipcMain.handle('add-producto', async (_event, producto) => {
     try {
-        const maxId = await Producto.findOne().sort('-id').lean();
-        const newId = maxId ? maxId.id + 1 : 1;
-        const newProducto = new Producto({ ...producto, id: newId });
-        await newProducto.save();
-        return newProducto.toObject();
+        return await addWithAutoId(Producto, producto, 'producto');
     } catch (error) {
         console.error('Error adding producto:', error);
         throw error;
@@ -230,7 +253,7 @@ ipcMain.handle('update-producto', async (_event, producto) => {
         const updated = await Producto.findOneAndUpdate(
             { id: producto.id },
             productoData,
-            { new: true }
+            { new: true, runValidators: true }
         ).lean();
         return updated;
     } catch (error) {
@@ -244,6 +267,27 @@ ipcMain.handle('delete-producto', async (_event, id) => {
         await Producto.deleteOne({ id });
     } catch (error) {
         console.error('Error deleting producto:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('decrement-producto-stock', async (_event, id, cantidad) => {
+    try {
+        const updated = await Producto.findOneAndUpdate(
+            { id, stock: { $gte: cantidad } },
+            { $inc: { stock: -cantidad } },
+            { new: true, runValidators: true }
+        ).lean();
+        if (!updated) {
+            return await Producto.findOneAndUpdate(
+                { id },
+                { $set: { stock: 0 } },
+                { new: true, runValidators: true }
+            ).lean();
+        }
+        return updated;
+    } catch (error) {
+        console.error('Error decrementing producto stock:', error);
         throw error;
     }
 });
@@ -315,7 +359,7 @@ ipcMain.handle('update-cita', async (_event, cita) => {
         const updated = await Cita.findOneAndUpdate(
             { id: cita.id },
             citaData,
-            { new: true }
+            { new: true, runValidators: true }
         ).lean();
         return updated;
     } catch (error) {
@@ -364,11 +408,7 @@ ipcMain.handle('get-gastos-by-categoria', async (_event, categoria) => {
 
 ipcMain.handle('add-gasto', async (_event, gasto) => {
     try {
-        const maxId = await Gasto.findOne().sort('-id').lean();
-        const newId = maxId ? maxId.id + 1 : 1;
-        const newGasto = new Gasto({ ...gasto, id: newId });
-        await newGasto.save();
-        return newGasto.toObject();
+        return await addWithAutoId(Gasto, gasto, 'gasto');
     } catch (error) {
         console.error('Error adding gasto:', error);
         throw error;
@@ -382,7 +422,7 @@ ipcMain.handle('update-gasto', async (_event, gasto) => {
         const updated = await Gasto.findOneAndUpdate(
             { id: gasto.id },
             gastoData,
-            { new: true }
+            { new: true, runValidators: true }
         ).lean();
         return updated;
     } catch (error) {
@@ -451,11 +491,7 @@ ipcMain.handle('get-notas-by-fecha', async (_event, fecha) => {
 
 ipcMain.handle('add-nota', async (_event, nota) => {
     try {
-        const maxId = await Nota.findOne().sort('-id').lean();
-        const newId = maxId ? maxId.id + 1 : 1;
-        const newNota = new Nota({ ...nota, id: newId });
-        await newNota.save();
-        return newNota.toObject();
+        return await addWithAutoId(Nota, nota, 'nota');
     } catch (error) {
         console.error('Error adding nota:', error);
         throw error;
@@ -468,7 +504,7 @@ ipcMain.handle('update-nota', async (_event, nota) => {
         const updated = await Nota.findOneAndUpdate(
             { id: nota.id },
             notaData,
-            { new: true }
+            { new: true, runValidators: true }
         ).lean();
         return updated;
     } catch (error) {

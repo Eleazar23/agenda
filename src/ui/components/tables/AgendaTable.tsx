@@ -21,15 +21,20 @@ interface DynamicObject {
 
 const customSpanFunc = (params: any) => {
   const { valueA, valueB } = params;
-  if (valueA === "" || valueB === "") {
-  } else {
-    const isSameCellID = valueA.servicio.cellID === valueB.servicio.cellID;
-    const isSameService = valueA.servicio.servicio === valueB.servicio.servicio;
-    if (isSameCellID && isSameService) {
-      return true;
-    }
-  }
-  return false;
+  if (!valueA || !valueB || valueA === "" || valueB === "") return false;
+
+  // ag-grid solo compara filas adyacentes de la misma columna (mismo
+  // estilista), así que la contigüidad de horario ya está garantizada por
+  // el orden de las filas: basta con comparar cliente + servicio + estado.
+  const isSameCliente =
+    valueA.clienteId === valueB.clienteId &&
+    valueA.nombreCliente === valueB.nombreCliente &&
+    valueA.telefonoCliente === valueB.telefonoCliente;
+  const isSameServicio =
+    valueA.servicio?.servicio?.id === valueB.servicio?.servicio?.id;
+  const isSameEstado = valueA.estado === valueB.estado;
+
+  return isSameCliente && isSameServicio && isSameEstado;
 };
 
 const AgendaTable = () => {

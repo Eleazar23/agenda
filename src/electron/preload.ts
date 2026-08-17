@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('api', {
   addProducto: (producto: any) => ipcRenderer.invoke('add-producto', producto),
   updateProducto: (producto: any) => ipcRenderer.invoke('update-producto', producto),
   deleteProducto: (id: number) => ipcRenderer.invoke('delete-producto', id),
+  decrementProductoStock: (id: number, cantidad: number) => ipcRenderer.invoke('decrement-producto-stock', id, cantidad),
 
   // Citas
   getCitas: () => ipcRenderer.invoke('get-citas'),

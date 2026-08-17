@@ -13,7 +13,7 @@ export interface IGasto {
 const gastoSchema = new Schema<IGasto>({
   id: { type: Number, required: true, unique: true },
   proveedorNombre: { type: String, required: true },
-  monto: { type: Number, required: true },
+  monto: { type: Number, required: true, min: 0.01 },
   fecha: { type: String, required: true }, // DD-MM-YYYY
   categoria: { type: String, required: true },
   descripcion: { type: String, required: false },

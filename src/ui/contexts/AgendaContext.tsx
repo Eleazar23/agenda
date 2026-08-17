@@ -1,5 +1,5 @@
 import React, { useState, createContext, useContext, useEffect, useRef } from "react";
-import { getCurrentDate } from "../utils/utils";
+import { getCurrentDate, mergeContiguousServicios } from "../utils/utils";
 import { Cita } from "../types/Cita";
 import { Servicio } from "../types/Servicio";
 import { useSnackbar } from "notistack";
@@ -105,20 +105,8 @@ export const AgendaContextProvider = ({ children }: Props) => {
   };
 
   const updateProductosStock = async (productos: ProductoInCita[]) => {
-    try {
-      for (const producto of productos) {
-        const productoInDB = await window.api.getProductoById(producto.id);
-        if (productoInDB) {
-          const newStock = productoInDB.stock - producto.cantidad;
-          await window.api.updateProducto({
-            ...productoInDB,
-            stock: newStock >= 0 ? newStock : 0, // Evitar stock negativo
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error updating producto stock:", error);
-      handleAlert("Error al actualizar el stock de productos", "error");
+    for (const producto of productos) {
+      await window.api.decrementProductoStock(producto.id, producto.cantidad);
     }
   };
 
@@ -183,6 +171,12 @@ export const AgendaContextProvider = ({ children }: Props) => {
   };
 
   const updateService = (cellID: string, updatedService: Servicio) => {
+    // Nota: aquí no se fusionan bloques contiguos con el mismo servicio.
+    // Mientras se arma la cita, cada celda de la agenda debe mantener un
+    // cellID estable para poder cancelarse individualmente (ver
+    // removeServiceFromCita / EmptyCell). La fusión visual ya la hace
+    // customSpanFunc en AgendaTable, y al editar una cita ya guardada
+    // mergeContiguousServicios la normaliza en un solo registro.
     updateServicioAgendado(cellID, { servicio: updatedService });
   };
 
@@ -254,7 +248,10 @@ export const AgendaContextProvider = ({ children }: Props) => {
 
     await window.api.updateCita({
       ...citaExistente,
-      servicios: [...citaExistente.servicios, ...nuevosServicios],
+      servicios: mergeContiguousServicios([
+        ...citaExistente.servicios,
+        ...nuevosServicios,
+      ]),
       estado: cita.estado,
     });
     getCitasFromDB(fecha);
@@ -268,6 +265,7 @@ export const AgendaContextProvider = ({ children }: Props) => {
       ...cita,
       nombreCliente: cita.nombreCliente.trim(),
       id: `${fecha}-${cita.clienteId}`,
+      servicios: mergeContiguousServicios(cita.servicios),
     };
     const savedCita = await window.api.addCita(citaToSave);
     setCitas((prevCitas) => [...prevCitas, savedCita]);

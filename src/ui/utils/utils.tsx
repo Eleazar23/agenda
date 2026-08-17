@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import objectSupport from "dayjs/plugin/objectSupport";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import { ServicioAgendado } from "../types/ServicioAgendado";
 
 dayjs.extend(objectSupport);
 dayjs.extend(customParseFormat);
@@ -196,6 +197,37 @@ export const getDuracion = (horaInicio: string, horaFin: string) => {
   console.log("Duracion actualizada a:", diffMins);
   return realDiffMins;
 };
+
+// Colapsa fragmentos consecutivos del mismo estilista + servicio (p.ej. dos
+// bloques de 30 min guardados por separado) en una sola entrada con la
+// duración combinada, para que se editen/muestren como una sola reserva.
+export function mergeContiguousServicios(
+  servicios: ServicioAgendado[],
+): ServicioAgendado[] {
+  const sorted = [...servicios].sort((a, b) => a.rowIndex - b.rowIndex);
+  const merged: ServicioAgendado[] = [];
+
+  for (const current of sorted) {
+    const last = merged[merged.length - 1];
+    const isContiguous =
+      last &&
+      last.estilista === current.estilista &&
+      last.servicio.id === current.servicio.id &&
+      last.rowIndex + last.duracion / 30 === current.rowIndex;
+
+    if (isContiguous) {
+      merged[merged.length - 1] = {
+        ...last,
+        duracion: last.duracion + current.duracion,
+        horaFin: current.horaFin,
+      };
+    } else {
+      merged.push({ ...current });
+    }
+  }
+
+  return merged;
+}
 
 export function throttle(func: any, limit: number) {
   let inThrottle = false;

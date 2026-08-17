@@ -74,9 +74,12 @@ export const ProductosCtxProvider = ({ children }: Props) => {
       });
       setDataTable((prev) => [...prev, newProducto]);
       handleAlert("Producto agregado con éxito", "success");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding producto:", error);
-      handleAlert("Error al agregar producto", "error");
+      const message = error?.message?.includes("DUPLICATE_FIELD:nombre")
+        ? "Ya existe un producto con ese nombre"
+        : "Error al agregar producto";
+      handleAlert(message, "error");
     }
   };
 

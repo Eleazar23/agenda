@@ -77,9 +77,12 @@ export const ServiciosCtxProvider = ({ children }: Props) => {
       });
       setDataTable((prev) => [...prev, newServicio]);
       handleAlert("Servicio agregado con éxito", "success");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding servicio:", error);
-      handleAlert("Error al agregar servicio", "error");
+      const message = error?.message?.includes("DUPLICATE_FIELD:nombre")
+        ? "Ya existe un servicio con ese nombre"
+        : "Error al agregar servicio";
+      handleAlert(message, "error");
     }
   };
 

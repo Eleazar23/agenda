@@ -24,6 +24,7 @@ import {
   formatDateToHTML,
   getDuracion,
   getOfficeHours,
+  mergeContiguousServicios,
 } from "../../utils/utils";
 import { Cita } from "../../types/Cita";
 import { getHrs, getHrsObj } from "../../utils/utils";
@@ -81,6 +82,8 @@ export default function CitaModal({
   const [view, setView] = useState("servicio");
   const [productosToUpdate, setProductosToUpdate] = useState<ProductoInCita[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [resolvedServicio, setResolvedServicio] =
+    useState<ServicioAgendado>(servicio);
   const [citaForm, setCitaForm] = useState<Cita>(
     cita || {
       id: "",
@@ -102,8 +105,25 @@ export default function CitaModal({
         fecha,
         clienteId,
       );
-      setCita(() => citaData);
-      setCitaForm((prev) => ({ ...prev, ...citaData }));
+      if (!citaData) return;
+
+      const mergedServicios = mergeContiguousServicios(citaData.servicios);
+      const mergedCitaData = { ...citaData, servicios: mergedServicios };
+      setCita(() => mergedCitaData);
+      setCitaForm((prev) => ({ ...prev, ...mergedCitaData }));
+
+      // El servicio en el que se hizo clic puede corresponder a un
+      // fragmento que ya fue absorbido por una entrada fusionada; se
+      // resuelve la entrada fusionada real para que el formulario muestre
+      // la hora de inicio/fin correcta de toda la reserva.
+      const matchingServicio = mergedServicios.find(
+        (s) =>
+          s.estilista === servicio.estilista &&
+          s.servicio.id === servicio.servicio.id &&
+          servicio.rowIndex >= s.rowIndex &&
+          servicio.rowIndex < s.rowIndex + s.duracion / 30,
+      );
+      setResolvedServicio(matchingServicio || servicio);
     } catch (error) {
       console.log("Error al agregar cliente", "error");
     }
@@ -287,7 +307,8 @@ export default function CitaModal({
         <DialogContent dividers>
           {view === "servicio" ? (
             <ServicioForm
-              servicio={servicio}
+              key={resolvedServicio.cellID}
+              servicio={resolvedServicio}
               citaForm={citaForm}
               setCitaForm={setCitaForm}
               updateProductosInCita={updateProductosInCita}

@@ -286,6 +286,15 @@ export function createMockApi(): IElectronAPI {
       productos = productos.filter((p) => p.id !== id);
       return delay(undefined);
     },
+    decrementProductoStock: (id, cantidad) => {
+      const producto = productos.find((p) => p.id === id);
+      if (!producto) return delay(null);
+      const nuevoStock = producto.stock - cantidad;
+      productos = productos.map((p) =>
+        p.id === id ? { ...p, stock: nuevoStock >= 0 ? nuevoStock : 0 } : p,
+      );
+      return delay(productos.find((p) => p.id === id) as Producto);
+    },
 
     // Citas
     getCitas: () => delay([...citas]),

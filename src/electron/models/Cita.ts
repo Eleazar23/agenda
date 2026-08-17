@@ -44,14 +44,33 @@ const servicioInCitaSchema = new Schema<IServicioInCita>({
   precio: { type: String, required: true },
 }, { _id: false });
 
+const servicioAgendadoInCitaSchema = new Schema<IServicioAgendadoInCita>({
+  rowIndex: { type: Number, required: true },
+  cellID: { type: String, required: true },
+  servicio: { type: servicioInCitaSchema, required: true },
+  estilista: { type: String, required: true },
+  horaInicio: { type: String, required: true },
+  horaFin: { type: String, required: true },
+  duracion: { type: Number, required: true },
+  fecha: { type: String, required: true },
+}, { _id: false });
+
+const productoInCitaSchema = new Schema<IProductoInCita>({
+  id: { type: Number, required: true },
+  nombre: { type: String, required: true },
+  estilista: { type: String, required: true },
+  precio: { type: String, required: true },
+  cantidad: { type: Number, required: true },
+}, { _id: false });
+
 const citaSchema = new Schema<ICita>({
   id: { type: String, required: true, unique: true },
   clienteId: { type: Number, required: true },
   fecha: { type: String, required: true },
   nombreCliente: { type: String, required: true },
   telefonoCliente: { type: String, required: true },
-  servicios: { type: [Object], default: [] },
-  productos: { type: [Object], default: [] },
+  servicios: { type: [servicioAgendadoInCitaSchema], default: [] },
+  productos: { type: [productoInCitaSchema], default: [] },
   estado: { type: String, required: true },
   metodoDePago: { type: String},
   notas: { type: String},

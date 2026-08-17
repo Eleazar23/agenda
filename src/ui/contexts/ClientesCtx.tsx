@@ -32,7 +32,7 @@ type ClientesContextType = {
   dataTable: Array<Cliente>;
   setDataTable: React.Dispatch<React.SetStateAction<Array<Cliente>>>;
   handleAlert: (message: string, alertType: Alert) => void;
-  addCliente: (cliente: Cliente) => Promise<void>;
+  addCliente: (cliente: Omit<Cliente, "id">) => Promise<void>;
   editCliente: (updatedCliente: Cliente) => Promise<void>;
   removeCliente: (id: number) => Promise<void>;
 };
@@ -75,7 +75,11 @@ export const ClientesCtxProvider = ({ children }: Props) => {
     }
   };
 
-  const addCliente = async (cliente: Cliente) => {
+  const addCliente = async (cliente: Omit<Cliente, "id">) => {
+    if (!cliente.nombre || !cliente.telefono) {
+      handleAlert("Nombre y teléfono son obligatorios", "error");
+      return;
+    }
     try {
       const newCliente = await window.api.addCliente({
         nombre: cliente.nombre,
