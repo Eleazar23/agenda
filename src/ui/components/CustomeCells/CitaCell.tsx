@@ -2,12 +2,11 @@ import {
   Box,
   Card,
   CardActionArea,
-  CardActions,
-  CardContent,
   Chip,
   Menu,
   MenuItem,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { useAgendaContext } from "../../contexts/AgendaContext";
@@ -30,42 +29,50 @@ const STYLES = {
   mainContainer: {
     width: "100%",
     height: "100%",
-    padding: "4px",
   },
   card: {
     height: "100%",
     width: "100%",
-    padding: "12px 14px",
+    borderRadius: 0,
+    display: "flex",
+    flexDirection: "row",
+  },
+  cardActionArea: {
+    height: "100%",
+    width: "100%",
+    padding: "3px 10px",
     display: "flex",
     flexDirection: "column",
-    justifyContent: "flex-start",
-    gap: 1,
+    alignItems: "flex-start",
+    justifyContent: "center",
+    gap: 0.25,
   },
-  cardContent: {
-    display: "flex",
-    flexDirection: "column",
-    padding: 0,
+  detailRow: {
+    width: "100%",
+    minWidth: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 0.75,
   },
-  cardActions: {
-    display: "flex",
-    justifyContent: "flex-start",
-    padding: 0,
+  nameRow: {
+    width: "100%",
+    minWidth: 0,
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 0.75,
   },
   bgCardColors: {
     "sin confirmar": {
       backgroundColor: "#F5F5F5",
       color: "#78909C",
-      border: "1px solid #CFD8DC",
     },
     confirmado: {
       backgroundColor: "#E3F2FD",
       color: "#1565C0",
-      border: "1px solid #90CAF9",
     },
     "en proceso": {
       backgroundColor: "#FFF3E0",
       color: "#E65100",
-      border: "1px solid #FFCC80",
     },
     pagado: { backgroundColor: "#0D47A1", color: "#90CAF9" },
     finalizado: { backgroundColor: "#1B5E20", color: "#A5D6A7" },
@@ -139,46 +146,105 @@ const CitaCell = (params: CustomCellRendererProps) => {
     }
   };
 
+  const nombreClienteColorValue =
+    nombreClienteColor[estado as keyof Estados] || "#455A64";
+
   return (
     <Box sx={STYLES.mainContainer}>
-      <Card
-        sx={{
-          ...STYLES.card,
-          ...STYLES.bgCardColors[estado as keyof Estados],
-        }}
-      >
-        <CardActionArea onClick={(e) => handleClick(e)} sx={{height: "100%", display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "flex-start", gap: 1}}>
-          <CardContent sx={STYLES.cardContent}>
-            <Typography
-              variant="body1"
-              fontWeight="bold"
-              component="div"
-              color={nombreClienteColor[estado as keyof Estados] || "#455A64"}
-            >
+      <Tooltip
+        title={
+          <Stack spacing={0.5} sx={{ p: 0.5 }}>
+            <Typography variant="body2" fontWeight="bold">
               {toTitleString(value.nombreCliente)}
             </Typography>
-            {/* <Typography variant="body1" component="div" color="#90CAF9"> */}
-            <Typography variant="body1" component="div">
-              {value.telefonoCliente}
+            <Typography variant="body2">
+              {`${servicio?.servicio.nombre} - $${servicio?.servicio.precio}`}
             </Typography>
             <Typography variant="body2">
-              {`${servicio?.servicio.nombre} - $${servicio?.servicio.precio}` ||
-                ""}
+              {`${servicio?.horaInicio} - ${servicio?.horaFin}`}
             </Typography>
-          </CardContent>
-          {/* </CardActionArea> */}
-          <CardActions sx={STYLES.cardActions}>
-            <Chip
-              id="estadoChip"
-              label={
-                value.estado.charAt(0).toUpperCase() + (value?.estado).slice(1)
-              }
-              onClick={handleChipClick}
-              sx={STYLES.chipColor[value.estado as keyof Estados]}
-            />
-          </CardActions>
-        </CardActionArea>
-      </Card>
+          </Stack>
+        }
+        arrow
+        placement="top"
+      >
+        <Card
+          elevation={0}
+          square
+          sx={{
+            ...STYLES.card,
+            ...STYLES.bgCardColors[estado as keyof Estados],
+          }}
+        >
+          <CardActionArea
+            onClick={(e) => handleClick(e)}
+            sx={STYLES.cardActionArea}
+          >
+            <Stack sx={STYLES.nameRow}>
+              <Typography
+                variant="body2"
+                fontWeight="bold"
+                component="span"
+                noWrap
+                color={nombreClienteColorValue}
+                sx={{
+                  minWidth: 0,
+                  flexShrink: 1,
+                  fontSize: "0.9rem",
+                  lineHeight: 1.25,
+                }}
+              >
+                {toTitleString(value.nombreCliente)}
+              </Typography>
+              <Typography
+                variant="body2"
+                component="span"
+                noWrap
+                color={nombreClienteColorValue}
+                sx={{
+                  opacity: 0.8,
+                  flexShrink: 0,
+                  fontSize: "0.75rem",
+                  lineHeight: 1.25,
+                }}
+              >
+                {value.telefonoCliente}
+              </Typography>
+            </Stack>
+            <Stack sx={STYLES.detailRow}>
+              <Typography
+                variant="body2"
+                component="span"
+                noWrap
+                color={nombreClienteColorValue}
+                sx={{
+                  opacity: 0.8,
+                  minWidth: 0,
+                  fontSize: "0.75rem",
+                  lineHeight: 1.2,
+                }}
+              >
+                {servicio?.servicio.nombre || ""}
+              </Typography>
+              <Chip
+                id="estadoChip"
+                size="small"
+                label={
+                  value.estado.charAt(0).toUpperCase() + value.estado.slice(1)
+                }
+                onClick={handleChipClick}
+                sx={{
+                  ...STYLES.chipColor[value.estado as keyof Estados],
+                  height: 20,
+                  fontSize: "0.7rem",
+                  flexShrink: 0,
+                  "& .MuiChip-label": { padding: "0 8px" },
+                }}
+              />
+            </Stack>
+          </CardActionArea>
+        </Card>
+      </Tooltip>
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}

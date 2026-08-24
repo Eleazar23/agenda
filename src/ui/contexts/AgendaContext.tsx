@@ -142,11 +142,20 @@ export const AgendaContextProvider = ({ children }: Props) => {
 
   const addServiceToCita = (servicio: ServicioAgendado) => {
     setIsBooking(true);
-    setCita((prev) => ({
-      ...prev,
-      fecha,
-      servicios: [...prev.servicios, servicio],
-    }));
+    setCita((prev) => {
+      // Protección contra doble clic/doble evento: no duplicar la misma
+      // celda si ya está en el draft.
+      if (prev.servicios.some((s) => s.cellID === servicio.cellID)) {
+        console.log("Servicio ya agregado a cita:", servicio);
+        return prev;
+      }
+      console.log("Servicio agregado a cita:", servicio);
+      return {
+        ...prev,
+        fecha,
+        servicios: [...prev.servicios, servicio],
+      };
+    });
   };
 
   const removeServiceFromCita = (servicio: ServicioAgendado) => {
@@ -154,6 +163,7 @@ export const AgendaContextProvider = ({ children }: Props) => {
       ...prev,
       servicios: prev.servicios.filter((s) => s.cellID !== servicio.cellID),
     }));
+    console.log("Servicio removido de cita:", servicio);
   };
 
   const updateServicioAgendado = (
@@ -231,11 +241,13 @@ export const AgendaContextProvider = ({ children }: Props) => {
   };
 
   const guardarCitaExistente = async (citaExistente: Cita) => {
-    const horasExistentes = new Set(
-      citaExistente.servicios.map((s) => s.horaInicio),
+    // Un mismo cliente puede tener servicios en la misma hora si son con
+    // estilistas distintos; solo es duplicado si coincide hora + estilista.
+    const slotsExistentes = new Set(
+      citaExistente.servicios.map((s) => `${s.horaInicio}-${s.estilista}`),
     );
     const nuevosServicios = cita.servicios.filter(
-      (s) => !horasExistentes.has(s.horaInicio),
+      (s) => !slotsExistentes.has(`${s.horaInicio}-${s.estilista}`),
     );
     const huboDuplicados = nuevosServicios.length < cita.servicios.length;
     if (huboDuplicados) {
@@ -267,6 +279,7 @@ export const AgendaContextProvider = ({ children }: Props) => {
       id: `${fecha}-${cita.clienteId}`,
       servicios: mergeContiguousServicios(cita.servicios),
     };
+    console.log("Guardando nueva cita:", citaToSave);
     const savedCita = await window.api.addCita(citaToSave);
     setCitas((prevCitas) => [...prevCitas, savedCita]);
     setCita(initialContextData.cita);

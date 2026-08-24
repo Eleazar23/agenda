@@ -73,7 +73,7 @@ const AgendaTable = () => {
           display: "flex",
           justifyContent: "center",
           alignContent: "center",
-          padding: ".1rem",
+          padding: 0,
         },
       };
     });
@@ -260,9 +260,9 @@ const AgendaTable = () => {
         columnDefs={colDefs}
         defaultColDef={defaultColdef}
         theme={myTheme}
-        // rowHeight={104}
         enableCellSpan={true}
-        rowHeight={160}
+        rowHeight={48}
+        headerHeight={36}
       />
     </div>
   );

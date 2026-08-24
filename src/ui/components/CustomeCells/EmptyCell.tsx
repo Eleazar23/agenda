@@ -42,7 +42,14 @@ const EmptyCell = (params: CustomCellRendererProps) => {
     <>
       <Button
         color="secondary"
-        sx={{ width: "100%" }}
+        sx={{
+          width: "100%",
+          height: "100%",
+          minWidth: 0,
+          minHeight: 0,
+          borderRadius: 0,
+          padding: "2px 4px",
+        }}
         variant={isSelected ? "contained" : "text"}
         onClick={handleClick}
       >

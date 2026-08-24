@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Box, Grid, Stack, Typography } from "@mui/material";
-import EstilistaInput from "../Inputs/EstilistaInput";
+import { Box, IconButton, Stack, Typography } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 import ServiciosInput from "../Inputs/ServiciosInput";
 import HoraInput from "../Inputs/HoraInput";
 import { Servicio } from "../../types/Servicio";
@@ -15,9 +15,23 @@ type ServiciosFormProps = {
 };
 
 const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
-  const { updateDuracion, updateService, handleAlert } = useAgendaContext();
+  const { updateDuracion, updateService, removeServiceFromCita, handleAlert } =
+    useAgendaContext();
   const [servicio, setServicio] = useState<Servicio | null>(null);
   const [horaFin, setHoraFin] = useState<string>(addMinutesToHora(hora, 30));
+
+  const handleRemove = () => {
+    removeServiceFromCita({
+      rowIndex: 0,
+      cellID,
+      servicio: { id: 0, nombre: "", precio: 0 },
+      estilista,
+      horaInicio: hora,
+      horaFin,
+      duracion: 0,
+      fecha: "",
+    });
+  };
 
   const handleChangeHoraFin = (newHoraFin: string) => {
     if (newHoraFin <= hora) {
@@ -50,7 +64,24 @@ const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
         gap={1}
         alignItems="center"
       >
-        <Typography variant="h6">{estilista.toUpperCase()}</Typography>
+        <Box
+          component="div"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+          }}
+        >
+          <Typography variant="h6">{estilista.toUpperCase()}</Typography>
+          <IconButton
+            size="small"
+            aria-label="Quitar servicio"
+            onClick={handleRemove}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Box>
         <ServiciosInput value={servicio} onChange={handleServicioChange} />
         <Box component="div" sx={{ display: "flex", gap: 1, width: "100%" }}>
           <HoraInput label="Inicio" hora={hora} readOnly={true} />

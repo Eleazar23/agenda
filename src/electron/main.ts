@@ -647,8 +647,11 @@ app.on("ready", ()=>{
 
     buildAppMenu(mainWindow);
 
-    // Open DevTools for debugging
-    // mainWindow.webContents.openDevTools();
+    mainWindow.webContents.on('before-input-event', (_event, input) => {
+        if (input.control && input.shift && input.key.toLowerCase() === 'i') {
+            mainWindow?.webContents.toggleDevTools();
+        }
+    });
 
     mainWindow.loadFile(path.join(app.getAppPath(), "/dist-react/index.html"));
 
