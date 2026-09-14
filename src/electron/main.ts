@@ -570,6 +570,68 @@ async function runMigrateClienteId(apply: boolean): Promise<string> {
     return lines.join('\n');
 }
 
+// ========== Migración: sincronizar id (fecha-clienteId) de citas ==========
+// El id de una cita es una clave compuesta fecha-clienteId asignada al
+// crearla. Si se le cambió la fecha antes de que existiera la corrección
+// que mantiene el id sincronizado (ver handleEditCita en AgendaContext.tsx),
+// el id se queda desactualizado y puede chocar (E11000) con el id que le
+// tocaría a una cita nueva agendada en esa fecha para el mismo cliente. Se
+// dispara desde el menú Herramientas para poder correrla en producción sin
+// necesitar Node.js ni el proyecto de desarrollo.
+const ID_COMPUESTO_CITA_REGEX = /^\d{2}-\d{2}-\d{4}-\d+$/;
+
+async function runMigrateCitaIds(apply: boolean): Promise<string> {
+    const citas = await Cita.find().lean();
+    // Snapshot mutable de qué cita ocupa cada id, para detectar colisiones
+    // reales incluso cuando una corrección de esta misma corrida libera un
+    // id que otra cita desincronizada necesita.
+    const porId = new Map(citas.map((c) => [c.id, c]));
+
+    // Solo interesan los ids que la propia app genera (DD-MM-YYYY-clienteId).
+    // Otros esquemas de id (datos de seed/demo como "cita-1") nunca
+    // siguieron esta convención y no son corrupción: no deben tocarse.
+    const desincronizadas = citas.filter(
+        (c) => ID_COMPUESTO_CITA_REGEX.test(c.id) && c.id !== `${c.fecha}-${c.clienteId}`,
+    );
+
+    if (desincronizadas.length === 0) {
+        return 'No hay citas con id desincronizado de su fecha. Nada que migrar.';
+    }
+
+    const lines: string[] = [`Encontradas ${desincronizadas.length} citas con id desincronizado.`, ''];
+    let corregidas = 0;
+    let enColision = 0;
+
+    for (const cita of desincronizadas) {
+        const idCorrecto = `${cita.fecha}-${cita.clienteId}`;
+        const colision = porId.get(idCorrecto);
+
+        if (colision) {
+            enColision++;
+            lines.push(
+                `[COLISIÓN] cita id="${cita.id}" (nombreCliente="${cita.nombreCliente}", fecha=${cita.fecha}) debería tener id="${idCorrecto}", pero ese id ya lo usa otra cita (nombreCliente="${colision.nombreCliente}", fecha=${colision.fecha}). Ábrela desde la agenda y vuelve a guardarla en su fecha correcta para que se fusionen de forma segura (valida solapes de horario/estilista).`,
+            );
+            continue;
+        }
+
+        corregidas++;
+        lines.push(`[OK] cita id="${cita.id}" -> id="${idCorrecto}"`);
+
+        if (apply) {
+            await Cita.updateOne({ id: cita.id }, { $set: { id: idCorrecto } });
+        }
+        porId.delete(cita.id);
+        porId.set(idCorrecto, { ...cita, id: idCorrecto });
+    }
+
+    lines.push('', `Resumen: ${corregidas} citas ${apply ? 'corregidas' : 'se corregirían'}, ${enColision} en colisión (requieren revisión manual desde la agenda).`);
+    if (!apply && corregidas > 0) {
+        lines.push('Corre "Migrar Ids de Citas (aplicar cambios)" para aplicar estos cambios.');
+    }
+
+    return lines.join('\n');
+}
+
 function buildAppMenu(mainWindow: BrowserWindow) {
     const template: Electron.MenuItemConstructorOptions[] = [
         {
@@ -612,6 +674,47 @@ function buildAppMenu(mainWindow: BrowserWindow) {
                             });
                         } catch (error: any) {
                             dialog.showErrorBox('Error migrando clienteId', String(error?.message ?? error));
+                        }
+                    },
+                },
+                { type: 'separator' },
+                {
+                    label: 'Migrar Ids de Citas (simulación)',
+                    click: async () => {
+                        try {
+                            const report = await runMigrateCitaIds(false);
+                            dialog.showMessageBox(mainWindow, {
+                                type: 'info',
+                                title: 'Migrar Ids de Citas - Simulación',
+                                message: report,
+                            });
+                        } catch (error: any) {
+                            dialog.showErrorBox('Error migrando ids de citas', String(error?.message ?? error));
+                        }
+                    },
+                },
+                {
+                    label: 'Migrar Ids de Citas (aplicar cambios)',
+                    click: async () => {
+                        const confirmResult = await dialog.showMessageBox(mainWindow, {
+                            type: 'warning',
+                            buttons: ['Cancelar', 'Aplicar cambios'],
+                            defaultId: 0,
+                            cancelId: 0,
+                            title: 'Confirmar migración',
+                            message: 'Esto corregirá el campo id en las citas encontradas. ¿Continuar?',
+                        });
+                        if (confirmResult.response !== 1) return;
+
+                        try {
+                            const report = await runMigrateCitaIds(true);
+                            dialog.showMessageBox(mainWindow, {
+                                type: 'info',
+                                title: 'Migrar Ids de Citas - Cambios aplicados',
+                                message: report,
+                            });
+                        } catch (error: any) {
+                            dialog.showErrorBox('Error migrando ids de citas', String(error?.message ?? error));
                         }
                     },
                 },

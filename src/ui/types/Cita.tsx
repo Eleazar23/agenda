@@ -15,6 +15,10 @@ export type Cita = {
     estado: string;
     metodoDePago: string;
     notas: string;
+    // Fecha y hora reales en las que se creó la cita (referencia; no
+    // cambian si luego se edita/mueve la cita a otra fecha).
+    fechaCreacion?: string;
+    horaCreacion?: string;
 };
 
 // export default Cita;

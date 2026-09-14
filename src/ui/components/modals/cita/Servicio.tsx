@@ -20,9 +20,14 @@ import MetodoPagoInput from "../../Inputs/MetodoPagoInput";
 import { Producto, ProductoInCita } from "../../../types/Producto";
 import useGlobalAlert from "../../GlobalAlert";
 import { ServicioAgendado } from "../../../types/ServicioAgendado";
-import { getDuracion } from "../../../utils/utils";
+import {
+  getDuracion,
+  getOccupiedRows,
+  seSobreponeConOtroServicio,
+} from "../../../utils/utils";
 import { Cita } from "../../../types/Cita";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useAgendaContext } from "../../../contexts/AgendaContext";
 
 type ServicioFormProps = {
   servicio: ServicioAgendado;
@@ -57,6 +62,7 @@ function ServicioForm({
   setProductosToUpdate,
 }: ServicioFormProps) {
   const { showAlert } = useGlobalAlert();
+  const { citas } = useAgendaContext();
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
     null,
@@ -125,6 +131,39 @@ function ServicioForm({
       );
       return;
     }
+
+    const newDuracion = getDuracion(servicioForm.horaInicio, newHora);
+    const newRowIndexes = getOccupiedRows({
+      rowIndex: servicioForm.rowIndex,
+      duracion: newDuracion,
+    });
+
+    // Se compara contra otras citas del mismo día (excluyendo esta misma
+    // cita, cuyos propios servicios ya se comparan por separado) y contra
+    // los demás servicios de esta cita, para no permitir una hora de fin
+    // que choque con otro servicio ya agendado.
+    const citasDelDia = citas.filter(
+      (c) => c.fecha === citaForm.fecha && c.id !== citaForm.id,
+    );
+    const otrosServiciosPropios = citaForm.servicios.filter(
+      (s) => s.cellID !== servicioForm.cellID,
+    );
+
+    if (
+      seSobreponeConOtroServicio(
+        servicioForm.estilista,
+        newRowIndexes,
+        citasDelDia,
+        otrosServiciosPropios,
+      )
+    ) {
+      showAlert(
+        "La hora de fin se sobrepone con otro servicio ya agendado",
+        "error",
+      );
+      return;
+    }
+
     handleChange("horaFin", newHora);
   };
 

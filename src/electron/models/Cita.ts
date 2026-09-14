@@ -23,6 +23,8 @@ export interface IServicioAgendadoInCita {
   horaFin: string;
   duracion: number;
   fecha: string;
+  fechaCreacion?: string;
+  horaCreacion?: string;
 }
 
 export interface ICita {
@@ -36,6 +38,8 @@ export interface ICita {
   estado: string;
   metodoDePago: string;
   notas: string;
+  fechaCreacion?: string;
+  horaCreacion?: string;
 }
 
 const servicioInCitaSchema = new Schema<IServicioInCita>({
@@ -53,6 +57,11 @@ const servicioAgendadoInCitaSchema = new Schema<IServicioAgendadoInCita>({
   horaFin: { type: String, required: true },
   duracion: { type: Number, required: true },
   fecha: { type: String, required: true },
+  // Fecha y hora reales en las que se agendó este servicio (referencia de
+  // auditoría, no se tocan al editar/mover la cita). Opcionales para no
+  // romper documentos guardados antes de estos campos.
+  fechaCreacion: { type: String },
+  horaCreacion: { type: String },
 }, { _id: false });
 
 const productoInCitaSchema = new Schema<IProductoInCita>({
@@ -74,6 +83,11 @@ const citaSchema = new Schema<ICita>({
   estado: { type: String, required: true },
   metodoDePago: { type: String},
   notas: { type: String},
+  // Fecha y hora reales en las que se creó la cita (referencia de
+  // auditoría, no se tocan al editar/mover la cita). Opcionales para no
+  // romper documentos guardados antes de estos campos.
+  fechaCreacion: { type: String },
+  horaCreacion: { type: String },
 });
 
 export const Cita = model<ICita>('Cita', citaSchema);

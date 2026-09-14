@@ -38,7 +38,14 @@ const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
       handleAlert("La hora de fin debe ser posterior a la hora de inicio", "error");
       return;
     }
-    setHoraFin(newHoraFin);
+    const duracion = getDuracion(hora, newHoraFin);
+    // Solo se refleja el nuevo valor en el input si updateDuracion lo acepta;
+    // si hay choque de horario, el input se queda en el último valor válido
+    // en vez de mostrar una hora que en realidad no se guardó.
+    const success = updateDuracion(cellID, newHoraFin, duracion);
+    if (success) {
+      setHoraFin(newHoraFin);
+    }
   };
 
   const handleServicioChange = (newServicio: Servicio | null) => {
@@ -48,10 +55,15 @@ const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
     }
   };
 
+  // Sincroniza una sola vez al montar: EmptyCell crea la entrada con
+  // horaFin = horaInicio, mientras el input local ya arranca en hora+30min.
+  // Los cambios posteriores del usuario se validan y aplican directamente
+  // en handleChangeHoraFin.
   useEffect(() => {
     const duracion = getDuracion(hora, horaFin);
     updateDuracion(cellID, horaFin, duracion);
-  }, [hora, horaFin]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
       <Stack

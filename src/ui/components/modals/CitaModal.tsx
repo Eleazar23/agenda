@@ -24,7 +24,6 @@ import {
   formatDateToHTML,
   getDuracion,
   getOfficeHours,
-  mergeContiguousServicios,
 } from "../../utils/utils";
 import { Cita } from "../../types/Cita";
 import { getHrs, getHrsObj } from "../../utils/utils";
@@ -107,21 +106,11 @@ export default function CitaModal({
       );
       if (!citaData) return;
 
-      const mergedServicios = mergeContiguousServicios(citaData.servicios);
-      const mergedCitaData = { ...citaData, servicios: mergedServicios };
-      setCita(() => mergedCitaData);
-      setCitaForm((prev) => ({ ...prev, ...mergedCitaData }));
+      setCita(() => citaData);
+      setCitaForm((prev) => ({ ...prev, ...citaData }));
 
-      // El servicio en el que se hizo clic puede corresponder a un
-      // fragmento que ya fue absorbido por una entrada fusionada; se
-      // resuelve la entrada fusionada real para que el formulario muestre
-      // la hora de inicio/fin correcta de toda la reserva.
-      const matchingServicio = mergedServicios.find(
-        (s) =>
-          s.estilista === servicio.estilista &&
-          s.servicio.id === servicio.servicio.id &&
-          servicio.rowIndex >= s.rowIndex &&
-          servicio.rowIndex < s.rowIndex + s.duracion / 30,
+      const matchingServicio = citaData.servicios.find(
+        (s) => s.cellID === servicio.cellID,
       );
       setResolvedServicio(matchingServicio || servicio);
     } catch (error) {
@@ -145,6 +134,57 @@ export default function CitaModal({
     setCitaForm(newCitaData);
     console.log({ updatedServicios, citaForm });
     handleEditCita(citaForm.id, newCitaData, productosToUpdate);
+  };
+
+  // La tabla "Total Cita" puede listar servicios de más de una cita del
+  // mismo cliente/día (ver TotalCitaTbls), así que hay que ubicar a cuál
+  // de ellas pertenece el servicio antes de editarlo o eliminarlo.
+  const findCitaByServicio = (
+    servicioAgendado: ServicioAgendado,
+  ): Cita | null => {
+    const citaConServicio = citas.find((c) =>
+      c.servicios.some((s) => s.cellID === servicioAgendado.cellID),
+    );
+    if (citaConServicio) return citaConServicio;
+    if (cita?.servicios.some((s) => s.cellID === servicioAgendado.cellID)) {
+      return cita;
+    }
+    return null;
+  };
+
+  const handleEditServicioFromTotal = (servicioAgendado: ServicioAgendado) => {
+    const citaDelServicio = findCitaByServicio(servicioAgendado);
+    if (citaDelServicio && citaDelServicio.id !== citaForm.id) {
+      setCita(citaDelServicio);
+      setCitaForm(citaDelServicio);
+    }
+    setResolvedServicio(servicioAgendado);
+    setView("servicio");
+  };
+
+  const handleDeleteServicioFromTotal = async (
+    servicioAgendado: ServicioAgendado,
+  ) => {
+    const citaDelServicio = findCitaByServicio(servicioAgendado);
+    if (!citaDelServicio) return;
+
+    const updatedServicios = citaDelServicio.servicios.filter(
+      (s) => s.cellID !== servicioAgendado.cellID,
+    );
+    const newCitaData = { ...citaDelServicio, servicios: updatedServicios };
+    if (citaDelServicio.id === citaForm.id) {
+      setCitaForm(newCitaData);
+    }
+
+    const success = await handleEditCita(
+      citaDelServicio.id,
+      newCitaData,
+      productosToUpdate,
+    );
+    if (success) {
+      getCitaData();
+      getCitasData();
+    }
   };
 
   const handleAlignmentChange = (
@@ -171,9 +211,17 @@ export default function CitaModal({
     console.log({ citaForm, productosToUpdate });
     setIsSaving(true);
     try {
-      await handleEditCita(citaForm.id, citaForm, productosToUpdate);
-      setProductosToUpdate([]); // Reiniciar el array después de guardar los cambios
-      setIsCitaOpen(false);
+      const success = await handleEditCita(
+        citaForm.id,
+        citaForm,
+        productosToUpdate,
+      );
+      // Si el guardado fue rechazado (p.ej. por solape de horarios), el
+      // modal se queda abierto para que el usuario corrija antes de reintentar.
+      if (success) {
+        setProductosToUpdate([]); // Reiniciar el array después de guardar los cambios
+        setIsCitaOpen(false);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -322,6 +370,8 @@ export default function CitaModal({
               cita={cita}
               citas={citas}
               setTotalCita={setTotalCita}
+              onEditServicio={handleEditServicioFromTotal}
+              onDeleteServicio={handleDeleteServicioFromTotal}
             />
           )}
         </DialogContent>

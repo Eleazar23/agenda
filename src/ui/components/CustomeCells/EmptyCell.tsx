@@ -1,6 +1,7 @@
 import { Button } from "@mui/material";
 import React from "react";
 import { useAgendaContext } from "../../contexts/AgendaContext";
+import { getCurrentDate, getCurrentTime } from "../../utils/utils";
 import type { CustomCellRendererProps } from "ag-grid-react";
 
 const EmptyCell = (params: CustomCellRendererProps) => {
@@ -27,6 +28,8 @@ const EmptyCell = (params: CustomCellRendererProps) => {
     horaInicio: hr.label24,
     horaFin: hr.label24,
     duracion: 30,
+    fechaCreacion: getCurrentDate().formattedDate,
+    horaCreacion: getCurrentTime(),
   };
   // console.log('Empty Cell Params:', params)
 

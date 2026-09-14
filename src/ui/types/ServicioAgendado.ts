@@ -22,4 +22,8 @@ export type ServicioAgendado = {
     horaFin: string;
     duracion: number;
     fecha: string;
+    // Fecha y hora reales en las que se agendó este servicio (referencia;
+    // no cambian si luego se edita/mueve la cita a otra fecha).
+    fechaCreacion?: string;
+    horaCreacion?: string;
 };

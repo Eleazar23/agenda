@@ -10,9 +10,17 @@ type Props = {
   cita: Cita | null;
   citas: Cita[] | [];
   setTotalCita: React.Dispatch<React.SetStateAction<number>>;
+  onEditServicio?: (servicio: ServicioAgendado) => void;
+  onDeleteServicio?: (servicio: ServicioAgendado) => void;
 };
 
-function TotalCitaTbl({ cita, citas, setTotalCita }: Props) {
+function TotalCitaTbl({
+  cita,
+  citas,
+  setTotalCita,
+  onEditServicio,
+  onDeleteServicio,
+}: Props) {
   // Función para calcular el total usando reduce
   const [servicios, setServicios] = useState<ServicioAgendado[] | []>([]);
   const [productos, setProductos] = useState<ProductoInCita[] | []>([]);
@@ -81,7 +89,11 @@ function TotalCitaTbl({ cita, citas, setTotalCita }: Props) {
           </Typography>
         </Grid>
         <Grid size={12}>
-          <TotalServiciosTbl servicios={servicios} />
+          <TotalServiciosTbl
+            servicios={servicios}
+            onEditServicio={onEditServicio}
+            onDeleteServicio={onDeleteServicio}
+          />
         </Grid>
       </Grid>
       <Grid container size={12}>

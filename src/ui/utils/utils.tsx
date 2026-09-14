@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import objectSupport from "dayjs/plugin/objectSupport";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { ServicioAgendado } from "../types/ServicioAgendado";
+import { Cita } from "../types/Cita";
 
 dayjs.extend(objectSupport);
 dayjs.extend(customParseFormat);
@@ -20,6 +21,10 @@ export function getCurrentDate() {
   const year = dateObj.get("year");
   const formattedDate = dateObj.format("DD-MM-YYYY");
   return { dateObj, formattedDate, day, month, year };
+}
+
+export function getCurrentTime() {
+  return dayjs().format("HH:mm");
 }
 
 export function getTargetDate(dateString: string) {
@@ -198,35 +203,69 @@ export const getDuracion = (horaInicio: string, horaFin: string) => {
   return realDiffMins;
 };
 
-// Colapsa fragmentos consecutivos del mismo estilista + servicio (p.ej. dos
-// bloques de 30 min guardados por separado) en una sola entrada con la
-// duración combinada, para que se editen/muestren como una sola reserva.
-export function mergeContiguousServicios(
+// Filas de 30 min que ocupa un servicio agendado, a partir de su propio
+// rowIndex/duracion (independiente de cuántas entradas contiguas existan).
+export function getOccupiedRows(
+  servicio: Pick<ServicioAgendado, "rowIndex" | "duracion">,
+): number[] {
+  const rowsSpan = servicio.duracion / 30;
+  return Array.from({ length: rowsSpan }, (_, i) => servicio.rowIndex + i);
+}
+
+// Determina si las filas nuevas de un servicio (mismo estilista) chocan con
+// otro servicio ya agendado ese día (en otra cita, o en la misma cita que se
+// está armando/editando). Se usa tanto al crear una cita nueva como al
+// editar una ya existente, para que ambas validen igual.
+export function seSobreponeConOtroServicio(
+  estilista: string,
+  newRowIndexes: number[],
+  citasAComparar: Cita[],
+  otrosServiciosPropios: ServicioAgendado[],
+): boolean {
+  const overlapsOtrasCitas = citasAComparar.some((c) =>
+    c.servicios.some(
+      (s) =>
+        s.estilista === estilista &&
+        getOccupiedRows(s).some((r) => newRowIndexes.includes(r)),
+    ),
+  );
+  const overlapsPropios = otrosServiciosPropios.some(
+    (s) =>
+      s.estilista === estilista &&
+      getOccupiedRows(s).some((r) => newRowIndexes.includes(r)),
+  );
+  return overlapsOtrasCitas || overlapsPropios;
+}
+
+// Última validación, justo antes de guardar: revisa el conjunto completo de
+// servicios de una cita (agrupados por estilista) en busca de cualquier
+// solape interno. Es una red de seguridad independiente de las validaciones
+// por campo, que solo alcanzan a revisar un servicio a la vez mientras se
+// arma el borrador (la cuadrícula solo pinta citas ya guardadas, así que un
+// servicio recién extendido no bloquea agregar otro en la misma fila hasta
+// este punto).
+export function citaTieneServiciosSobrepuestos(
   servicios: ServicioAgendado[],
-): ServicioAgendado[] {
-  const sorted = [...servicios].sort((a, b) => a.rowIndex - b.rowIndex);
-  const merged: ServicioAgendado[] = [];
+): boolean {
+  const porEstilista = new Map<string, ServicioAgendado[]>();
+  servicios.forEach((s) => {
+    const lista = porEstilista.get(s.estilista) || [];
+    lista.push(s);
+    porEstilista.set(s.estilista, lista);
+  });
 
-  for (const current of sorted) {
-    const last = merged[merged.length - 1];
-    const isContiguous =
-      last &&
-      last.estilista === current.estilista &&
-      last.servicio.id === current.servicio.id &&
-      last.rowIndex + last.duracion / 30 === current.rowIndex;
-
-    if (isContiguous) {
-      merged[merged.length - 1] = {
-        ...last,
-        duracion: last.duracion + current.duracion,
-        horaFin: current.horaFin,
-      };
-    } else {
-      merged.push({ ...current });
+  for (const lista of porEstilista.values()) {
+    for (let i = 0; i < lista.length; i++) {
+      const rowsA = getOccupiedRows(lista[i]);
+      for (let j = i + 1; j < lista.length; j++) {
+        const rowsB = getOccupiedRows(lista[j]);
+        if (rowsA.some((r) => rowsB.includes(r))) {
+          return true;
+        }
+      }
     }
   }
-
-  return merged;
+  return false;
 }
 
 export function throttle(func: any, limit: number) {

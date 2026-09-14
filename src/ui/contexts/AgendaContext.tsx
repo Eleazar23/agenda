@@ -1,5 +1,11 @@
 import React, { useState, createContext, useContext, useEffect, useRef } from "react";
-import { getCurrentDate, mergeContiguousServicios } from "../utils/utils";
+import {
+  getCurrentDate,
+  getCurrentTime,
+  getOccupiedRows,
+  seSobreponeConOtroServicio,
+  citaTieneServiciosSobrepuestos,
+} from "../utils/utils";
 import { Cita } from "../types/Cita";
 import { Servicio } from "../types/Servicio";
 import { useSnackbar } from "notistack";
@@ -28,14 +34,14 @@ type AgendaContex = {
   setCurrentPage: React.Dispatch<React.SetStateAction<string>>;
   cita: Cita;
   setCita: React.Dispatch<React.SetStateAction<Cita>>;
-  handleEditCita: (idCita: string, newCitaData: Cita, productosToUpdate: ProductoInCita[]) => Promise<void>;
+  handleEditCita: (idCita: string, newCitaData: Cita, productosToUpdate: ProductoInCita[]) => Promise<boolean>;
   addServiceToCita: (servicio: ServicioAgendado) => void;
   removeServiceFromCita: (servicio: ServicioAgendado) => void;
   updateDuracion: (
     cellID: string,
     horaFin: string,
     newDuracion: number,
-  ) => void;
+  ) => boolean;
   handleCancelarCita: () => void;
   updateService: (cellID: string, updatedService: Servicio) => void;
   guardarCita: () => Promise<void>;
@@ -110,31 +116,101 @@ export const AgendaContextProvider = ({ children }: Props) => {
     }
   };
 
-  const handleEditCita = async (idCita: string, newCitaData: Cita, productosToUpdate: ProductoInCita[]) => {
-    if (isEditandoCitaRef.current) return;
+  const handleEditCita = async (
+    idCita: string,
+    newCitaData: Cita,
+    productosToUpdate: ProductoInCita[],
+  ): Promise<boolean> => {
+    if (isEditandoCitaRef.current) return false;
     isEditandoCitaRef.current = true;
     try {
       if (newCitaData.estado === "cancelado") {
         await window.api.deleteCita(idCita);
         getCitasFromDB(fecha);
         handleAlert("Cita cancelada", "info");
-        return;
+        return true;
       }
 
       if (newCitaData.servicios.length === 0) {
         await window.api.deleteCita(idCita);
         getCitasFromDB(fecha);
         handleAlert("Cita eliminada por no tener servicios", "info");
-        return;
+        return true;
+      }
+
+      // El id de una cita es una clave compuesta fecha-clienteId. Si el
+      // usuario cambió la fecha desde el modal, el id "correcto" para esos
+      // datos ya no es el mismo con el que se guardó originalmente.
+      const nuevoId = `${newCitaData.fecha}-${newCitaData.clienteId}`;
+      const cambioDeFecha = nuevoId !== idCita;
+
+      // Se consulta la BD por la fecha destino (no el estado de contexto,
+      // que solo tiene cargada la fecha que la agenda está mostrando) para
+      // detectar solapes incluso cuando la cita se mueve a otro día.
+      const otrasCitasEnFecha = await window.api.getCitasByFecha(
+        newCitaData.fecha,
+      );
+      const otrasCitas = otrasCitasEnFecha.filter((c) => c.id !== idCita);
+
+      // Si la cita se mueve a una fecha donde el mismo cliente ya tiene
+      // otra cita, no hay que bloquear el movimiento (el cliente puede
+      // perfectamente tener dos citas el mismo día con distinto
+      // estilista/horario) sino fusionar los servicios en esa cita
+      // existente, igual que ya hace guardarCitaExistente al agregar un
+      // servicio nuevo a una cita del mismo día.
+      const citaDestinoExistente = cambioDeFecha
+        ? otrasCitas.find((c) => c.clienteId === newCitaData.clienteId)
+        : undefined;
+
+      const otrasCitasParaSolape = citaDestinoExistente
+        ? otrasCitas.filter((c) => c.id !== citaDestinoExistente.id)
+        : otrasCitas;
+      const serviciosDeOtrasCitas = otrasCitasParaSolape.flatMap(
+        (c) => c.servicios,
+      );
+      const serviciosFinales = citaDestinoExistente
+        ? [...citaDestinoExistente.servicios, ...newCitaData.servicios]
+        : newCitaData.servicios;
+
+      if (
+        citaTieneServiciosSobrepuestos([
+          ...serviciosDeOtrasCitas,
+          ...serviciosFinales,
+        ])
+      ) {
+        handleAlert(
+          "Hay servicios que se sobreponen con otra cita ya agendada en esa fecha y horario",
+          "error",
+        );
+        return false;
       }
 
       await updateProductosStock(productosToUpdate);
-      await window.api.updateCita(newCitaData);
+      if (citaDestinoExistente) {
+        // El cliente ya tenía otra cita ese día: se fusiona en vez de
+        // duplicar.
+        await window.api.deleteCita(idCita);
+        await window.api.updateCita({
+          ...citaDestinoExistente,
+          servicios: serviciosFinales,
+          estado: newCitaData.estado,
+        });
+      } else if (cambioDeFecha) {
+        // El índice unique de "id" no permite mutarlo in place con
+        // updateCita, así que se recrea el documento con el id correcto.
+        const citaConNuevoId = { ...newCitaData, id: nuevoId };
+        await window.api.deleteCita(idCita);
+        await window.api.addCita(citaConNuevoId);
+      } else {
+        await window.api.updateCita(newCitaData);
+      }
       getCitasFromDB(fecha);
       handleAlert("Cita actualizada", "success");
+      return true;
     } catch (error) {
       console.error("Error updating cita:", error);
       handleAlert("Error al actualizar la cita", "error");
+      return false;
     } finally {
       isEditandoCitaRef.current = false;
     }
@@ -190,49 +266,38 @@ export const AgendaContextProvider = ({ children }: Props) => {
     updateServicioAgendado(cellID, { servicio: updatedService });
   };
 
-  const getOccupiedRows = (servicio: ServicioAgendado) => {
-    const rowsSpan = servicio.duracion / 30;
-    return Array.from({ length: rowsSpan }, (_, i) => servicio.rowIndex + i);
-  };
-
   const updateDuracion = (
     cellID: string,
     horaFin: string,
     newDuracion: number,
-  ) => {
+  ): boolean => {
     const [rowIndexStr, ...estilistaParts] = cellID.split("-");
     const rowIndex = Number(rowIndexStr);
     const estilista = estilistaParts.join("-");
-    const rowsSpan = newDuracion / 30;
-    const newRowIndexes = Array.from({ length: rowsSpan }, (_, i) => rowIndex + i);
+    const newRowIndexes = getOccupiedRows({ rowIndex, duracion: newDuracion });
 
     const citasDelDia = citas.filter((c) => c.fecha === fecha);
-    const overlapsExistingCita = citasDelDia.some((c) =>
-      c.servicios.some(
-        (s) =>
-          s.estilista === estilista &&
-          getOccupiedRows(s).some((r) => newRowIndexes.includes(r)),
-      ),
-    );
-
     const otrosServiciosEnCita = cita.servicios.filter(
       (s) => s.cellID !== cellID,
     );
-    const overlapsOwnCita = otrosServiciosEnCita.some(
-      (s) =>
-        s.estilista === estilista &&
-        getOccupiedRows(s).some((r) => newRowIndexes.includes(r)),
-    );
 
-    if (overlapsExistingCita || overlapsOwnCita) {
+    if (
+      seSobreponeConOtroServicio(
+        estilista,
+        newRowIndexes,
+        citasDelDia,
+        otrosServiciosEnCita,
+      )
+    ) {
       handleAlert(
         "La hora de fin se sobrepone con otro servicio ya agendado",
         "error",
       );
-      return;
+      return false;
     }
 
     updateServicioAgendado(cellID, { duracion: newDuracion, horaFin });
+    return true;
   };
 
   const handleCancelarCita = () => {
@@ -258,12 +323,18 @@ export const AgendaContextProvider = ({ children }: Props) => {
     }
     if (nuevosServicios.length === 0) return;
 
+    const serviciosFinales = [...citaExistente.servicios, ...nuevosServicios];
+    if (citaTieneServiciosSobrepuestos(serviciosFinales)) {
+      handleAlert(
+        "Hay servicios con horarios que se sobreponen. Corrige las horas antes de guardar.",
+        "error",
+      );
+      return;
+    }
+
     await window.api.updateCita({
       ...citaExistente,
-      servicios: mergeContiguousServicios([
-        ...citaExistente.servicios,
-        ...nuevosServicios,
-      ]),
+      servicios: serviciosFinales,
       estado: cita.estado,
     });
     getCitasFromDB(fecha);
@@ -273,11 +344,21 @@ export const AgendaContextProvider = ({ children }: Props) => {
   };
 
   const guardarCitaNueva = async () => {
+    if (citaTieneServiciosSobrepuestos(cita.servicios)) {
+      handleAlert(
+        "Hay servicios con horarios que se sobreponen. Corrige las horas antes de guardar.",
+        "error",
+      );
+      return;
+    }
+
     const citaToSave = {
       ...cita,
       nombreCliente: cita.nombreCliente.trim(),
       id: `${fecha}-${cita.clienteId}`,
-      servicios: mergeContiguousServicios(cita.servicios),
+      servicios: cita.servicios,
+      fechaCreacion: getCurrentDate().formattedDate,
+      horaCreacion: getCurrentTime(),
     };
     console.log("Guardando nueva cita:", citaToSave);
     const savedCita = await window.api.addCita(citaToSave);
