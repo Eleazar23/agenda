@@ -13,14 +13,19 @@ import {
   InputLabel,
 } from "@mui/material";
 import PhoneInput from "../Inputs/PhoneInput";
-import { set } from "mongoose";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
+
+interface Vacacion {
+  inicio: string;
+  fin: string;
+}
 
 interface Estilista {
   id: number;
   name: string;
   telefono: string;
   role: string;
+  vacaciones?: Vacacion[];
 }
 
 

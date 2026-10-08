@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AllCommunityModule, ModuleRegistry, GridApi } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import { Box } from "@mui/material";
+import { capitalizeFirstLetter } from "../../utils/utils";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -12,6 +13,7 @@ const colDefServicios = [
   {
     field: "estilista",
     headerName: "Estilista",
+    valueFormatter: (params: any) => capitalizeFirstLetter(params.value),
   },
   {
     field: "nombreCliente",

@@ -56,4 +56,14 @@ contextBridge.exposeInMainWorld('api', {
   addNota: (nota: any) => ipcRenderer.invoke('add-nota', nota),
   updateNota: (nota: any) => ipcRenderer.invoke('update-nota', nota),
   deleteNota: (id: number) => ipcRenderer.invoke('delete-nota', id),
+
+  // Feriados
+  getFeriadosByAnio: (anio: number) => ipcRenderer.invoke('get-feriados-by-anio', anio),
+  addFeriado: (feriado: any) => ipcRenderer.invoke('add-feriado', feriado),
+  deleteFeriado: (id: number) => ipcRenderer.invoke('delete-feriado', id),
+
+  // Bloqueos
+  getBloqueosByFecha: (fecha: string) => ipcRenderer.invoke('get-bloqueos-by-fecha', fecha),
+  addBloqueo: (bloqueo: any) => ipcRenderer.invoke('add-bloqueo', bloqueo),
+  deleteBloqueo: (id: number) => ipcRenderer.invoke('delete-bloqueo', id),
 });

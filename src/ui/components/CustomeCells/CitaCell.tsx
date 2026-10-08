@@ -9,21 +9,14 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { darken, useTheme } from "@mui/material/styles";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import type { CustomCellRendererProps } from "ag-grid-react";
 import CitaModal from "../modals/CitaModal";
 import React, { useState } from "react";
 import { toTitleString } from "../../utils/utils";
 import { statusOptions } from "../../constants/statusOptions";
-
-interface Estados {
-  "sin confirmar": string;
-  confirmado: string;
-  "en proceso": string;
-  pagado: string;
-  finalizado: string;
-  "no asistio": string;
-}
+import type { CitaStatusKey } from "../../theme/theme";
 
 const STYLES = {
   mainContainer: {
@@ -31,9 +24,10 @@ const STYLES = {
     height: "100%",
   },
   card: {
-    height: "100%",
-    width: "100%",
-    borderRadius: 0,
+    height: "calc(100% - 2px)",
+    width: "calc(100% - 4px)",
+    margin: "1px 2px",
+    borderRadius: "4px",
     display: "flex",
     flexDirection: "row",
   },
@@ -61,44 +55,11 @@ const STYLES = {
     alignItems: "baseline",
     gap: 0.75,
   },
-  bgCardColors: {
-    "sin confirmar": {
-      backgroundColor: "#F5F5F5",
-      color: "#78909C",
-    },
-    confirmado: {
-      backgroundColor: "#E3F2FD",
-      color: "#1565C0",
-    },
-    "en proceso": {
-      backgroundColor: "#FFF3E0",
-      color: "#E65100",
-    },
-    pagado: { backgroundColor: "#0D47A1", color: "#90CAF9" },
-    finalizado: { backgroundColor: "#1B5E20", color: "#A5D6A7" },
-    "no asistio": { backgroundColor: "#37474F", color: "#90A4AE" },
-  },
-  chipColor: {
-    "sin confirmar": { backgroundColor: "#ECEFF1", color: "#546E7A" },
-    confirmado: { backgroundColor: "#BBDEFB", color: "#0D47A1" },
-    "en proceso": { backgroundColor: "#FFE0B2", color: "#BF360C" },
-    pagado: { backgroundColor: "#1565C0", color: "#E3F2FD" },
-    finalizado: { backgroundColor: "#2E7D32", color: "#E8F5E9" },
-    "no asistio": { backgroundColor: "#546E7A", color: "#ECEFF1" },
-  },
-};
-
-const nombreClienteColor: Estados = {
-  "sin confirmar": "#455A64",
-  confirmado: "#0D47A1",
-  "en proceso": "#BF360C",
-  pagado: "#FFFFFF",
-  finalizado: "#FFFFFF",
-  "no asistio": "#FFFFFF",
 };
 
 const CitaCell = (params: CustomCellRendererProps) => {
   const { citas, handleEditCita } = useAgendaContext();
+  const theme = useTheme();
   const [isCitaOpen, setIsCitaOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isUpdatingEstado, setIsUpdatingEstado] = useState(false);
@@ -146,8 +107,17 @@ const CitaCell = (params: CustomCellRendererProps) => {
     }
   };
 
-  const nombreClienteColorValue =
-    nombreClienteColor[estado as keyof Estados] || "#455A64";
+  const colors =
+    theme.palette.agenda.citas[estado as CitaStatusKey] ||
+    theme.palette.agenda.citas["sin confirmar"];
+  const isPagado = estado === "pagado";
+  const isNoAsistio = estado === "no asistio";
+  // "Pagado" es el único estado con relleno sólido; para los demás se
+  // oscurece ~5% con darken(). Para pagado se usa el tono definido a mano.
+  const hoverBg = isPagado ? "#276B2B" : darken(colors.bg, 0.05);
+  const chipLabel = isPagado
+    ? "✓ Pagado"
+    : value.estado.charAt(0).toUpperCase() + value.estado.slice(1);
 
   return (
     <Box sx={STYLES.mainContainer}>
@@ -170,28 +140,32 @@ const CitaCell = (params: CustomCellRendererProps) => {
       >
         <Card
           elevation={0}
-          square
           sx={{
             ...STYLES.card,
-            ...STYLES.bgCardColors[estado as keyof Estados],
+            backgroundColor: colors.bg,
+            borderLeft: `4px solid ${colors.border}`,
           }}
         >
           <CardActionArea
             onClick={(e) => handleClick(e)}
-            sx={STYLES.cardActionArea}
+            sx={{
+              ...STYLES.cardActionArea,
+              "&:hover": { backgroundColor: hoverBg },
+            }}
           >
             <Stack sx={STYLES.nameRow}>
               <Typography
                 variant="body2"
-                fontWeight="bold"
+                fontWeight={500}
                 component="span"
                 noWrap
-                color={nombreClienteColorValue}
+                color={colors.name}
                 sx={{
                   minWidth: 0,
                   flexShrink: 1,
                   fontSize: "0.9rem",
                   lineHeight: 1.25,
+                  textDecoration: isNoAsistio ? "line-through" : "none",
                 }}
               >
                 {toTitleString(value.nombreCliente)}
@@ -200,9 +174,8 @@ const CitaCell = (params: CustomCellRendererProps) => {
                 variant="body2"
                 component="span"
                 noWrap
-                color={nombreClienteColorValue}
+                color={colors.text}
                 sx={{
-                  opacity: 0.8,
                   flexShrink: 0,
                   fontSize: "0.75rem",
                   lineHeight: 1.25,
@@ -216,9 +189,8 @@ const CitaCell = (params: CustomCellRendererProps) => {
                 variant="body2"
                 component="span"
                 noWrap
-                color={nombreClienteColorValue}
+                color={colors.text}
                 sx={{
-                  opacity: 0.8,
                   minWidth: 0,
                   fontSize: "0.75rem",
                   lineHeight: 1.2,
@@ -229,12 +201,12 @@ const CitaCell = (params: CustomCellRendererProps) => {
               <Chip
                 id="estadoChip"
                 size="small"
-                label={
-                  value.estado.charAt(0).toUpperCase() + value.estado.slice(1)
-                }
+                label={chipLabel}
                 onClick={handleChipClick}
                 sx={{
-                  ...STYLES.chipColor[value.estado as keyof Estados],
+                  backgroundColor: colors.chipBg,
+                  color: colors.chipText,
+                  borderRadius: "999px",
                   height: 20,
                   fontSize: "0.7rem",
                   flexShrink: 0,

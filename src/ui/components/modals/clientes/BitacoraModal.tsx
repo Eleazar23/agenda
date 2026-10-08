@@ -28,7 +28,7 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Cita } from "../../../types/Cita";
 import { Cliente } from "../../../types/Cliente";
-import { getCurrentDate } from "../../../utils/utils";
+import { capitalizeFirstLetter, getCurrentDate } from "../../../utils/utils";
 
 interface BitacoraModalProps {
   isOpen: boolean;
@@ -105,7 +105,7 @@ function CitaCard({ cita }: { cita: Cita }) {
             <Typography variant="body2" color="text.disabled" mt={0.25}>
               {summaryLabel}
               {sameStylist && servicios[0]?.estilista
-                ? ` · ${servicios[0].estilista}`
+                ? ` · ${capitalizeFirstLetter(servicios[0].estilista)}`
                 : ""}
             </Typography>
           </Box>
@@ -182,12 +182,12 @@ function CitaCard({ cita }: { cita: Cita }) {
                             bgcolor: "primary.light",
                           }}
                         >
-                          {s.estilista?.[0]}
+                          {s.estilista?.[0]?.toUpperCase()}
                         </Avatar>
                       </ListItemAvatar>
                       <ListItemText
                         primary={s.servicio?.nombre}
-                        secondary={`${s.horaInicio} - ${s.horaFin} · ${s.estilista}`}
+                        secondary={`${s.horaInicio} - ${s.horaFin} · ${capitalizeFirstLetter(s.estilista)}`}
                         slotProps={{
                           primary: { fontSize: 14, fontWeight: 500 },
                           secondary: { fontSize: 12 },
@@ -392,6 +392,7 @@ export default function BitacoraModal({
           />
           <Autocomplete
             options={estilistasDisponibles}
+            getOptionLabel={(option) => capitalizeFirstLetter(option)}
             value={estilistaFiltro}
             onChange={(_e, newValue) => setEstilistaFiltro(newValue)}
             size="small"

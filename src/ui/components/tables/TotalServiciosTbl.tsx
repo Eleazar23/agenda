@@ -9,6 +9,7 @@ import { Box, IconButton, Popover, Stack, Typography } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
+import { capitalizeFirstLetter } from "../../utils/utils";
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -92,7 +93,11 @@ function TotalServiciosTbl({
 }: Props) {
   const colDefs = useMemo<Array<ColDef<ServicioAgendado>>>(
     () => [
-      { field: "estilista", headerName: "Nombre del estilista" },
+      {
+        field: "estilista",
+        headerName: "Nombre del estilista",
+        valueFormatter: (params) => capitalizeFirstLetter(params.value),
+      },
       { field: "servicio.nombre", headerName: "Nombre del servicio" },
       { field: "servicio.precio", headerName: "Precio" },
       { field: "horaInicio", headerName: "Hora de inicio" },

@@ -2,6 +2,7 @@ import React from "react";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { ProductoInCita } from "../../types/Producto";
+import { capitalizeFirstLetter } from "../../utils/utils";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -14,7 +15,7 @@ function TotalProductosTbl({ productos }: Props) {
     Array<ProductoInCita> | undefined
   >(productos);
   const [colDefs, setColDefs] = React.useState<Array<any>>([
-    { field: "estilista", headerName: "Estilista" },
+    { field: "estilista", headerName: "Estilista", valueFormatter: (params: any) => capitalizeFirstLetter(params.value) },
     { field: "nombre", headerName: "Nombre del producto" },
     { field: "precio", headerName: "Precio unitario" },
     { field: "cantidad", headerName: "Cantidad" },

@@ -7,8 +7,10 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import EstilistasActionsCell from "../CustomeCells/EstilistasActionsCell";
+import VacacionesCell from "../CustomeCells/VacacionesCell";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
 import { Estilista } from "../../types/Estilista";
+import { capitalizeFirstLetter } from "../../utils/utils";
 
 
 // Register all Community features
@@ -20,6 +22,7 @@ const colsData: ColDef<any>[] = [
   {
     field: "name",
     headerName: "Nombre",
+    valueFormatter: (params) => capitalizeFirstLetter(params.value),
   },
   {
     field: "telefono",
@@ -28,6 +31,11 @@ const colsData: ColDef<any>[] = [
   {
     field: "role",
     headerName: "Rol",
+  },
+  {
+    field: "vacaciones" as keyof Estilista,
+    headerName: "Vacaciones",
+    cellRenderer: VacacionesCell,
   },
   {
     field: "actions" as keyof Estilista,

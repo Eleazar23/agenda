@@ -5,6 +5,8 @@ import { Producto } from './types/Producto';
 import { Cita } from './types/Cita';
 import { Gasto } from './types/Gasto';
 import { Nota } from './types/Nota';
+import { Feriado } from './types/Feriado';
+import { Bloqueo } from './types/Bloqueo';
 
 export interface IElectronAPI {
   // Clientes
@@ -61,6 +63,16 @@ export interface IElectronAPI {
   addNota: (nota: Omit<Nota, 'id'>) => Promise<Nota>;
   updateNota: (nota: Nota) => Promise<Nota>;
   deleteNota: (id: number) => Promise<void>;
+
+  // Feriados
+  getFeriadosByAnio: (anio: number) => Promise<Feriado[]>;
+  addFeriado: (feriado: Omit<Feriado, 'id'>) => Promise<Feriado>;
+  deleteFeriado: (id: number) => Promise<void>;
+
+  // Bloqueos
+  getBloqueosByFecha: (fecha: string) => Promise<Bloqueo[]>;
+  addBloqueo: (bloqueo: Omit<Bloqueo, 'id'>) => Promise<Bloqueo>;
+  deleteBloqueo: (id: number) => Promise<void>;
 }
 
 declare global {

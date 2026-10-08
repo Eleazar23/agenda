@@ -9,6 +9,8 @@ import { Producto } from './models/Producto.js';
 import { Cita } from './models/Cita.js';
 import { Gasto } from './models/Gasto.js';
 import { Nota } from './models/Nota.js';
+import { Feriado } from './models/Feriado.js';
+import { Bloqueo } from './models/Bloqueo.js';
 
 // Prevent a second instance of the app from running
 const gotTheLock = app.requestSingleInstanceLock();
@@ -518,6 +520,62 @@ ipcMain.handle('delete-nota', async (_event, id) => {
         await Nota.deleteOne({ id });
     } catch (error) {
         console.error('Error deleting nota:', error);
+        throw error;
+    }
+});
+
+// ========== Feriados IPC Handlers ==========
+ipcMain.handle('get-feriados-by-anio', async (_event, anio) => {
+    try {
+        return await Feriado.find({ fecha: { $regex: `-${anio}$` } }).lean();
+    } catch (error) {
+        console.error('Error getting feriados by anio:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('add-feriado', async (_event, feriado) => {
+    try {
+        return await addWithAutoId(Feriado, feriado, 'feriado');
+    } catch (error) {
+        console.error('Error adding feriado:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('delete-feriado', async (_event, id) => {
+    try {
+        await Feriado.deleteOne({ id });
+    } catch (error) {
+        console.error('Error deleting feriado:', error);
+        throw error;
+    }
+});
+
+// ========== Bloqueos IPC Handlers ==========
+ipcMain.handle('get-bloqueos-by-fecha', async (_event, fecha) => {
+    try {
+        return await Bloqueo.find({ fecha }).lean();
+    } catch (error) {
+        console.error('Error getting bloqueos by fecha:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('add-bloqueo', async (_event, bloqueo) => {
+    try {
+        return await addWithAutoId(Bloqueo, bloqueo, 'bloqueo');
+    } catch (error) {
+        console.error('Error adding bloqueo:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('delete-bloqueo', async (_event, id) => {
+    try {
+        await Bloqueo.deleteOne({ id });
+    } catch (error) {
+        console.error('Error deleting bloqueo:', error);
         throw error;
     }
 });

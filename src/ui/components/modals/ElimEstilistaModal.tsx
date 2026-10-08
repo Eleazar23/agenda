@@ -6,6 +6,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
+import { capitalizeFirstLetter } from "../../utils/utils";
 
 type Estilista = {
   id: number;
@@ -49,7 +50,7 @@ export default function ElimEstilistaModal({
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            {`Nombre: ${estilistaData.name} - Telefono: ${estilistaData.telefono}`}
+            {`Nombre: ${capitalizeFirstLetter(estilistaData.name)} - Telefono: ${estilistaData.telefono}`}
             <br />
             <br />
             Una vez eliminado, no podras recuperar la informacion de este

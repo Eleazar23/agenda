@@ -7,12 +7,18 @@ type Props = {
   children: React.ReactNode;
 };
 
+type Vacacion = {
+  inicio: string;
+  fin: string;
+};
+
 type Estilista = {
   id: number;
   name: string;
   telefono: string;
   displayName?: string;
   role: string;
+  vacaciones?: Vacacion[];
 };
 
 type EstilistasContexType = {

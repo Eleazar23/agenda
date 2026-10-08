@@ -1,4 +1,5 @@
 import { Button } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import React from "react";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import { getCurrentDate, getCurrentTime } from "../../utils/utils";
@@ -7,6 +8,7 @@ import type { CustomCellRendererProps } from "ag-grid-react";
 const EmptyCell = (params: CustomCellRendererProps) => {
   const { cita, fecha, removeServiceFromCita, addServiceToCita } =
     useAgendaContext();
+  const theme = useTheme();
   const estilista = (params.column as any)?.colId || "";
   const hr = params.data?.hour;
   const rowIndex = params.node?.rowIndex || 0;
@@ -52,6 +54,7 @@ const EmptyCell = (params: CustomCellRendererProps) => {
           minHeight: 0,
           borderRadius: 0,
           padding: "2px 4px",
+          ...(isSelected ? {} : { color: theme.palette.agenda.emptyCell.dash }),
         }}
         variant={isSelected ? "contained" : "text"}
         onClick={handleClick}

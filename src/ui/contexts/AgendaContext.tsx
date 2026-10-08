@@ -2,9 +2,11 @@ import React, { useState, createContext, useContext, useEffect, useRef } from "r
 import {
   getCurrentDate,
   getCurrentTime,
+  getTargetDate,
   getOccupiedRows,
   seSobreponeConOtroServicio,
   citaTieneServiciosSobrepuestos,
+  celdaEstaBloqueada,
 } from "../utils/utils";
 import { Cita } from "../types/Cita";
 import { Servicio } from "../types/Servicio";
@@ -12,6 +14,9 @@ import { useSnackbar } from "notistack";
 import { Cliente } from "../types/Cliente";
 import { ServicioAgendado } from "../types/ServicioAgendado";
 import { ProductoInCita } from "../types/Producto";
+import { Estilista } from "../types/Estilista";
+import { Bloqueo } from "../types/Bloqueo";
+import { useFeriadosCtx } from "./FeriadosCtx";
 
 type Props = {
   children: React.ReactNode;
@@ -50,6 +55,16 @@ type AgendaContex = {
   searchClientesByNombre: (nombre: string) => Promise<Cliente[] | null>;
   searchClienteByPhone: (telefono: string) => Promise<Cliente | null>;
   addCliente: (cliente: Cliente) => Promise<Cliente | null>;
+  estilistas: Estilista[];
+  refetchEstilistas: () => Promise<void>;
+  bloqueos: Bloqueo[];
+  addBloqueo: (
+    estilista: string,
+    horaInicio: string,
+    horaFin: string,
+    motivo: string,
+  ) => Promise<void>;
+  removeBloqueo: (id: number) => Promise<void>;
 };
 
 export const AgendaContext = createContext<AgendaContex | null>(null);
@@ -90,6 +105,9 @@ export const AgendaContextProvider = ({ children }: Props) => {
   const [currentPage, setCurrentPage] = useState(
     initialContextData.currentPage,
   );
+  const [estilistas, setEstilistas] = useState<Estilista[]>([]);
+  const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
+  const { feriados, fetchFeriadosByAnio } = useFeriadosCtx();
   const isGuardandoCitaRef = useRef(false);
   const isEditandoCitaRef = useRef(false);
 
@@ -107,6 +125,58 @@ export const AgendaContextProvider = ({ children }: Props) => {
     } catch (error) {
       console.error("Error loading citas:", error);
       handleAlert("Error al cargar las citas", "error");
+    }
+  };
+
+  const getBloqueosFromDB = async (fecha: string) => {
+    try {
+      const bloqueosFromDB = await window.api.getBloqueosByFecha(fecha);
+      setBloqueos(bloqueosFromDB);
+    } catch (error) {
+      console.error("Error loading bloqueos:", error);
+      handleAlert("Error al cargar los descansos", "error");
+    }
+  };
+
+  const getEstilistasFromDB = async () => {
+    try {
+      const estilistasFromDB = await window.api.getEstilistas();
+      setEstilistas(estilistasFromDB);
+    } catch (error) {
+      console.error("Error loading estilistas:", error);
+    }
+  };
+
+  const addBloqueo = async (
+    estilista: string,
+    horaInicio: string,
+    horaFin: string,
+    motivo: string,
+  ) => {
+    try {
+      const newBloqueo = await window.api.addBloqueo({
+        estilista,
+        fecha,
+        horaInicio,
+        horaFin,
+        motivo: motivo || "Comida",
+      });
+      setBloqueos((prev) => [...prev, newBloqueo]);
+      handleAlert("Descanso agregado a la agenda", "success");
+    } catch (error) {
+      console.error("Error adding bloqueo:", error);
+      handleAlert("Error al agregar el descanso", "error");
+    }
+  };
+
+  const removeBloqueo = async (id: number) => {
+    try {
+      await window.api.deleteBloqueo(id);
+      setBloqueos((prev) => prev.filter((b) => b.id !== id));
+      handleAlert("Descanso eliminado", "success");
+    } catch (error) {
+      console.error("Error deleting bloqueo:", error);
+      handleAlert("Error al eliminar el descanso", "error");
     }
   };
 
@@ -296,6 +366,19 @@ export const AgendaContextProvider = ({ children }: Props) => {
       return false;
     }
 
+    const vacacionesEstilista = estilistas.find((e) => e.name === estilista)
+      ?.vacaciones;
+    if (
+      celdaEstaBloqueada(estilista, newRowIndexes, vacacionesEstilista, fecha, bloqueos)
+        .blocked
+    ) {
+      handleAlert(
+        "La hora de fin se sobrepone con un descanso o vacaciones del estilista",
+        "error",
+      );
+      return false;
+    }
+
     updateServicioAgendado(cellID, { duracion: newDuracion, horaFin });
     return true;
   };
@@ -372,6 +455,31 @@ export const AgendaContextProvider = ({ children }: Props) => {
     if (isGuardandoCitaRef.current) return;
     isGuardandoCitaRef.current = true;
     try {
+      if (feriados.some((f) => f.fecha === fecha)) {
+        handleAlert("No se pueden agendar citas en un día feriado", "error");
+        return;
+      }
+
+      const tieneServicioBloqueado = cita.servicios.some((s) => {
+        const vacacionesEstilista = estilistas.find(
+          (e) => e.name === s.estilista,
+        )?.vacaciones;
+        return celdaEstaBloqueada(
+          s.estilista,
+          getOccupiedRows(s),
+          vacacionesEstilista,
+          fecha,
+          bloqueos,
+        ).blocked;
+      });
+      if (tieneServicioBloqueado) {
+        handleAlert(
+          "Hay servicios que se sobreponen con un descanso o vacaciones del estilista",
+          "error",
+        );
+        return;
+      }
+
       if (!cita.clienteId) {
         handleAlert(
           "Selecciona un cliente de la lista o guárdalo como nuevo antes de continuar",
@@ -452,7 +560,26 @@ export const AgendaContextProvider = ({ children }: Props) => {
   };
 
   useEffect(() => {
+    getEstilistasFromDB();
+  }, []);
+
+  useEffect(() => {
     getCitasFromDB(fecha);
+    getBloqueosFromDB(fecha);
+  }, [fecha]);
+
+  // Solo se vuelve a consultar la BD cuando el año de la fecha seleccionada
+  // cambia (no en cada navegación de día), ya que los feriados se traen
+  // filtrados por año. fetchFeriadosByAnio cambia de referencia en cada
+  // render del contexto de feriados, así que se omite de las deps a
+  // propósito (el guard por anioCargadoRef evita fetches repetidos).
+  const anioCargadoRef = useRef<number | null>(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const anio = getTargetDate(fecha).get("year");
+    if (anioCargadoRef.current === anio) return;
+    anioCargadoRef.current = anio;
+    fetchFeriadosByAnio(anio);
   }, [fecha]);
 
   return (
@@ -484,6 +611,11 @@ export const AgendaContextProvider = ({ children }: Props) => {
         searchClientesByNombre,
         searchClienteByPhone,
         addCliente,
+        estilistas,
+        refetchEstilistas: getEstilistasFromDB,
+        bloqueos,
+        addBloqueo,
+        removeBloqueo,
       }}
     >
       {children}

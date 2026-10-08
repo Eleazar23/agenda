@@ -3,13 +3,15 @@ import objectSupport from "dayjs/plugin/objectSupport";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { ServicioAgendado } from "../types/ServicioAgendado";
 import { Cita } from "../types/Cita";
+import { Vacacion } from "../types/Estilista";
+import { Bloqueo } from "../types/Bloqueo";
 
 dayjs.extend(objectSupport);
 dayjs.extend(customParseFormat);
 
 export function capitalizeFirstLetter(str: string) {
-  if (str.length === 0) {
-    return ""; // Handle empty strings
+  if (!str) {
+    return ""; // Handle empty/undefined/null values (e.g. AG Grid valueFormatter)
   }
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -266,6 +268,58 @@ export function citaTieneServiciosSobrepuestos(
     }
   }
   return false;
+}
+
+// Un estilista está de vacaciones ese día si "fecha" cae dentro de alguno de
+// sus rangos [inicio, fin] (ambos extremos inclusive).
+export function estaDeVacaciones(
+  vacaciones: Vacacion[] | undefined,
+  fecha: string,
+): boolean {
+  if (!vacaciones || vacaciones.length === 0) return false;
+  const target = getTargetDate(fecha).valueOf();
+  return vacaciones.some((v) => {
+    const inicio = getTargetDate(v.inicio).valueOf();
+    const fin = getTargetDate(v.fin).valueOf();
+    return target >= inicio && target <= fin;
+  });
+}
+
+// Filas de 30 min (mismo sistema de índices 0-based desde las 09:00 que usa
+// ServicioAgendado.rowIndex) que ocupa un bloqueo (comida/descanso).
+export function getBloqueoOccupiedRows(bloqueo: Bloqueo): number[] {
+  const inicioIndex = getHrsObj(bloqueo.horaInicio)?.index ?? 0;
+  const finIndex = getHrsObj(bloqueo.horaFin)?.index ?? inicioIndex;
+  const rowIndex = inicioIndex - 18;
+  const rowsSpan = Math.max(finIndex - inicioIndex, 1);
+  return Array.from({ length: rowsSpan }, (_, i) => rowIndex + i);
+}
+
+export type EstadoBloqueo = { blocked: boolean; motivo?: string; bloqueoId?: number };
+
+// Determina si un conjunto de filas de la columna de un estilista, un día
+// dado, está bloqueado por vacaciones o por un bloqueo puntual (comida/
+// descanso). No contempla feriados: esos bloquean el día entero y se validan
+// aparte (ver AgendaTable/AgendaContext).
+export function celdaEstaBloqueada(
+  estilista: string,
+  rowIndexes: number[],
+  vacacionesEstilista: Vacacion[] | undefined,
+  fecha: string,
+  bloqueosDelDia: Bloqueo[],
+): EstadoBloqueo {
+  if (estaDeVacaciones(vacacionesEstilista, fecha)) {
+    return { blocked: true, motivo: "Vacaciones" };
+  }
+  const bloqueo = bloqueosDelDia.find(
+    (b) =>
+      b.estilista === estilista &&
+      getBloqueoOccupiedRows(b).some((r) => rowIndexes.includes(r)),
+  );
+  if (bloqueo) {
+    return { blocked: true, motivo: bloqueo.motivo, bloqueoId: bloqueo.id };
+  }
+  return { blocked: false };
 }
 
 export function throttle(func: any, limit: number) {

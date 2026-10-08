@@ -7,6 +7,8 @@ import type { Cita } from "../types/Cita";
 import type { Gasto } from "../types/Gasto";
 import type { Nota } from "../types/Nota";
 import type { ServicioAgendado } from "../types/ServicioAgendado";
+import type { Feriado } from "../types/Feriado";
+import type { Bloqueo } from "../types/Bloqueo";
 import { getCurrentDate, getOfficeHours } from "../utils/utils";
 
 // In-memory mock of window.api for `npm run dev` (no Electron/MongoDB available).
@@ -214,6 +216,10 @@ let notas: Nota[] = [
   { id: 2, nota: "Pedir más tinte color chocolate", estilistaId: 2, estilistaNombre: "Felix", estado: false, fecha: today },
 ];
 
+let feriados: Feriado[] = [];
+
+let bloqueos: Bloqueo[] = [];
+
 // ---------- API ----------
 
 export function createMockApi(): IElectronAPI {
@@ -366,6 +372,30 @@ export function createMockApi(): IElectronAPI {
     },
     deleteNota: (id) => {
       notas = notas.filter((n) => n.id !== id);
+      return delay(undefined);
+    },
+
+    // Feriados
+    getFeriadosByAnio: (anio) => delay(feriados.filter((f) => f.fecha.endsWith(`-${anio}`))),
+    addFeriado: (feriado) => {
+      const newFeriado = { ...feriado, id: nextId(feriados) } as Feriado;
+      feriados = [...feriados, newFeriado];
+      return delay(newFeriado);
+    },
+    deleteFeriado: (id) => {
+      feriados = feriados.filter((f) => f.id !== id);
+      return delay(undefined);
+    },
+
+    // Bloqueos
+    getBloqueosByFecha: (fecha) => delay(bloqueos.filter((b) => b.fecha === fecha)),
+    addBloqueo: (bloqueo) => {
+      const newBloqueo = { ...bloqueo, id: nextId(bloqueos) } as Bloqueo;
+      bloqueos = [...bloqueos, newBloqueo];
+      return delay(newBloqueo);
+    },
+    deleteBloqueo: (id) => {
+      bloqueos = bloqueos.filter((b) => b.id !== id);
       return delay(undefined);
     },
   };
