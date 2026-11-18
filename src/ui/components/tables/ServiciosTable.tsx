@@ -2,6 +2,7 @@ import * as React from "react";
 import { useState } from "react";
 import {
   AllCommunityModule,
+  ColDef,
   ModuleRegistry,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
@@ -28,7 +29,7 @@ const colsData = [
 
 const ServiciosTable = ({ searchTerm }: { searchTerm: string }) => {
   const { dataTable } = useServiciosCtx();
-  const [colDefs] = useState<Array<any>>(colsData);
+  const [colDefs] = useState<ColDef[]>(colsData);
 
   const defaultColDef = React.useMemo(
     () => ({

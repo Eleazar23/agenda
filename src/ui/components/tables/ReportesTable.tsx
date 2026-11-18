@@ -1,8 +1,15 @@
 import * as React from "react";
-import { useState } from "react";
 
-import { AllCommunityModule, ModuleRegistry, GridApi } from "ag-grid-community";
+import {
+  AllCommunityModule,
+  ModuleRegistry,
+  GridApi,
+  GridReadyEvent,
+  ValueFormatterParams,
+  ValueGetterParams,
+} from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
+import { capitalizeFirstLetter } from "../../utils/utils";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -11,6 +18,7 @@ const colDefServicios = [
   {
     field: "estilista",
     headerName: "Estilista",
+    valueFormatter: (params: ValueFormatterParams) => capitalizeFirstLetter(params.value),
   },
   {
     field: "nombreCliente",
@@ -43,14 +51,14 @@ const colDefServicios = [
 ];
 
 const colDefProductos = [
-      { field: "estilista", headerName: "Estilista" },
+      { field: "estilista", headerName: "Estilista", valueFormatter: (params: ValueFormatterParams) => capitalizeFirstLetter(params.value) },
     { field: "nombre", headerName: "Nombre del producto" },
     { field: "precio", headerName: "Precio unitario" },
     { field: "cantidad", headerName: "Cantidad" },
     {
       field: "total",
       headerName: "Total",
-      valueGetter: (params: any) => params.data.precio * params.data.cantidad,
+      valueGetter: (params: ValueGetterParams) => params.data.precio * params.data.cantidad,
     },
 
 ]
@@ -65,7 +73,7 @@ const colsData = [
     field: "monto",
     headerName: "Monto",
     editable: true,
-    valueFormatter: (params: any) => `$${parseFloat(params.value).toFixed(2)}`,
+    valueFormatter: (params: ValueFormatterParams) => `$${parseFloat(params.value).toFixed(2)}`,
   },
   {
     field: "fecha",
@@ -89,13 +97,33 @@ const colsData = [
   }
 ];
 
+const colDefPropinas = [
+  {
+    field: "estilista",
+    headerName: "Estilista",
+    valueFormatter: (params: ValueFormatterParams) => capitalizeFirstLetter(params.value),
+  },
+  { field: "nombreCliente", headerName: "Cliente" },
+  {
+    field: "monto",
+    headerName: "Monto",
+    valueFormatter: (params: ValueFormatterParams) => `$${Number(params.value).toFixed(2)}`,
+  },
+  {
+    field: "metodoDePago",
+    headerName: "Método de Pago",
+    valueFormatter: (params: ValueFormatterParams) => capitalizeFirstLetter(params.value || ""),
+  },
+  { field: "fecha", headerName: "Fecha" },
+];
+
 type Props = {
-  reportesData: Array<any>;
+  reportesData: Array<object>;
   download?: boolean;
   setDownload?: React.Dispatch<React.SetStateAction<boolean>>;
   currentDate: string;
   filtro?: string;
-  view: "servicios" | "productos" | "total" | "gastos";
+  view: "servicios" | "productos" | "total" | "gastos" | "propinas";
 };
 
 let gridApi: GridApi;
@@ -124,7 +152,7 @@ const ReportesTable = ({
     filter: true,
   };
   const gridOptions = {
-    onGridReady: (params: any) => {
+    onGridReady: (params: GridReadyEvent) => {
       gridApi = params.api;
       // gridApi = gridRef.current!.api
       gridApi.sizeColumnsToFit();
@@ -144,6 +172,8 @@ const ReportesTable = ({
       setColDef(colDefProductos);
     } else if (view === "gastos") {
       setColDef(colsData);
+    } else if (view === "propinas") {
+      setColDef(colDefPropinas);
     }
   }, [view]);
 

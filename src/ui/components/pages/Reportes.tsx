@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
-  ButtonGroup,
+  Chip,
+  CircularProgress,
   Grid,
   Paper,
   Stack,
@@ -10,22 +11,14 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import ClientsTables from "../tables/ClientsTable";
 import ReportesTable from "../tables/ReportesTable";
-import EstilistaInput from "../Inputs/EstilistaInput";
 import FechaInput from "../Inputs/FechaInput";
-import { useAgendaContext } from "../../contexts/AgendaContext";
-import { Cita } from "../../types/Cita";
+import { Cita, Propina } from "../../types/Cita";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
 import { ProductoInCita } from "../../types/Producto";
 import EstilistaFilter from "../Inputs/EstilistaFilter";
-
-import Accordion from "@mui/material/Accordion";
-import AccordionActions from "@mui/material/AccordionActions";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
-// import Typography from '@mui/material/Typography';
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { capitalizeFirstLetter, getCurrentDate } from "../../utils/utils";
+import { Gasto } from "../../types/Gasto";
 
 import { styled } from "@mui/material/styles";
 import { toggleButtonClasses } from "@mui/material/ToggleButton";
@@ -34,6 +27,11 @@ import { toggleButtonGroupClasses } from "@mui/material/ToggleButtonGroup";
 type ServicioInReporte = ServicioAgendado & {
   nombreCliente: string;
   metodoDePago: string;
+};
+
+type PropinaInReporte = Propina & {
+  nombreCliente: string;
+  fecha: string;
 };
 
 const styles = {
@@ -65,7 +63,7 @@ const styles = {
   },
 };
 
-type ViewType = "servicios" | "productos" | "total" | "gastos";
+type ViewType = "servicios" | "productos" | "total" | "gastos" | "propinas";
 
 const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
   gap: "2rem",
@@ -87,17 +85,15 @@ const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
 }));
 
 const Reportes = () => {
-  // const { fecha } = useAgendaContext();
-  const [allCitas, setAllCitas] = useState<Cita[]>([]);
   const [servicios, setServicios] = useState<ServicioInReporte[]>([]);
   const [productos, setProductos] = useState<ProductoInCita[]>([]);
-  const [gastos, setGastos] = useState<any[]>([]);
-  const [reportesData, setReportesData] = useState<Cita[]>([]);
+  const [gastos, setGastos] = useState<Gasto[]>([]);
+  const [propinas, setPropinas] = useState<PropinaInReporte[]>([]);
   const [estilistaFilter, setEstilistaFilter] = useState("");
-  const [fechaFilter, setFechaFilter] = useState("");
+  const [fechaFilter, setFechaFilter] = useState(getCurrentDate().formattedDate);
   const [download, setDownload] = useState(false);
   const [view, setView] = useState<ViewType>("servicios");
-  console.log("Reportes Data:", reportesData);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleViewChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -129,58 +125,25 @@ const Reportes = () => {
   };
 
   const getServiciosProductosFromCitas = (citas: Cita[]) => {
-    if (citas.length > 1) {
-      let allServicios: ServicioInReporte[] = [];
-      let allProductos: ProductoInCita[] = [];
-
-      citas.forEach((cita) => {
-        const serviciosCita = cita.servicios.map((servicio) => ({
+    setServicios(
+      citas.flatMap((cita) =>
+        cita.servicios.map((servicio) => ({
           ...servicio,
           nombreCliente: cita.nombreCliente,
           metodoDePago: cita.metodoDePago,
-        }));
-        const productosCita = cita.productos;
-        allServicios = [...allServicios, ...serviciosCita];
-        allProductos = [...allProductos, ...productosCita];
-      });
-
-      setServicios(() => allServicios);
-      setProductos(() => allProductos);
-    } else {
-      const cita = citas[0];
-      setServicios(
-        () =>
-          cita?.servicios.map((servicio) => ({
-            ...servicio,
-            nombreCliente: cita.nombreCliente,
-            metodoDePago: cita.metodoDePago,
-          })) || [],
-      );
-      setProductos(() => cita?.productos || []);
-    }
-  };
-
-  // Load all citas from MongoDB on mount
-  const getCitasByFecha = async (fecha: string) => {
-    try {
-      const allCitasFromDBByFecha = await window.api.getCitasByFecha(fecha);
-      const citasPagadas = allCitasFromDBByFecha.filter(
-        (cita: Cita) => cita.estado === "pagado",
-      );
-      setAllCitas(() => citasPagadas);
-      getServiciosProductosFromCitas(citasPagadas);
-    } catch (error) {
-      console.error("Error loading all citas:", error);
-    }
-  };
-
-  const getGastosByFecha = async (fecha: string) => {
-    try {
-      const gastosFromDBByFecha = await window.api.getGastosByFecha(fecha);
-      setGastos(() => gastosFromDBByFecha);
-    } catch (error) {
-      console.error("Error loading gastos:", error);
-    }
+        })),
+      ),
+    );
+    setProductos(citas.flatMap((cita) => cita.productos));
+    setPropinas(
+      citas.flatMap((cita) =>
+        (cita.propinas || []).map((propina) => ({
+          ...propina,
+          nombreCliente: cita.nombreCliente,
+          fecha: cita.fecha,
+        })),
+      ),
+    );
   };
 
   const serviciosFiltred = useMemo(() => {
@@ -201,6 +164,15 @@ const Reportes = () => {
     return productos;
   }, [estilistaFilter, productos]);
 
+  const propinasFiltred = useMemo(() => {
+    if (estilistaFilter) {
+      return propinas.filter(
+        (propina) => propina.estilista === estilistaFilter,
+      );
+    }
+    return propinas;
+  }, [estilistaFilter, propinas]);
+
   const totalServicios = useMemo(() => {
     return serviciosFiltred.reduce((acumulador, servicio) => {
       return acumulador + Number(servicio.servicio.precio);
@@ -219,15 +191,67 @@ const Reportes = () => {
     }, 0);
   }, [gastos]);
 
+  const totalPropinas = useMemo(() => {
+    return propinasFiltred.reduce((acumulador, propina) => {
+      return acumulador + Number(propina.monto);
+    }, 0);
+  }, [propinasFiltred]);
+
+  // Lo que se le paga a cada estilista al cierre del día.
+  const propinasPorEstilista = useMemo(() => {
+    const acc = new Map<string, number>();
+    propinasFiltred.forEach((propina) => {
+      acc.set(
+        propina.estilista,
+        (acc.get(propina.estilista) || 0) + Number(propina.monto),
+      );
+    });
+    return [...acc.entries()];
+  }, [propinasFiltred]);
+
   const totalGeneral = useMemo(() => {
     return totalServicios + totalProductos;
   }, [totalServicios, totalProductos]);
 
+  const currentViewData = useMemo(() => {
+    switch (view) {
+      case "servicios":
+        return serviciosFiltred;
+      case "productos":
+        return productosFiltred;
+      case "gastos":
+        return gastos;
+      case "propinas":
+        return propinasFiltred;
+      default:
+        return serviciosFiltred;
+    }
+  }, [view, serviciosFiltred, productosFiltred, gastos, propinasFiltred]);
+
   useEffect(() => {
+    if (!fechaFilter) {
+      return;
+    }
     // Lógica para obtener los datos de los reportes
-    getCitasByFecha(fechaFilter);
-    getGastosByFecha(fechaFilter);
-    console.log({ servicios, productos, gastos });
+    const loadReportes = async () => {
+      setIsLoading(true);
+      try {
+        const [citasFromDB, gastosFromDB] = await Promise.all([
+          window.api.getCitasByFecha(fechaFilter),
+          window.api.getGastosByFecha(fechaFilter),
+        ]);
+        const citasPagadas = citasFromDB.filter(
+          (cita: Cita) => cita.estado === "pagado",
+        );
+        getServiciosProductosFromCitas(citasPagadas);
+        setGastos(gastosFromDB);
+      } catch (error) {
+        console.error("Error loading reportes:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadReportes();
   }, [fechaFilter]);
 
   return (
@@ -240,6 +264,11 @@ const Reportes = () => {
     >
       <Grid container size={12}>
         <Paper sx={styles.paper}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            {fechaFilter
+              ? `Reporte del ${fechaFilter}`
+              : "Selecciona una fecha para ver el reporte"}
+          </Typography>
           <Box component="div" sx={styles.actionBar}>
             <Box component="div" display={"flex"} sx={{ gap: 2 }}>
               <Box component="div" sx={{ width: "200px" }}>
@@ -259,6 +288,7 @@ const Reportes = () => {
               variant="contained"
               color="primary"
               onClick={handleDownload}
+              disabled={isLoading || currentViewData.length === 0}
             >
               Guardar Excel
             </Button>
@@ -305,26 +335,81 @@ const Reportes = () => {
               </Typography>
             </Stack>
           </ToggleButton>
+          <ToggleButton value="propinas">
+            <Stack>
+              <Typography variant="button" align="center">
+                Propinas
+              </Typography>
+              <Typography variant="h5" align="center">
+                {`$${totalPropinas.toFixed(2)}`}
+              </Typography>
+            </Stack>
+          </ToggleButton>
         </StyledToggleButtonGroup>
       </Grid>
+      {view === "propinas" && propinasPorEstilista.length > 0 && (
+        <Grid container size={12} gap={1} alignItems="center">
+          <Typography variant="subtitle2" color="text.secondary">
+            A pagar hoy:
+          </Typography>
+          {propinasPorEstilista.map(([estilista, monto]) => (
+            <Chip
+              key={estilista}
+              color="secondary"
+              variant="outlined"
+              label={`${capitalizeFirstLetter(estilista)} $${monto.toFixed(2)}`}
+            />
+          ))}
+        </Grid>
+      )}
       <Grid container sx={styles.tableContainer} size={12}>
-        <ReportesTable
-          reportesData={
-            view === "servicios" &&  serviciosFiltred ||
-            view === "productos" &&  productosFiltred ||
-            view === "gastos" && gastos || serviciosFiltred
-            // view === "servicios" ? serviciosFiltred : productosFiltred
-          }
-          download={download}
-          setDownload={setDownload}
-          currentDate={fechaFilter}
-          filtro={estilistaFilter}
-          view={view}
-        />
+        {isLoading ? (
+          <Box
+            component="div"
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              gap: 2,
+              py: 6,
+            }}
+          >
+            <CircularProgress />
+            <Typography variant="body1" color="text.secondary">
+              Cargando reporte...
+            </Typography>
+          </Box>
+        ) : currentViewData.length === 0 ? (
+          <Box
+            component="div"
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              width: "100%",
+              py: 6,
+            }}
+          >
+            <Typography variant="body1" color="text.secondary">
+              No hay datos para mostrar con los filtros seleccionados.
+            </Typography>
+          </Box>
+        ) : (
+          <ReportesTable
+            reportesData={currentViewData}
+            download={download}
+            setDownload={setDownload}
+            currentDate={fechaFilter}
+            filtro={estilistaFilter}
+            view={view}
+          />
+        )}
       </Grid>
       <Grid container size={12}>
         <Paper sx={styles.paper}>
           <Box component="div" sx={styles.footer}>
+            <Typography variant="h5" color="secondary.main">{`Propinas: $${totalPropinas.toFixed(2)}`}</Typography>
             <Typography variant="h5">{`Gastos: $${totalGastos.toFixed(2)}`}</Typography>
             <Typography variant="h5">{`Total: $${totalGeneral.toFixed(2)}`}</Typography>
           </Box>

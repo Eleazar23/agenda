@@ -1,13 +1,17 @@
 import dayjs from "dayjs";
 import objectSupport from "dayjs/plugin/objectSupport";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import { ServicioAgendado } from "../types/ServicioAgendado";
+import { Cita } from "../types/Cita";
+import { Vacacion } from "../types/Estilista";
+import { Bloqueo } from "../types/Bloqueo";
 
 dayjs.extend(objectSupport);
 dayjs.extend(customParseFormat);
 
 export function capitalizeFirstLetter(str: string) {
-  if (str.length === 0) {
-    return ""; // Handle empty strings
+  if (!str) {
+    return ""; // Handle empty/undefined/null values (e.g. AG Grid valueFormatter)
   }
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -19,6 +23,10 @@ export function getCurrentDate() {
   const year = dateObj.get("year");
   const formattedDate = dateObj.format("DD-MM-YYYY");
   return { dateObj, formattedDate, day, month, year };
+}
+
+export function getCurrentTime() {
+  return dayjs().format("HH:mm");
 }
 
 export function getTargetDate(dateString: string) {
@@ -51,7 +59,7 @@ export function subtractDayToDate(dateString: string) {
 export const getHrs = () => {
   let hour = 0;
   let minute = 0;
-  let hrs = [];
+  const hrs = [];
 
   while (hour < 24) {
     const cTime = dayjs({ hour, minute });
@@ -111,6 +119,14 @@ export const getOfficeHours = () => {
   const indexedHrs = officeHrs.map((hr, index) => ({ ...hr, index }));
   return indexedHrs;
 
+}
+
+export function toTitleString(str: string) {
+  const words = str.split(" ");
+  const titleCasedWords = words.map(
+    (word) => word.charAt(0).toUpperCase() + word.slice(1),
+  );
+  return titleCasedWords.join(" ");
 }
 
 const hrsObj = {
@@ -173,6 +189,10 @@ const formatHoraFin = (hora: string) => {
   return hrFinArry[0];
 };
 
+export function addMinutesToHora(hora: string, minutes: number) {
+  return dayjs(hora, "HH:mm").add(minutes, "minute").format("HH:mm");
+}
+
 export const getDuracion = (horaInicio: string, horaFin: string) => {
   const formattedHoraFin = formatHoraFin(horaFin);
   const [startHrs, startMins] = horaInicio.split(":").map(Number);
@@ -185,13 +205,138 @@ export const getDuracion = (horaInicio: string, horaFin: string) => {
   return realDiffMins;
 };
 
-export function throttle(func: any, limit: number) {
+// Filas de 30 min que ocupa un servicio agendado, a partir de su propio
+// rowIndex/duracion (independiente de cuántas entradas contiguas existan).
+export function getOccupiedRows(
+  servicio: Pick<ServicioAgendado, "rowIndex" | "duracion">,
+): number[] {
+  const rowsSpan = servicio.duracion / 30;
+  return Array.from({ length: rowsSpan }, (_, i) => servicio.rowIndex + i);
+}
+
+// Determina si las filas nuevas de un servicio (mismo estilista) chocan con
+// otro servicio ya agendado ese día (en otra cita, o en la misma cita que se
+// está armando/editando). Se usa tanto al crear una cita nueva como al
+// editar una ya existente, para que ambas validen igual.
+export function seSobreponeConOtroServicio(
+  estilista: string,
+  newRowIndexes: number[],
+  citasAComparar: Cita[],
+  otrosServiciosPropios: ServicioAgendado[],
+): boolean {
+  const overlapsOtrasCitas = citasAComparar.some((c) =>
+    c.servicios.some(
+      (s) =>
+        s.estilista === estilista &&
+        getOccupiedRows(s).some((r) => newRowIndexes.includes(r)),
+    ),
+  );
+  const overlapsPropios = otrosServiciosPropios.some(
+    (s) =>
+      s.estilista === estilista &&
+      getOccupiedRows(s).some((r) => newRowIndexes.includes(r)),
+  );
+  return overlapsOtrasCitas || overlapsPropios;
+}
+
+// Última validación, justo antes de guardar: revisa el conjunto completo de
+// servicios de una cita (agrupados por estilista) en busca de cualquier
+// solape interno. Es una red de seguridad independiente de las validaciones
+// por campo, que solo alcanzan a revisar un servicio a la vez mientras se
+// arma el borrador (la cuadrícula solo pinta citas ya guardadas, así que un
+// servicio recién extendido no bloquea agregar otro en la misma fila hasta
+// este punto).
+export function citaTieneServiciosSobrepuestos(
+  servicios: ServicioAgendado[],
+): boolean {
+  const porEstilista = new Map<string, ServicioAgendado[]>();
+  servicios.forEach((s) => {
+    const lista = porEstilista.get(s.estilista) || [];
+    lista.push(s);
+    porEstilista.set(s.estilista, lista);
+  });
+
+  for (const lista of porEstilista.values()) {
+    for (let i = 0; i < lista.length; i++) {
+      const rowsA = getOccupiedRows(lista[i]);
+      for (let j = i + 1; j < lista.length; j++) {
+        const rowsB = getOccupiedRows(lista[j]);
+        if (rowsA.some((r) => rowsB.includes(r))) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+// Un estilista está de vacaciones ese día si "fecha" cae dentro de alguno de
+// sus rangos [inicio, fin] (ambos extremos inclusive).
+export function estaDeVacaciones(
+  vacaciones: Vacacion[] | undefined,
+  fecha: string,
+): boolean {
+  if (!vacaciones || vacaciones.length === 0) return false;
+  const target = getTargetDate(fecha).valueOf();
+  return vacaciones.some((v) => {
+    const inicio = getTargetDate(v.inicio).valueOf();
+    const fin = getTargetDate(v.fin).valueOf();
+    return target >= inicio && target <= fin;
+  });
+}
+
+// Filas de 30 min (mismo sistema de índices 0-based desde las 09:00 que usa
+// ServicioAgendado.rowIndex) que ocupa un bloqueo (comida/descanso).
+export function getBloqueoOccupiedRows(bloqueo: Bloqueo): number[] {
+  const inicioIndex = getHrsObj(bloqueo.horaInicio)?.index ?? 0;
+  let finIndex = getHrsObj(bloqueo.horaFin)?.index ?? inicioIndex;
+  // La última fila de la agenda es la hora de cierre (no se atiende). Un
+  // bloqueo que termina al cierre cubre también esa fila, para que el resto
+  // del día quede bloqueado completo.
+  const officeHours = getOfficeHours();
+  if (bloqueo.horaFin === officeHours[officeHours.length - 1].label24) {
+    finIndex += 1;
+  }
+  const rowIndex = inicioIndex - 18;
+  const rowsSpan = Math.max(finIndex - inicioIndex, 1);
+  return Array.from({ length: rowsSpan }, (_, i) => rowIndex + i);
+}
+
+export type EstadoBloqueo = { blocked: boolean; motivo?: string; bloqueoId?: number };
+
+// Determina si un conjunto de filas de la columna de un estilista, un día
+// dado, está bloqueado por vacaciones o por un bloqueo puntual (comida/
+// descanso). No contempla feriados: esos bloquean el día entero y se validan
+// aparte (ver AgendaTable/AgendaContext).
+export function celdaEstaBloqueada(
+  estilista: string,
+  rowIndexes: number[],
+  vacacionesEstilista: Vacacion[] | undefined,
+  fecha: string,
+  bloqueosDelDia: Bloqueo[],
+): EstadoBloqueo {
+  if (estaDeVacaciones(vacacionesEstilista, fecha)) {
+    return { blocked: true, motivo: "Vacaciones" };
+  }
+  const bloqueo = bloqueosDelDia.find(
+    (b) =>
+      b.estilista === estilista &&
+      getBloqueoOccupiedRows(b).some((r) => rowIndexes.includes(r)),
+  );
+  if (bloqueo) {
+    return { blocked: true, motivo: bloqueo.motivo, bloqueoId: bloqueo.id };
+  }
+  return { blocked: false };
+}
+
+export function throttle<Args extends unknown[]>(
+  func: (...args: Args) => void,
+  limit: number,
+) {
   let inThrottle = false;
-  return function (this: any) {
-    const args = arguments;
-    const context = this;
+  return function (this: unknown, ...args: Args) {
     if (!inThrottle) {
-      func.apply(context, args);
+      func.apply(this, args);
       inThrottle = true;
       setTimeout(() => (inThrottle = false), limit);
     }

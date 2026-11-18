@@ -5,9 +5,11 @@ import DeleteBtn from "../buttons/DeleteBtn";
 import EditClienteModal from "../modals/clientes/EditClienteModal";
 import ElimClienteModal from "../modals/clientes/ElimClienteModal";
 import BitacoraBtn from "../buttons/BitacoraBtn";
-// import BitacoraModal from "../modals/clientes/BitacoraModal";
+import BitacoraModal from "../modals/clientes/BitacoraModal";
+import type { CustomCellRendererProps } from "ag-grid-react";
+import { Cliente } from "../../types/Cliente";
 
-function ClientesActionsCell(params: any) {
+function ClientesActionsCell(params: CustomCellRendererProps<Cliente>) {
   const [isEditing, setIsEditing] = useState(false);
   const [isEliminar, setIsEliminar] = useState(false);
   const [isBitacoraOpen, setIsBitacoraOpen] = useState(false);
@@ -27,6 +29,8 @@ function ClientesActionsCell(params: any) {
     setIsBitacoraOpen(true);
   };
 
+  if (!params.data) return null;
+
   return (
     <>
       <Box display="flex" sx={{ width: "100%", height: "100%" }} gap={2}>
@@ -35,7 +39,6 @@ function ClientesActionsCell(params: any) {
         <BitacoraBtn onClick={handleBitacoraClick} />
       </Box>
       <EditClienteModal
-        rowIndex={params.node.rowIndex}
         isOpen={isEditing}
         onClose={() => setIsEditing(false)}
         initialData={params.data}
@@ -45,11 +48,11 @@ function ClientesActionsCell(params: any) {
         onClose={() => setIsEliminar(false)}
         clienteData={params.data}
       />
-      {/* <BitacoraModal
-        open={isBitacoraOpen}
+      <BitacoraModal
+        isOpen={isBitacoraOpen}
         onClose={() => setIsBitacoraOpen(false)}
         cliente={params.data}
-      /> */}
+      />
     </>
   );
 }

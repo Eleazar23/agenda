@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import EstilistaInput from "../../Inputs/EstilistaInput";
-import HoraInput from "../../Inputs/HoraInput";
+import HoraFinInput from "../../Inputs/HoraFinInput";
 import ServiciosInput from "../../Inputs/ServiciosInput";
 import ProductsCar from "../../tables/ProductsCar";
 import AddProductForm from "../../forms/AddProductForm";
@@ -20,44 +20,36 @@ import MetodoPagoInput from "../../Inputs/MetodoPagoInput";
 import { Producto, ProductoInCita } from "../../../types/Producto";
 import useGlobalAlert from "../../GlobalAlert";
 import { ServicioAgendado } from "../../../types/ServicioAgendado";
-import { getDuracion } from "../../../utils/utils";
+import {
+  getDuracion,
+  getOccupiedRows,
+  seSobreponeConOtroServicio,
+} from "../../../utils/utils";
 import { Cita } from "../../../types/Cita";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useAgendaContext } from "../../../contexts/AgendaContext";
 
 type ServicioFormProps = {
   servicio: ServicioAgendado;
   citaForm: Cita;
   setCitaForm: React.Dispatch<React.SetStateAction<Cita>>;
-  updateProductosInCita: (newProductos: Array<ProductoInCita>) => void;
+  guardarProductos: (newProductos: Array<ProductoInCita>) => Promise<boolean>;
   updateServicioInCita: (updatedServicio: ServicioAgendado) => void;
   handleRemoveService: (servicio: ServicioAgendado) => void;
-  productosToUpdate: ProductoInCita[];
-  setProductosToUpdate: React.Dispatch<React.SetStateAction<ProductoInCita[]>>;
-};
-
-const initialServicioForm = {
-  rowIndex: 0,
-  cellID: "",
-  fecha: "",
-  estilista: "",
-  servicio: { id: 0, nombre: "", precio: 0 },
-  horaInicio: "",
-  horaFin: "",
-  duracion: 0,
 };
 
 function ServicioForm({
   servicio,
   citaForm,
   setCitaForm,
-  updateProductosInCita,
+  guardarProductos,
   updateServicioInCita,
   handleRemoveService,
-  productosToUpdate,
-  setProductosToUpdate,
 }: ServicioFormProps) {
   const { showAlert } = useGlobalAlert();
+  const { citas } = useAgendaContext();
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+  const [isGuardandoProductos, setIsGuardandoProductos] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
     null,
   );
@@ -88,22 +80,70 @@ function ServicioForm({
   //   "duracion": 0
   // }
 
-  const [productos, setProductos] = React.useState<
-    {
-      id: number;
-      nombre: string;
-      precio: number;
-      cantidad: number;
-      estilista: string;
-      total: number;
-    }[]
-  >(citaForm.productos || []);
+  // Los productos se leen directo de citaForm (única fuente de verdad):
+  // la cita se carga async desde BD después de montar este componente.
+  const productos = citaForm.productos || [];
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: unknown) => {
     setModalForm((prev) => ({
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleHoraInicioChange = (newHora: string) => {
+    if (servicioForm.horaFin && newHora >= servicioForm.horaFin) {
+      showAlert(
+        "La hora de inicio debe ser anterior a la hora de fin",
+        "error",
+      );
+      return;
+    }
+    handleChange("horaInicio", newHora);
+  };
+
+  const handleHoraFinChange = (newHora: string) => {
+    if (servicioForm.horaInicio && newHora <= servicioForm.horaInicio) {
+      showAlert(
+        "La hora de fin debe ser posterior a la hora de inicio",
+        "error",
+      );
+      return;
+    }
+
+    const newDuracion = getDuracion(servicioForm.horaInicio, newHora);
+    const newRowIndexes = getOccupiedRows({
+      rowIndex: servicioForm.rowIndex,
+      duracion: newDuracion,
+    });
+
+    // Se compara contra otras citas del mismo día (excluyendo esta misma
+    // cita, cuyos propios servicios ya se comparan por separado) y contra
+    // los demás servicios de esta cita, para no permitir una hora de fin
+    // que choque con otro servicio ya agendado.
+    const citasDelDia = citas.filter(
+      (c) => c.fecha === citaForm.fecha && c.id !== citaForm.id,
+    );
+    const otrosServiciosPropios = citaForm.servicios.filter(
+      (s) => s.cellID !== servicioForm.cellID,
+    );
+
+    if (
+      seSobreponeConOtroServicio(
+        servicioForm.estilista,
+        newRowIndexes,
+        citasDelDia,
+        otrosServiciosPropios,
+      )
+    ) {
+      showAlert(
+        "La hora de fin se sobrepone con otro servicio ya agendado",
+        "error",
+      );
+      return;
+    }
+
+    handleChange("horaFin", newHora);
   };
 
   const handleRemoveServiceClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -127,73 +167,68 @@ function ServicioForm({
     });
   };
 
-  const handleUpdateProductoToUpdate = (updatedProducto: ProductoInCita) => {
-    setProductosToUpdate((prev) => {
-      const index = prev.findIndex((prod) => prod.id === updatedProducto.id);
-      if (index !== -1) {
-        console.log("Producto ya en productosToUpdate, actualizando:", updatedProducto);
-        let exisitngProducts = [...prev];
-        let existingProduct = exisitngProducts[index];
-        existingProduct.cantidad += updatedProducto.cantidad;
-        return exisitngProducts;
-      }
-      console.log("Agregando nuevo producto a productosToUpdate:", updatedProducto);
-      return [...prev, updatedProducto];
-    });
-  };
-
-  const handleAddProducto = (newProducto: {
+  // Se guarda en BD al momento; la validación de stock se hace ahí contra
+  // el stock actual.
+  const handleAddProducto = async (newProducto: {
     producto: Producto;
     cantidad: number;
     estilista: string;
   }) => {
-    const newRow = {
-      id: newProducto.producto.id,
-      nombre: newProducto.producto.nombre,
-      precio: newProducto.producto.precio,
-      cantidad: newProducto.cantidad,
-      total: newProducto.producto.precio * newProducto.cantidad,
-      estilista: newProducto.estilista,
-    };
-    // handleUpdateProductoToUpdate(newRow);
-    const existingIndex = productos.findIndex((prod) => prod.id === newRow.id);
-    let succesAction = true;
-    if (existingIndex !== -1) {
-      // Si el producto ya existe, actualiza la cantidad y el total
-      setProductos((prev) => {
-        let updatedProducts = [...prev];
-        let existingProduct = updatedProducts[existingIndex];
-        let newCantidad = existingProduct.cantidad + newRow.cantidad;
+    const { producto, cantidad, estilista } = newProducto;
 
-        if (newCantidad > newProducto.producto.stock) {
-          showAlert(
-            "No hay suficiente stock para agregar esa cantidad.",
-            "error",
-          );
-          newCantidad = newProducto.producto.stock; // Limitar la cantidad al stock disponible
-          succesAction = false;
-          return prev; // No actualizar el estado si se excede el stock
-        }
+    const existingProduct = productos.find((prod) => prod.id === producto.id);
+    const newProductos = existingProduct
+      ? productos.map((prod) =>
+          prod.id === producto.id
+            ? {
+                ...prod,
+                cantidad: prod.cantidad + cantidad,
+                total: (prod.cantidad + cantidad) * prod.precio,
+              }
+            : prod,
+        )
+      : [
+          ...productos,
+          {
+            id: producto.id,
+            nombre: producto.nombre,
+            precio: producto.precio,
+            cantidad,
+            total: producto.precio * cantidad,
+            estilista,
+          },
+        ];
+    return guardarConBloqueo(newProductos);
+  };
 
-        existingProduct.cantidad += newRow.cantidad;
-        existingProduct.total =
-          existingProduct.cantidad * existingProduct.precio;
-        handleUpdateProductoToUpdate(newRow)
-
-        return updatedProducts;
-      });
-    } else {
-      setProductos((prev) => [...prev, newRow]);
-      handleUpdateProductoToUpdate(newRow)
+  // Cada cambio se guarda en BD al momento; mientras tanto se bloquean los
+  // controles para no encimar guardados.
+  const guardarConBloqueo = async (newProductos: ProductoInCita[]) => {
+    if (isGuardandoProductos) return false;
+    setIsGuardandoProductos(true);
+    try {
+      return await guardarProductos(newProductos);
+    } finally {
+      setIsGuardandoProductos(false);
     }
-    return succesAction;
   };
 
   const handleRemoveProducto = (id: number) => {
-    setProductos((prev) => prev.filter((prod) => prod.id !== id));
+    guardarConBloqueo(productos.filter((prod) => prod.id !== id));
   };
 
-  const handleCitaChange = (field: string, value: any) => {
+  const handleCambiarCantidad = (id: number, cantidad: number) => {
+    if (cantidad < 1) return;
+    guardarConBloqueo(
+      productos.map((prod) =>
+        prod.id === id
+          ? { ...prod, cantidad, total: cantidad * Number(prod.precio) }
+          : prod,
+      ),
+    );
+  };
+
+  const handleCitaChange = (field: string, value: unknown) => {
     setCitaForm((prev) => ({
       ...prev,
       [field]: value,
@@ -219,10 +254,6 @@ function ServicioForm({
   //   }
   // }, [servicio]);
 
-  useEffect(() => {
-    updateProductosInCita(productos);
-  }, [productos]);
-
   return (
     <Grid container spacing={2} gap={2} flexGrow={1}>
       <Grid size={12}>
@@ -235,6 +266,7 @@ function ServicioForm({
           <EstilistaInput
             ctxValue={servicioForm.estilista}
             ctxDispatch={handleChange}
+            soloEstilistas
           />
         </Grid>
         <Grid size={3}>
@@ -263,19 +295,19 @@ function ServicioForm({
           />
         </Grid>
         <Grid size={2}>
-          <HoraInput
+          <HoraFinInput
             label="Hora Inicio"
-            name="horaInicio"
             hora={servicioForm.horaInicio}
-            onChange={(newHora) => handleChange("horaInicio", newHora)}
+            readOnly={false}
+            onChange={handleHoraInicioChange}
           />
         </Grid>
         <Grid size={2}>
-          <HoraInput
+          <HoraFinInput
             label="Hora Fin"
-            name="horaFin"
             hora={servicioForm.horaFin}
-            onChange={(newHora) => handleChange("horaFin", newHora)}
+            readOnly={false}
+            onChange={handleHoraFinChange}
           />
         </Grid>
         <Grid size={1} sx={{display:"flex", justifyContent:"center", alignItems:"center"}}>
@@ -328,6 +360,8 @@ function ServicioForm({
             <ProductsCar
               products={productos}
               handleRemoveProducto={handleRemoveProducto}
+              handleCambiarCantidad={handleCambiarCantidad}
+              disabled={isGuardandoProductos}
             />
           </Grid>
         </Grid>

@@ -1,29 +1,36 @@
 import * as React from "react";
-import { useState } from "react";
 
-import { AllCommunityModule, ModuleRegistry, GridApi } from "ag-grid-community";
+import {
+  AllCommunityModule,
+  ModuleRegistry,
+  GridApi,
+  GridReadyEvent,
+  ValueFormatterParams,
+  ValueGetterParams,
+} from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import { Box } from "@mui/material";
+import { capitalizeFirstLetter } from "../../utils/utils";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const colDefProductos = [
-  { field: "estilista", headerName: "Estilista" },
+  { field: "estilista", headerName: "Estilista", valueFormatter: (params: ValueFormatterParams) => capitalizeFirstLetter(params.value) },
   { field: "nombre", headerName: "Nombre del producto" },
   { field: "precio", headerName: "Precio unitario" },
   { field: "cantidad", headerName: "Cantidad" },
   {
     field: "total",
     headerName: "Total",
-    valueGetter: (params: any) => params.data.precio * params.data.cantidad,
+    valueGetter: (params: ValueGetterParams) => params.data.precio * params.data.cantidad,
   },
 ];
 
 let gridApi: GridApi;
 
 type Props = {
-  serviciosData: Array<any>;
+  serviciosData: Array<object>;
   download?: boolean;
   setDownload?: React.Dispatch<React.SetStateAction<boolean>>;
   currentDate: string;
@@ -53,7 +60,7 @@ function ReportesProductosTbl({
     filter: true,
   };
   const gridOptions = {
-    onGridReady: (params: any) => {
+    onGridReady: (params: GridReadyEvent) => {
       gridApi = params.api;
       // gridApi = gridRef.current!.api
       gridApi.sizeColumnsToFit();
@@ -65,7 +72,7 @@ function ReportesProductosTbl({
       handleDownloadComplete();
     }
   }, [download, setDownload]);
-  const [colDef, setColDef] = React.useState(colDefProductos);
+  const [colDef] = React.useState(colDefProductos);
   return (
     <Box component="div" style={{ width: "100%", height: "100%" }}>
       <AgGridReact

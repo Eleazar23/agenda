@@ -1,10 +1,10 @@
 import { Cita } from "../types/Cita";
 
-export const getCitaByFechaAndCliente = async (fecha: string, nombreCliente: string) => {
+export const getCitaByFechaAndClienteId = async (fecha: string, clienteId: number) => {
     try {
-        const citaData = await window.api.getCitaByFechaCliente(
+        const citaData = await window.api.getCitaByFechaClienteId(
             fecha,
-            nombreCliente,
+            clienteId,
         );
         return citaData || null;
     } catch (error) {
@@ -13,9 +13,9 @@ export const getCitaByFechaAndCliente = async (fecha: string, nombreCliente: str
     }
 }
 
-export const getCitasByFechaCliente = async (fecha: string, nombreCliente: string) => {
+export const getCitasByFechaClienteId = async (fecha: string, clienteId: number) => {
     try {
-        const citasData = await window.api.getCitasByFechaCliente(fecha, nombreCliente);
+        const citasData = await window.api.getCitasByFechaClienteId(fecha, clienteId);
         return citasData || [];
     } catch (error) {
         console.log("Error al obtener citas por fecha y cliente", "error");

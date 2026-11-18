@@ -17,5 +17,6 @@ set DESTINO=%~1\%FECHA%
 :: Ejecutar mongodump
 mongodump --out "%DESTINO%"
 
-:: Eliminar respaldos más viejos de 7 días
-forfiles /p %DESTINO% /d -7 /c "cmd /c rd /s /q @path" 2>nul
+:: Eliminar carpetas de respaldo (dentro de la carpeta destino) más viejas de 7 días
+:: (se poda %~1, la carpeta raíz de respaldos, no %DESTINO% que es la recién creada)
+forfiles /p "%~1" /d -7 /c "cmd /c if @isdir==TRUE rd /s /q @path" 2>nul

@@ -27,3 +27,7 @@ dist-electron
 *.md
 
 out/
+
+# Local MongoDB backups (contain real client data, never commit)
+Resplados manuales BD/
+*.bson

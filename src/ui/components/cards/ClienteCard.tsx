@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, Divider, Grid } from "@mui/material";
+import { Card, CardContent, CardHeader, Divider } from "@mui/material";
 import ClienteForm from "../forms/ClienteForm";
 
 const ClienteCard = () => {

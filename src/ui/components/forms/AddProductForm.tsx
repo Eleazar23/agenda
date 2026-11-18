@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Grid, IconButton, InputAdornment, TextField } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CantidadInput from "../Inputs/CantidadInput";
@@ -15,10 +15,10 @@ type Props = {
     producto: Producto;
     cantidad: number;
     estilista: string;
-  }) => boolean;
+  }) => Promise<boolean>;
 };
 
-const initialFormData = {
+const getInitialFormData = () => ({
   producto: {
     id: 0,
     nombre: "",
@@ -29,36 +29,51 @@ const initialFormData = {
   },
   cantidad: 0,
   estilista: "",
-};
+});
 
 function AddProductForm({ ctxAddProducto }: Props) {
   const [formData, setFormData] = useState<{
     producto: Producto;
     cantidad: number;
     estilista: string;
-  }>(initialFormData);
+  }>(getInitialFormData);
+  const [isGuardando, setIsGuardando] = useState(false);
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: unknown) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
+  const handleProductoChange = (newValue: Producto | null) => {
+    const producto = newValue || getInitialFormData().producto;
+    const productoStock = producto.stock || 0;
+    setFormData((prev) => ({
+      ...prev,
+      producto,
+      // Evita que la cantidad seleccionada para el producto anterior exceda el stock del nuevo producto
+      cantidad: Math.min(prev.cantidad, productoStock),
+    }));
+  };
+
   const handleCantidadChange = (value: number) => {
     const productoStock = formData.producto.stock || 0;
-    let newValue = value;
-    if (value > productoStock) {
-      newValue = productoStock; // Limitar la cantidad al stock disponible o a 1 si es menor
-    }
+    const newValue = Math.min(value, productoStock); // Limitar la cantidad al stock disponible
     handleChange("cantidad", newValue);
   };
 
-  const handleAddProducto = () => {
-    if (formData.producto.nombre && formData.cantidad > 0) {
-      if (ctxAddProducto(formData)) {
-        setFormData(prev => ({...prev, ...initialFormData})); // Reiniciar el formulario después de agregar el producto
+  const handleAddProducto = async () => {
+    if (isGuardando || !formData.producto.nombre || formData.cantidad <= 0) {
+      return;
+    }
+    setIsGuardando(true);
+    try {
+      if (await ctxAddProducto(formData)) {
+        setFormData(getInitialFormData()); // Reiniciar el formulario después de agregar el producto
       }
+    } finally {
+      setIsGuardando(false);
     }
   };
 
@@ -68,7 +83,7 @@ function AddProductForm({ ctxAddProducto }: Props) {
         <Grid size={3}>
           <ProductInput
             value={formData.producto}
-            onChange={(newValue) => handleChange("producto", newValue)}
+            onChange={handleProductoChange}
           />
         </Grid>
         <Grid size={2}>
@@ -113,6 +128,7 @@ function AddProductForm({ ctxAddProducto }: Props) {
             variant="filled"
             ctxValue={formData.cantidad || 0}
             ctxOnChange={handleCantidadChange}
+            disabled={!formData.producto.nombre}
           />
         </Grid>
         <Grid size={1} display="flex" justifyContent="center">
@@ -121,6 +137,7 @@ function AddProductForm({ ctxAddProducto }: Props) {
             color="success"
             size="medium"
             onClick={handleAddProducto}
+            disabled={isGuardando}
           >
             <AddCircleOutlineIcon />
           </IconButton>

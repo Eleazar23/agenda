@@ -9,6 +9,9 @@ type Props = {
   ctxDispatch?: (inputName:string, value: string) => void;
   readOnly?: boolean;
   variant?: "filled" | "outlined" | "standard";
+  // Para servicios: solo el rol "estilista", que es el que tiene columna en
+  // la agenda. Los vendedores sí aplican al vender productos.
+  soloEstilistas?: boolean;
 };
 
 const styles = {
@@ -22,6 +25,7 @@ export default function EstilistaInput({
   ctxDispatch,
   readOnly,
   variant,
+  soloEstilistas,
 }: Props) {
   const [estilistas, setEstilistas] = React.useState<Estilista[]>([]);
   const [selected, setSelected] = React.useState<string>("");
@@ -31,13 +35,17 @@ export default function EstilistaInput({
       try {
         const data = await window.api.getEstilistas();
         console.log("Fetched estilistas:", data);
-        setEstilistas(data);
+        setEstilistas(
+          soloEstilistas
+            ? data.filter((estilista) => estilista.role === "estilista")
+            : data,
+        );
       } catch (error) {
         console.error("Error fetching estilistas:", error);
       }
     };
     fetchEstilistas();
-  }, []);
+  }, [soloEstilistas]);
 
   React.useEffect(() => {
     if (estilistas.length > 0) {

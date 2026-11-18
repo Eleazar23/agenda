@@ -4,8 +4,10 @@ import EditBtn from "../buttons/EditBtn";
 import DeleteBtn from "../buttons/DeleteBtn";
 import EditProductoModal from "../modals/productos/EditProductoModal";
 import ElimProductoModal from "../modals/productos/ElimProductoModal";
+import type { CustomCellRendererProps } from "ag-grid-react";
+import { Producto } from "../../types/Producto";
 
-function ProductosActionsCell(params: any) {
+function ProductosActionsCell(params: CustomCellRendererProps<Producto>) {
   const [isEditing, setIsEditing] = useState(false);
   const [isEliminar, setIsEliminar] = useState(false);
 
@@ -25,7 +27,6 @@ function ProductosActionsCell(params: any) {
         <DeleteBtn onClick={handleDeleteClick} />
       </Box>
       <EditProductoModal
-        rowIndex={params.node.rowIndex}
         isOpen={isEditing}
         onClose={() => setIsEditing(false)}
         initialData={params.data}

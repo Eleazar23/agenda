@@ -10,7 +10,7 @@ type Props = {
 };
 
 function FechaInput({ ctxValue, ctxDispatch }: Props) {
-    const [value, setValue] = React.useState(formattedDate);
+    const [value, setValue] = React.useState(ctxValue || formattedDate);
 
     const handleDateChange = (newValue: string) => {
         const formattedNewValue = formatDateFromHTML(newValue);

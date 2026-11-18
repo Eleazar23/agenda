@@ -1,7 +1,8 @@
 import { Grid, Typography } from "@mui/material";
-import { Cita } from "../../types/Cita";
+import { Cita, Propina } from "../../types/Cita";
 import TotalServiciosTbl from "./TotalServiciosTbl";
 import TotalProductosTbl from "./TotalProductosTbl";
+import TotalPropinasTbl from "./TotalPropinasTbl";
 import { useEffect, useMemo, useState } from "react";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
 import { ProductoInCita } from "../../types/Producto";
@@ -9,10 +10,20 @@ import { ProductoInCita } from "../../types/Producto";
 type Props = {
   cita: Cita | null;
   citas: Cita[] | [];
-  setTotalCita: React.Dispatch<React.SetStateAction<number>>;
+  // Vienen del formulario de la cita (no de la BD) para reflejar al
+  // instante lo aplicado en el modal de propina, aunque no se haya guardado.
+  propinas: Propina[];
+  onEditServicio?: (servicio: ServicioAgendado) => void;
+  onDeleteServicio?: (servicio: ServicioAgendado) => void;
 };
 
-function TotalCitaTbl({ cita, citas, setTotalCita }: Props) {
+function TotalCitaTbl({
+  cita,
+  citas,
+  propinas,
+  onEditServicio,
+  onDeleteServicio,
+}: Props) {
   // Función para calcular el total usando reduce
   const [servicios, setServicios] = useState<ServicioAgendado[] | []>([]);
   const [productos, setProductos] = useState<ProductoInCita[] | []>([]);
@@ -62,13 +73,16 @@ function TotalCitaTbl({ cita, citas, setTotalCita }: Props) {
     }, 0);
   }, [productos]); // Se recalcula cuando 'cita?.productos' cambia
 
+  const totalPropinas = useMemo(() => {
+    return propinas.reduce(
+      (acumulador, propina) => acumulador + Number(propina.monto),
+      0,
+    );
+  }, [propinas]);
+
   useEffect(() =>{
     getServiciosProductosFromCitas()
   }, [citas])
-
-  useEffect(() => {
-    setTotalCita(totalServicios + totalProductos);
-  }, [totalServicios, totalProductos, setTotalCita]);
 
   return (
     <Grid container spacing={1}>
@@ -81,7 +95,11 @@ function TotalCitaTbl({ cita, citas, setTotalCita }: Props) {
           </Typography>
         </Grid>
         <Grid size={12}>
-          <TotalServiciosTbl servicios={servicios} />
+          <TotalServiciosTbl
+            servicios={servicios}
+            onEditServicio={onEditServicio}
+            onDeleteServicio={onDeleteServicio}
+          />
         </Grid>
       </Grid>
       <Grid container size={12}>
@@ -97,9 +115,31 @@ function TotalCitaTbl({ cita, citas, setTotalCita }: Props) {
         </Grid>
       </Grid>
       <Grid container size={12}>
-        <Grid size={12} justifyItems="flex-end">
+        <Grid size={12}>
           <Typography variant="h6" fontWeight="bold">
-            Total de la cita: ${totalServicios + totalProductos}
+            {`Propinas | Total: $${totalPropinas}`}
+          </Typography>
+        </Grid>
+        <Grid size={12}>
+          {propinas.length > 0 ? (
+            <TotalPropinasTbl propinas={propinas} />
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Sin propinas. Usa el botón "Propina" para agregarla.
+            </Typography>
+          )}
+        </Grid>
+      </Grid>
+      <Grid container size={12}>
+        <Grid size={12} justifyItems="flex-end">
+          <Typography variant="body1">
+            Total cita: ${totalServicios + totalProductos}
+          </Typography>
+          <Typography variant="body1" color="secondary.main">
+            Propinas: + ${totalPropinas}
+          </Typography>
+          <Typography variant="h6" fontWeight="bold">
+            Total a cobrar: ${totalServicios + totalProductos + totalPropinas}
           </Typography>
         </Grid>
       </Grid>

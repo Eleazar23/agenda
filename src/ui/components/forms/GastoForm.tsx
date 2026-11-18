@@ -7,10 +7,10 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  SelectChangeEvent,
   Stack,
 } from "@mui/material";
 import { Gasto } from "../../types/Gasto";
-import { formatDateToHTML, formatDateFromHTML } from "../../utils/utils";
 import FechaInput from "../Inputs/FechaInput";
 
 type Props = {
@@ -32,6 +32,9 @@ const GastoForm = ({ onSubmit, onCancel, initialData }: Props) => {
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [montoInput, setMontoInput] = useState(
+    initialData ? String(initialData.monto) : "",
+  );
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -46,17 +49,28 @@ const GastoForm = ({ onSubmit, onCancel, initialData }: Props) => {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | { name?: string; value: unknown }
-    >,
+    e:
+      | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      | SelectChangeEvent<string>,
   ) => {
-    const { name, value } = e.target as any;
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "monto" ? parseFloat(value) || 0 : value,
+      [name]: value,
     }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleMontoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Permite dejar el campo vacío o en construcción (ej. "12.") mientras se escribe
+    if (value !== "" && !/^\d*\.?\d*$/.test(value)) return;
+    setMontoInput(value);
+    setFormData((prev) => ({ ...prev, monto: parseFloat(value) || 0 }));
+    if (errors.monto) {
+      setErrors((prev) => ({ ...prev, monto: "" }));
     }
   };
 
@@ -117,9 +131,10 @@ const GastoForm = ({ onSubmit, onCancel, initialData }: Props) => {
       <TextField
         label="Monto"
         name="monto"
-        type="number"
-        value={formData.monto}
-        onChange={handleChange}
+        type="text"
+        inputMode="decimal"
+        value={montoInput}
+        onChange={handleMontoChange}
         error={!!errors.monto}
         helperText={errors.monto}
         fullWidth
@@ -150,7 +165,7 @@ const GastoForm = ({ onSubmit, onCancel, initialData }: Props) => {
         <Select
           name="metodoPago"
           value={formData.metodoPago}
-          onChange={handleChange as any}
+          onChange={handleChange}
           label="Método de Pago"
         >
           <MenuItem value="efectivo">Efectivo</MenuItem>

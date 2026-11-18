@@ -14,20 +14,22 @@ import CantidadInput from "../../Inputs/CantidadInput";
 
 type Props = {
   isOpen: boolean;
-  rowIndex: number;
   onClose?: () => void;
-  initialData?: any;
+  initialData?: Producto;
 };
 
-function EditProductoModal({ isOpen, rowIndex, onClose, initialData }: Props) {
-  const [formData, setFormData] = useState<Producto>(
+// El precio se edita como texto (p.ej. "12.") y se convierte al guardar
+type ProductoForm = Omit<Producto, "precio"> & { precio: number | string };
+
+function EditProductoModal({ isOpen, onClose, initialData }: Props) {
+  const [formData, setFormData] = useState<ProductoForm>(
     initialData || {
       id: 0,
       nombre: "",
       marca: "",
       descripcion: "",
       precio: "",
-      stock: "",
+      stock: 0,
     },
   );
   const [errors, setErrors] = useState<Partial<Record<keyof Producto, string>>>(
@@ -44,12 +46,20 @@ function EditProductoModal({ isOpen, rowIndex, onClose, initialData }: Props) {
     }
   };
 
-  const validate = (data: Producto) => {
+  const handlePrecioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Permite dejar el campo vacío o en construcción (ej. "12.") mientras se escribe
+    if (value !== "" && !/^\d*\.?\d*$/.test(value)) return;
+    setFormData((prev) => ({ ...prev, precio: value }));
+    if (errors.precio) {
+      setErrors((prev) => ({ ...prev, precio: undefined }));
+    }
+  };
+
+  const validate = (data: ProductoForm) => {
     const nextErrors: Partial<Record<keyof Producto, string>> = {};
     if (!data.nombre?.trim()) nextErrors.nombre = "El nombre es obligatorio.";
     if (!data.marca?.trim()) nextErrors.marca = "La marca es obligatoria.";
-    if (!data.descripcion?.trim())
-      nextErrors.descripcion = "La descripción es obligatoria.";
     if (
       !data.precio ||
       isNaN(Number(data.precio)) ||
@@ -68,7 +78,7 @@ function EditProductoModal({ isOpen, rowIndex, onClose, initialData }: Props) {
     const validationErrors = validate(formData);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length) return;
-    editProducto(rowIndex, { id, nombre, marca, precio, descripcion, stock });
+    editProducto({ id, nombre, marca, precio: Number(precio), descripcion, stock });
     if (onClose) onClose();
   };
 
@@ -114,10 +124,11 @@ function EditProductoModal({ isOpen, rowIndex, onClose, initialData }: Props) {
           <Box display={"flex"} gap={2}>
             <TextField
               label="Precio"
-              type="number"
+              type="text"
+              inputMode="decimal"
               name="precio"
               value={formData.precio}
-              onChange={handleChange}
+              onChange={handlePrecioChange}
               fullWidth
               required
               error={!!errors.precio}
@@ -148,7 +159,6 @@ function EditProductoModal({ isOpen, rowIndex, onClose, initialData }: Props) {
             fullWidth
             multiline
             rows={3}
-            required
             error={!!errors.descripcion}
             helperText={errors.descripcion}
           />

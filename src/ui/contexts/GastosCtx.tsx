@@ -60,19 +60,6 @@ export const GastosCtxProvider = ({ children }: Props) => {
     });
   };
 
-  const getGastos = async () => {
-    try {
-      console.log("Obteniendo datos de gastos...");
-      const gastos = await window.api.getGastos();
-      setDataTable(gastos);
-      return gastos;
-    } catch (error) {
-      console.error("Error loading gastos:", error);
-      handleAlert("Error al cargar gastos", "error");
-      return [];
-    }
-  };
-
   const getGastosByFecha = async (fecha: string) => {
     try {
       const gastosByFecha = await window.api.getGastosByFecha(fecha);
@@ -87,7 +74,7 @@ export const GastosCtxProvider = ({ children }: Props) => {
 
   const addGasto = async (gasto: Gasto) => {
     try {
-      const newGasto = await window.api.addGasto({
+      await window.api.addGasto({
         proveedorNombre: gasto.proveedorNombre,
         monto: gasto.monto,
         fecha: gasto.fecha,

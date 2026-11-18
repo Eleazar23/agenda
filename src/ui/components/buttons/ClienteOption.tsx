@@ -1,14 +1,6 @@
 import { Box, ButtonBase, Stack, Typography } from "@mui/material";
 import React from "react";
 
-const mockCliente = {
-  id: 2,
-  nombre: "eleazar celis",
-  telefono: "3123443434",
-  correo: "",
-  lastVisit: "12-04-2026",
-};
-
 interface ClienteOption {
   nombre: string;
   telefono: string;

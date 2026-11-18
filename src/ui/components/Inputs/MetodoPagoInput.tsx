@@ -24,7 +24,9 @@ const options = [
 function MetodoPagoInput({ ctxValue, ctxDispatch, readOnly }: Props) {
   const [value, setValue] = React.useState<string>(ctxValue || "efectivo");
 
-  const handleChange = (event: any) => {
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     if (ctxDispatch) {
       ctxDispatch("metodoDePago", event.target.value as string);
     } else {

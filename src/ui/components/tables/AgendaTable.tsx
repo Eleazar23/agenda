@@ -1,62 +1,105 @@
-import React, { useEffect, useMemo, useCallback } from "react";
+import React, { useEffect, useMemo, useCallback, useRef } from "react";
 import { useState } from "react";
 import {
   AllCommunityModule,
+  ColDef,
   ModuleRegistry,
+  SpanRowsParams,
   themeQuartz,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
-import { getHrs } from "../../utils/utils";
+import { useTheme } from "@mui/material/styles";
+import { getHrs, celdaEstaBloqueada } from "../../utils/utils";
 import CutomeCellRenderer from "../CustomeCells/CutomeCellRenderer";
 import { useAgendaContext } from "../../contexts/AgendaContext";
-import { Cita } from "../../types/Cita";
+import { useFeriadosCtx } from "../../contexts/FeriadosCtx";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
-import { Servicio } from "../../types/Servicio";
+import { Cita } from "../../types/Cita";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 // Register all Community features
-interface DynamicObject {
-  [key: string]: any; // Keys are strings, values can be any type
+type CitaEnCelda = Pick<
+  Cita,
+  "clienteId" | "nombreCliente" | "telefonoCliente" | "fecha" | "estado"
+> & { servicio: ServicioAgendado };
+type BloqueoEnCelda = ReturnType<typeof celdaEstaBloqueada>;
+// Valor de la celda de un estilista: vacía, una cita o un bloqueo
+type ValorCelda = "" | CitaEnCelda | BloqueoEnCelda;
+type Hora = ReturnType<typeof getHrs>[number];
+
+// Una fila por horario; cada estilista es una columna con su ValorCelda
+interface FilaAgenda {
+  hour: Hora;
+  isSelected: boolean;
+  [estilista: string]: ValorCelda | Hora | boolean;
 }
 
-const customSpanFunc = (params: any) => {
+const customSpanFunc = (params: SpanRowsParams<FilaAgenda, ValorCelda>) => {
   const { valueA, valueB } = params;
-  if (valueA === "" || valueB === "") {
-  } else {
-    const isSameCellID = valueA.servicio.cellID === valueB.servicio.cellID;
-    const isSameService = valueA.servicio.servicio === valueB.servicio.servicio;
-    if (isSameCellID && isSameService) {
-      return true;
-    }
-  }
-  return false;
+  if (!valueA || !valueB) return false;
+
+  // Bloqueos contiguos se fusionan entre sí, nunca con una cita
+  const esBloqueoA = "blocked" in valueA;
+  const esBloqueoB = "blocked" in valueB;
+  if (esBloqueoA || esBloqueoB) return esBloqueoA && esBloqueoB;
+
+  // ag-grid solo compara filas adyacentes de la misma columna (mismo
+  // estilista). El span debe reflejar únicamente la duración propia de UNA
+  // reserva (genarateRowsByService conserva el mismo cellID en todas las
+  // filas que genera para una sola entrada); comparar por cellID evita que
+  // dos citas distintas y contiguas del mismo cliente/servicio se fusionen
+  // en una sola celda.
+  const isSameCliente =
+    valueA.clienteId === valueB.clienteId &&
+    valueA.nombreCliente === valueB.nombreCliente &&
+    valueA.telefonoCliente === valueB.telefonoCliente;
+  const isSameServicio = valueA.servicio?.cellID === valueB.servicio?.cellID;
+  const isSameEstado = valueA.estado === valueB.estado;
+
+  return isSameCliente && isSameServicio && isSameEstado;
 };
 
 const AgendaTable = () => {
-  const [estilistas, setEstilistas] = useState<string[]>([]);
-  const [colDefs, setColDefs] = useState<any[]>([]);
-  const [rowInitData, setRowInitData] = useState<any[]>([]);
-  
-  // Load estilistas from MongoDB
+  const {
+    citas,
+    fecha,
+    estilistas: estilistasFull,
+    refetchEstilistas,
+    bloqueos,
+  } = useAgendaContext();
+  const { feriados } = useFeriadosCtx();
+  const theme = useTheme();
+  const [colDefs, setColDefs] = useState<ColDef<FilaAgenda>[]>([]);
+  const [rowInitData, setRowInitData] = useState<FilaAgenda[]>([]);
+
+  // AgendaContext vive fuera de las rutas (no se remonta al navegar), así
+  // que los estilistas que cargó al iniciar la app pueden quedar
+  // desactualizados si se editaron sus vacaciones en la página de
+  // Estilistas. Este componente sí se remonta cada vez que se entra a la
+  // Agenda, así que aprovechamos ese montaje para refrescarlos.
   useEffect(() => {
-    const loadEstilistas = async () => {
-      try {
-        const estilistasData = await window.api.getEstilistas();
-        const filteredEstilistas = estilistasData.filter((est) => est.role === "estilista");
-        const estilistasNames = filteredEstilistas.map((est) => est.name);
-        setEstilistas(estilistasNames);
-      } catch (error) {
-        console.error("Error loading estilistas:", error);
-      }
-    };
-    loadEstilistas();
+    refetchEstilistas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar; refetchEstilistas cambia de referencia en cada render del contexto
   }, []);
+
+  const estilistas = useMemo(
+    () =>
+      estilistasFull
+        .filter((est) => est.role === "estilista")
+        .map((est) => est.name),
+    [estilistasFull],
+  );
+
+  const feriado = useMemo(
+    () => feriados.find((f) => f.fecha === fecha),
+    [feriados, fecha],
+  );
 
   // Update column definitions and initial row data when estilistas change
   useEffect(() => {
     if (estilistas.length === 0) return;
 
-    const estilistasDayData: DynamicObject = {};
+    const estilistasDayData: Record<string, ValorCelda> = {};
     const conlDefsData = estilistas.map((estilista) => {
       estilistasDayData[estilista] = "";
       return {
@@ -68,7 +111,7 @@ const AgendaTable = () => {
           display: "flex",
           justifyContent: "center",
           alignContent: "center",
-          padding: ".1rem",
+          padding: 0,
         },
       };
     });
@@ -94,8 +137,7 @@ const AgendaTable = () => {
   }, [estilistas]);
 
   // Row Data: The data to be displayed.
-  const [rowsData, setRowsData] = useState<[] | Array<any>>([]);
-  const { citas, fecha } = useAgendaContext();
+  const [rowsData, setRowsData] = useState<FilaAgenda[]>([]);
 
   const todaysCitas = useMemo(
     () => citas.filter((cita) => cita.fecha === fecha),
@@ -106,6 +148,7 @@ const AgendaTable = () => {
     () => ({
       flex: 2,
       headerStyle: { textAlign: "center" },
+      sortable: false
     }),
     [],
   );
@@ -116,9 +159,9 @@ const AgendaTable = () => {
       themeQuartz.withParams({
         columnBorder: true,
         rowBorder: false,
-        oddRowBackgroundColor: "#F9FAFB",
+        oddRowBackgroundColor: theme.palette.agenda.oddRow,
       }),
-    [],
+    [theme],
   );
 
   const genarateRowsByService = useCallback((servicio: ServicioAgendado) => {
@@ -159,27 +202,63 @@ const AgendaTable = () => {
     return arrNewServices;
   }, [genarateRowsByService]);
 
+  const prevRowsDataRef = useRef<FilaAgenda[]>([]);
+
+  const isSameCellValue = useCallback(
+    (a: ValorCelda | undefined, b: ValorCelda | undefined) => {
+    if (a === "" || b === "") return a === b;
+    if (!a || !b) return a === b;
+    if ("blocked" in a || "blocked" in b) {
+      return (
+        "blocked" in a &&
+        "blocked" in b &&
+        a.blocked === b.blocked &&
+        a.motivo === b.motivo &&
+        a.bloqueoId === b.bloqueoId
+      );
+    }
+    if (
+      a.clienteId !== b.clienteId ||
+      a.nombreCliente !== b.nombreCliente ||
+      a.telefonoCliente !== b.telefonoCliente ||
+      a.estado !== b.estado
+    ) {
+      return false;
+    }
+    const servicioA = a.servicio;
+    const servicioB = b.servicio;
+    return (
+      servicioA?.cellID === servicioB?.cellID &&
+      servicioA?.duracion === servicioB?.duracion &&
+      servicioA?.horaInicio === servicioB?.horaInicio &&
+      servicioA?.horaFin === servicioB?.horaFin &&
+      servicioA?.servicio?.id === servicioB?.servicio?.id &&
+      servicioA?.servicio?.nombre === servicioB?.servicio?.nombre &&
+      servicioA?.servicio?.precio === servicioB?.servicio?.precio
+    );
+    },
+    [],
+  );
+
   const updateRowsDataByCitas = useCallback(() => {
     if (rowInitData.length === 0) return;
-    
-    console.log("Updating rows data by citas...", todaysCitas.length, "appointments for", fecha);
-    
-    if (todaysCitas.length === 0) {
-      setRowsData(rowInitData);
-      return;
-    }
 
-    // Build new rows in one pass instead of multiple setState calls
-    const newRowsData: Array<any> = rowInitData.map(row => ({ ...row }));
-    
+    console.log("Updating rows data by citas...", todaysCitas.length, "appointments for", fecha);
+
+    const prevRowsData = prevRowsDataRef.current;
+
+    // Compute the target cell values for every row (estilista columns only)
+    const targetRows: FilaAgenda[] = rowInitData.map((row) => ({ ...row }));
+
     todaysCitas.forEach((cita) => {
-      const { nombreCliente, telefonoCliente, fecha, estado } = cita;
+      const { clienteId, nombreCliente, telefonoCliente, fecha, estado } = cita;
       const realServices = getRealServicesArray(cita.servicios);
-      
+
       realServices.forEach((servicio) => {
         const { rowIndex, estilista } = servicio;
-        if (newRowsData[rowIndex]) {
-          (newRowsData[rowIndex] as DynamicObject)[estilista] = {
+        if (targetRows[rowIndex]) {
+          targetRows[rowIndex][estilista] = {
+            clienteId,
             nombreCliente,
             telefonoCliente,
             fecha,
@@ -189,9 +268,68 @@ const AgendaTable = () => {
         }
       });
     });
-    
+
+    // Celdas sin cita: si el estilista está de vacaciones o tiene un
+    // bloqueo (comida/descanso) que cubre esa fila, se marcan como
+    // bloqueadas en vez de vacías, para impedir agendar sobre ellas.
+    estilistas.forEach((estilista) => {
+      const vacacionesEstilista = estilistasFull.find(
+        (e) => e.name === estilista,
+      )?.vacaciones;
+      targetRows.forEach((row, rowIndex) => {
+        if (row[estilista] !== "") return;
+        const estado = celdaEstaBloqueada(
+          estilista,
+          [rowIndex],
+          vacacionesEstilista,
+          fecha,
+          bloqueos,
+        );
+        if (estado.blocked) {
+          row[estilista] = estado;
+        }
+      });
+    });
+
+    // Reuse previous row/cell object references when the content hasn't changed,
+    // so ag-grid (getRowId) and React.memo can skip re-rendering unaffected cells.
+    const newRowsData: FilaAgenda[] = targetRows.map((targetRow, rowIndex) => {
+      const prevRow = prevRowsData[rowIndex];
+      if (!prevRow) return targetRow;
+
+      let rowChanged = false;
+      const mergedRow: FilaAgenda = { ...targetRow };
+
+      Object.keys(targetRow).forEach((key) => {
+        if (key === "hour" || key === "isSelected") return;
+        // Las demás llaves son columnas de estilista
+        if (
+          isSameCellValue(
+            targetRow[key] as ValorCelda,
+            prevRow[key] as ValorCelda | undefined,
+          )
+        ) {
+          mergedRow[key] = prevRow[key];
+        } else {
+          rowChanged = true;
+        }
+      });
+
+      return rowChanged ? mergedRow : prevRow;
+    });
+
+    prevRowsDataRef.current = newRowsData;
     setRowsData(newRowsData);
-  }, [todaysCitas, fecha, getRealServicesArray, rowInitData]);
+  }, [
+    todaysCitas,
+    fecha,
+    getRealServicesArray,
+    rowInitData,
+    isSameCellValue,
+    estilistas,
+    estilistasFull,
+    bloqueos,
+  ]);
 
   useEffect(() => {
     console.log("Citas or fecha changed, updating rows data...");
@@ -200,14 +338,68 @@ const AgendaTable = () => {
 
   return (
     // Data Grid will fill the size of the parent container
-    <div style={{ height: "100%" }}>
+    <div style={{ height: "100%", position: "relative" }}>
+      {feriado ? (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 10,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 4,
+            backgroundColor: theme.palette.agenda.bloqueos.feriado.bg,
+            pointerEvents: "auto",
+          }}
+        >
+          {/* Pastilla blanca detrás del texto para que resalte sobre el
+              fondo del bloqueo; con #263238 sobre blanco el contraste es
+              >= 11:1 (AAA). */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 4,
+              backgroundColor: theme.palette.agenda.bloqueos.feriado.chipBg,
+              borderRadius: "999px",
+              padding: "12px 24px",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "1.1rem",
+                fontWeight: 700,
+                color: theme.palette.agenda.bloqueos.feriado.chipText,
+              }}
+            >
+              {theme.palette.agenda.bloqueos.feriado.icon} Feriado: {feriado.nombre}
+            </span>
+            <span
+              style={{
+                fontSize: "0.85rem",
+                fontWeight: 600,
+                color: theme.palette.agenda.bloqueos.feriado.chipText,
+              }}
+            >
+              No se pueden agendar citas este día
+            </span>
+          </div>
+        </div>
+      ) : null}
       <AgGridReact
         rowData={rowsData}
+        getRowId={(params) => params.data.hour.label24}
+        animateRows={true}
         columnDefs={colDefs}
         defaultColDef={defaultColdef}
         theme={myTheme}
-        rowHeight={104}
         enableCellSpan={true}
+        rowHeight={48}
+        headerHeight={36}
       />
     </div>
   );

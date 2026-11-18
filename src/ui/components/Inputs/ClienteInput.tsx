@@ -1,16 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { Autocomplete, Box, IconButton, TextField } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Autocomplete, Box, TextField } from "@mui/material";
 import { Cliente } from "../../types/Cliente";
-import { useThrottle } from "../../hooks/useThrottle";
 
 type Props = {
   name?: string;
   ctxValue?: string;
   autoFocus?: boolean;
-  ctxOptions?: Cliente[];
+  ctxOptions: Cliente[];
   dispatchContext?: (value: string) => void;
-  handleSearch?: (e: React.MouseEvent<HTMLButtonElement>, value: string) => void;
   onSelectCliente?: (cliente: Cliente) => void;
 };
 
@@ -19,64 +16,31 @@ function ClienteInput({
   ctxValue,
   dispatchContext,
   autoFocus,
-  handleSearch,
   onSelectCliente,
   ctxOptions,
 }: Props) {
-  const [allClientes, setAllClientes] = useState<Cliente[]>([]);
-  const [options, setOptions] = useState<Cliente[]>([]);
+  const options = useMemo(() => {
+    const seen = new Set<number>();
+    return ctxOptions.filter((cliente) => {
+      if (seen.has(cliente.id)) return false;
+      seen.add(cliente.id);
+      return true;
+    });
+  }, [ctxOptions]);
+
   const [inputValue, setInputValue] = useState<string>(ctxValue || "");
   const [selectedOption, setSelectedOption] = useState<Cliente | string | null>(
     ctxValue || "",
   );
 
-  const fetchClientes = useThrottle(async (query: string) => {
-    if (!query.trim()) {
-      setOptions(allClientes);
-      return;
-    }
-
-    const filtered = allClientes.filter((cliente) =>
-      cliente.nombre.toLowerCase().includes(query.toLowerCase()),
-    );
-
-    if (filtered.length > 0) {
-      setOptions(filtered);
-      return;
-    }
-
-    try {
-      const clientes = await window.api.getClientesByNombre(query);
-      setOptions(clientes || []);
-    } catch (error) {
-      console.error("Error fetching clientes:", error);
-      setOptions([]);
-    }
-  }, 300);
-
-  const loadClientes = async () => {
-      try {
-        const clientes = await window.api.getClientes();
-        setAllClientes(clientes || []);
-        setOptions(clientes || []);
-      } catch (error) {
-        console.error("Error preloading clientes:", error);
-        setAllClientes([]);
-        setOptions([]);
-      }
-    };
-  
+  // Evita el eco: cuando este componente dispara dispatchContext, el valor
+  // vuelve por ctxValue y no debe disparar otra vez setInputValue,
+  // solo re-sincronizamos si el cambio vino de fuera (otro campo/selección).
+  const lastDispatched = useRef(ctxValue || "");
 
   useEffect(() => {
-    if (ctxOptions) {
-      setAllClientes(ctxOptions);
-      setOptions(ctxOptions);
-      return;
-    }
-    loadClientes();
-  }, [ctxOptions]);
-
-  useEffect(() => {
+    if ((ctxValue || "") === lastDispatched.current) return;
+    lastDispatched.current = ctxValue || "";
     setInputValue(ctxValue || "");
   }, [ctxValue]);
 
@@ -104,13 +68,9 @@ function ClienteInput({
     _event: React.SyntheticEvent,
     newInputValue: string,
   ) => {
+    lastDispatched.current = newInputValue;
     setInputValue(newInputValue);
     dispatchContext?.(newInputValue);
-    // if (newInputValue.trim().length > 0) {
-    //   fetchClientes(newInputValue);
-    //   return;
-    // }
-    // setOptions(allClientes);
   };
 
   return (
@@ -119,6 +79,12 @@ function ClienteInput({
       openOnFocus
       getOptionLabel={(option) =>
         typeof option === "string" ? option : option.nombre
+      }
+      isOptionEqualToValue={(option, val) =>
+        typeof val === "string" ? option.nombre === val : option.id === val.id
+      }
+      getOptionKey={(option) =>
+        typeof option === "string" ? option : option.id
       }
       options={options}
       value={selectedOption}

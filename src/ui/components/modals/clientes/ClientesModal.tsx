@@ -12,7 +12,6 @@ import { useClientesCtx } from "../../../contexts/ClientesCtx";
 import { getCurrentDate } from "../../../utils/utils";
 
 interface Client {
-  id?: string;
   nombre: string;
   telefono: string;
   correo?: string;
@@ -44,8 +43,8 @@ const validateForm = (formData: Client): FormErrors => {
   // Phone validation
   if (!formData.telefono || formData.telefono.trim() === "") {
     errors.telefono = "El teléfono es requerido";
-  } else if (!/^\d{10}$/.test(formData.telefono.replace(/\D/g, ""))) {
-    errors.telefono = "El teléfono debe tener 10 dígitos";
+  } else if (!/^\d{10,}$/.test(formData.telefono.replace(/\D/g, ""))) {
+    errors.telefono = "El teléfono debe tener al menos 10 dígitos";
   }
 
   // Email validation (optional but must be valid if provided)
@@ -94,7 +93,6 @@ export const ClientesModal: React.FC<ClientDialogProps> = ({
     }
 
     addCliente({
-      id: Date.now(),
       nombre: formData.nombre,
       telefono: formData.telefono,
       correo: formData.correo || "",
@@ -131,14 +129,13 @@ export const ClientesModal: React.FC<ClientDialogProps> = ({
           <TextField
             type="tel"
             name="telefono"
-            placeholder="Teléfono (10 dígitos)"
+            placeholder="Teléfono (mínimo 10 dígitos)"
             value={formData.telefono}
             onChange={handleChange}
             required
             error={!!errors.telefono}
             helperText={errors.telefono}
             fullWidth
-            inputProps={{ maxLength: 10 }}
           />
           <TextField
             type="email"

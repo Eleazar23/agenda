@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Button, Grid, Paper } from "@mui/material";
+import { Button, Grid, Paper } from "@mui/material";
 import EstilistasTable from "../tables/EstilistasTable";
 import EstilistaModal from "../modals/EstilistaModal";
 import { useSnackbar } from "notistack";

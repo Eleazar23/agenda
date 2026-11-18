@@ -2,78 +2,280 @@ import {
   Box,
   Card,
   CardActionArea,
-  CardContent,
+  Chip,
+  Menu,
+  MenuItem,
+  Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
-// import { useAgendaContext } from "../../contexts/AgendaContext";
+import { darken, useTheme } from "@mui/material/styles";
+import { useAgendaContext } from "../../contexts/AgendaContext";
 import type { CustomCellRendererProps } from "ag-grid-react";
 import CitaModal from "../modals/CitaModal";
-import { useState } from "react";
+import React, { useState } from "react";
+import VolunteerActivismOutlinedIcon from "@mui/icons-material/VolunteerActivismOutlined";
+import {
+  capitalizeFirstLetter,
+  getHrsObj,
+  toTitleString,
+} from "../../utils/utils";
+
+const formatHora12 = (hora: string) => getHrsObj(hora)?.label12 ?? hora;
+import { statusOptions } from "../../constants/statusOptions";
+import type { CitaStatusKey } from "../../theme/theme";
+
+const STYLES = {
+  mainContainer: {
+    width: "100%",
+    height: "100%",
+  },
+  card: {
+    height: "calc(100% - 2px)",
+    width: "calc(100% - 4px)",
+    margin: "1px 2px",
+    borderRadius: "4px",
+    display: "flex",
+    flexDirection: "row",
+  },
+  cardActionArea: {
+    height: "100%",
+    width: "100%",
+    padding: "3px 10px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    justifyContent: "center",
+    gap: 0.25,
+  },
+  detailRow: {
+    width: "100%",
+    minWidth: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 0.75,
+  },
+  nameRow: {
+    width: "100%",
+    minWidth: 0,
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 0.75,
+  },
+};
 
 const CitaCell = (params: CustomCellRendererProps) => {
-  // const { setIsCitaOpen } = useAgendaContext();
+  const { citas, handleEditCita } = useAgendaContext();
+  const theme = useTheme();
   const [isCitaOpen, setIsCitaOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isUpdatingEstado, setIsUpdatingEstado] = useState(false);
   const { value } = params;
-  const { servicio } = value;
+  const { servicio, estado } = value;
+  const citaDeCelda = citas.find(
+    (c) => c.clienteId === value.clienteId && c.fecha === value.fecha,
+  );
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     console.log("Opening modal for:", value);
-    // setCita(value);
     setIsCitaOpen(true);
   };
 
+  const handleChipClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (isUpdatingEstado) return;
+    setAnchorEl(e.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEstadoSelect = async (
+    e: React.MouseEvent<HTMLLIElement>,
+    nuevoEstado: string,
+  ) => {
+    e.stopPropagation();
+    setAnchorEl(null);
+    if (nuevoEstado === estado || isUpdatingEstado) return;
+
+    const citaCompleta = citaDeCelda;
+    if (!citaCompleta) return;
+
+    setIsUpdatingEstado(true);
+    try {
+      await handleEditCita(
+        citaCompleta.id,
+        { ...citaCompleta, estado: nuevoEstado },
+      );
+    } finally {
+      setIsUpdatingEstado(false);
+    }
+  };
+
+  const propinas = citaDeCelda?.propinas || [];
+  const totalPropinas = propinas.reduce((acc, p) => acc + Number(p.monto), 0);
+  const detallePropinas = propinas
+    .map((p) => `${capitalizeFirstLetter(p.estilista)} $${p.monto}`)
+    .join(", ");
+
+  const colors =
+    theme.palette.agenda.citas[estado as CitaStatusKey] ||
+    theme.palette.agenda.citas["sin confirmar"];
+  const isPagado = estado === "pagado";
+  const isNoAsistio = estado === "no asistio";
+  // "Pagado" es el único estado con relleno sólido; para los demás se
+  // oscurece ~5% con darken(). Para pagado se usa el tono definido a mano.
+  const hoverBg = isPagado ? "#276B2B" : darken(colors.bg, 0.05);
+  const chipLabel = isPagado
+    ? "✓ Pagado"
+    : value.estado.charAt(0).toUpperCase() + value.estado.slice(1);
+
   return (
-    <Box
-      sx={{
-        width: "100%",
-        height: "100%",
-      }}
-    >
-      <Card
-        sx={{ height: "100%", width: "100%", backgroundColor: "#0D47A1" }}
+    <Box sx={STYLES.mainContainer}>
+      <Tooltip
+        title={
+          <Stack spacing={0.5} sx={{ p: 0.5 }}>
+            <Typography variant="body2" fontWeight="bold">
+              {toTitleString(value.nombreCliente)}
+            </Typography>
+            <Typography variant="body2">
+              {`${servicio?.servicio.nombre} - $${servicio?.servicio.precio}`}
+            </Typography>
+            <Typography variant="body2">
+              {`${formatHora12(servicio?.horaInicio ?? "")} - ${formatHora12(servicio?.horaFin ?? "")}`}
+            </Typography>
+            {totalPropinas > 0 && (
+              <Typography variant="body2">
+                {`Propina: $${totalPropinas} (${detallePropinas})`}
+              </Typography>
+            )}
+          </Stack>
+        }
+        arrow
+        placement="top"
       >
-        <CardActionArea onClick={handleClick} sx={{ height: "100%" }}>
-          <CardContent
+        <Card
+          elevation={0}
+          sx={{
+            ...STYLES.card,
+            backgroundColor: colors.bg,
+            borderLeft: `4px solid ${colors.border}`,
+          }}
+        >
+          <CardActionArea
+            onClick={(e) => handleClick(e)}
             sx={{
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              padding: "0.5rem",
+              ...STYLES.cardActionArea,
+              "&:hover": { backgroundColor: hoverBg },
             }}
           >
-            <Typography
-              variant="body1"
-              fontWeight="bold"
-              component="div"
-              color="white"
-            >
-              {value.nombreCliente}
-            </Typography>
-            <Typography variant="body1" component="div" color="#90CAF9">
-              {value.telefonoCliente}
-            </Typography>
-            <Typography variant="body2" color="#90CAF9">
-              {`${servicio?.servicio.nombre} - $${servicio?.servicio.precio} | ${(value?.estado).charAt(0).toUpperCase() + (value?.estado).slice(1)}` ||
-                ""}
-            </Typography>
-            {/* <Typography variant="body2" color="white">
-                Tiempo: {servicio?.duracion} minutos
-              </Typography> */}
-          </CardContent>
-        </CardActionArea>
-      </Card>
-      <CitaModal
-        key={servicio?.id}
-        fecha={value.fecha}
-        nombreCliente={value.nombreCliente}
-        telefonoCliente={value.telefonoCliente}
-        servicio={servicio}
-        estado={value.estado}
-        isCitaOpen={isCitaOpen}
-        setIsCitaOpen={setIsCitaOpen}
-      />
+            <Stack sx={STYLES.nameRow}>
+              <Typography
+                variant="body2"
+                fontWeight={500}
+                component="span"
+                noWrap
+                color={colors.name}
+                sx={{
+                  minWidth: 0,
+                  flexShrink: 1,
+                  fontSize: "0.9rem",
+                  lineHeight: 1.25,
+                  textDecoration: isNoAsistio ? "line-through" : "none",
+                }}
+              >
+                {toTitleString(value.nombreCliente)}
+              </Typography>
+              <Typography
+                variant="body2"
+                component="span"
+                noWrap
+                color={colors.text}
+                sx={{
+                  flexShrink: 0,
+                  fontSize: "0.75rem",
+                  lineHeight: 1.25,
+                }}
+              >
+                {value.telefonoCliente}
+              </Typography>
+            </Stack>
+            <Stack sx={STYLES.detailRow}>
+              <Typography
+                variant="body2"
+                component="span"
+                noWrap
+                color={colors.text}
+                sx={{
+                  minWidth: 0,
+                  fontSize: "0.75rem",
+                  lineHeight: 1.2,
+                }}
+              >
+                {servicio?.servicio.nombre || ""}
+              </Typography>
+              {totalPropinas > 0 && (
+                <VolunteerActivismOutlinedIcon
+                  aria-label="Tiene propina"
+                  sx={{ fontSize: 14, color: colors.text, flexShrink: 0 }}
+                />
+              )}
+              <Chip
+                id="estadoChip"
+                size="small"
+                label={chipLabel}
+                onClick={handleChipClick}
+                sx={{
+                  backgroundColor: colors.chipBg,
+                  color: colors.chipText,
+                  borderRadius: "999px",
+                  height: 20,
+                  fontSize: "0.7rem",
+                  flexShrink: 0,
+                  "& .MuiChip-label": { padding: "0 8px" },
+                }}
+              />
+            </Stack>
+          </CardActionArea>
+        </Card>
+      </Tooltip>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {statusOptions.map((option) => (
+          <MenuItem
+            key={option.id}
+            selected={option.value === value.estado}
+            onClick={(e) => handleEstadoSelect(e, option.value)}
+          >
+            {option.label}
+          </MenuItem>
+        ))}
+      </Menu>
+      {/* Se monta solo mientras está abierto para que cada apertura parta de
+          los datos actuales de la cita y no del estado de la anterior */}
+      {isCitaOpen && (
+        <CitaModal
+          fecha={value.fecha}
+          clienteId={value.clienteId}
+          nombreCliente={value.nombreCliente}
+          telefonoCliente={value.telefonoCliente}
+          servicio={servicio}
+          estado={value.estado}
+          isCitaOpen={isCitaOpen}
+          setIsCitaOpen={setIsCitaOpen}
+        />
+      )}
     </Box>
   );
 };
 
-export default CitaCell;
+export default React.memo(
+  CitaCell,
+  (prevProps, nextProps) => prevProps.value === nextProps.value,
+);

@@ -14,6 +14,12 @@ export interface IProductoInCita {
   cantidad: number;
 }
 
+export interface IPropinaInCita {
+  estilista: string;
+  monto: number;
+  metodoDePago: string;
+}
+
 export interface IServicioAgendadoInCita {
   rowIndex: number;
   cellID: string;
@@ -23,10 +29,13 @@ export interface IServicioAgendadoInCita {
   horaFin: string;
   duracion: number;
   fecha: string;
+  fechaCreacion?: string;
+  horaCreacion?: string;
 }
 
 export interface ICita {
   id: string;
+  clienteId: number;
   fecha: string;
   nombreCliente: string;
   telefonoCliente: string;
@@ -35,6 +44,9 @@ export interface ICita {
   estado: string;
   metodoDePago: string;
   notas: string;
+  propinas?: IPropinaInCita[];
+  fechaCreacion?: string;
+  horaCreacion?: string;
 }
 
 const servicioInCitaSchema = new Schema<IServicioInCita>({
@@ -43,16 +55,54 @@ const servicioInCitaSchema = new Schema<IServicioInCita>({
   precio: { type: String, required: true },
 }, { _id: false });
 
+const servicioAgendadoInCitaSchema = new Schema<IServicioAgendadoInCita>({
+  rowIndex: { type: Number, required: true },
+  cellID: { type: String, required: true },
+  servicio: { type: servicioInCitaSchema, required: true },
+  estilista: { type: String, required: true },
+  horaInicio: { type: String, required: true },
+  horaFin: { type: String, required: true },
+  duracion: { type: Number, required: true },
+  fecha: { type: String, required: true },
+  // Fecha y hora reales en las que se agendó este servicio (referencia de
+  // auditoría, no se tocan al editar/mover la cita). Opcionales para no
+  // romper documentos guardados antes de estos campos.
+  fechaCreacion: { type: String },
+  horaCreacion: { type: String },
+}, { _id: false });
+
+const productoInCitaSchema = new Schema<IProductoInCita>({
+  id: { type: Number, required: true },
+  nombre: { type: String, required: true },
+  estilista: { type: String, required: true },
+  precio: { type: String, required: true },
+  cantidad: { type: Number, required: true },
+}, { _id: false });
+
+const propinaInCitaSchema = new Schema<IPropinaInCita>({
+  estilista: { type: String, required: true },
+  monto: { type: Number, required: true, min: 0 },
+  metodoDePago: { type: String, default: 'efectivo' },
+}, { _id: false });
+
 const citaSchema = new Schema<ICita>({
   id: { type: String, required: true, unique: true },
+  clienteId: { type: Number, required: true },
   fecha: { type: String, required: true },
   nombreCliente: { type: String, required: true },
   telefonoCliente: { type: String, required: true },
-  servicios: { type: [Object], default: [] },
-  productos: { type: [Object], default: [] },
+  servicios: { type: [servicioAgendadoInCitaSchema], default: [] },
+  productos: { type: [productoInCitaSchema], default: [] },
   estado: { type: String, required: true },
   metodoDePago: { type: String},
   notas: { type: String},
+  // Opcional (default []) para no romper citas guardadas antes de este campo.
+  propinas: { type: [propinaInCitaSchema], default: [] },
+  // Fecha y hora reales en las que se creó la cita (referencia de
+  // auditoría, no se tocan al editar/mover la cita). Opcionales para no
+  // romper documentos guardados antes de estos campos.
+  fechaCreacion: { type: String },
+  horaCreacion: { type: String },
 });
 
 export const Cita = model<ICita>('Cita', citaSchema);

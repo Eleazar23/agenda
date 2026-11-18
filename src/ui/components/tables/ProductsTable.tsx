@@ -3,9 +3,8 @@ import { useState } from "react";
 
 import {
   AllCommunityModule,
-  CellEditingStartedEvent,
+  ColDef,
   ModuleRegistry,
-  CellValueChangedEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import ProductosActionsCell from "../CustomeCells/ProductosActionsCell";
@@ -39,6 +38,7 @@ const colsData = [
     {
     field: "precio",
     headerName: "Precio",
+    cellDataType: "text",
     },
     {
     field: "descripcion",
@@ -60,7 +60,7 @@ const ProductsTable = ({ searchTerm }: Props) => {
   const { dataTable} = useProductosCtx();
 
   // Column Definitions: Defines the columns to be displayed.
-  const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
+  const [colDefs] = useState<ColDef[]>(colsData);
 
   const defaultColDef = React.useMemo(
     () => ({

@@ -1,7 +1,6 @@
 import * as React from "react";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
-import { useAgendaContext } from "../../contexts/AgendaContext";
 import { Servicio } from "../../types/Servicio";
 import { Box } from "@mui/material";
 
@@ -29,7 +28,10 @@ export default function ServiciosInput({ value, onChange }: Props) {
   const [options, setOptions] = React.useState<Array<Servicio>>([]);
   const [inputValue, setInputValue] = React.useState("");
 
-  const handleChange = (event: any, newValue: Servicio | null) => {
+  const handleChange = (
+    event: React.SyntheticEvent,
+    newValue: Servicio | null,
+  ) => {
     event.preventDefault();
     if (newValue) {
       onChange(newValue);

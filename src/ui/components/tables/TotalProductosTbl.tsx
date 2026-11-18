@@ -1,7 +1,14 @@
 import React from "react";
-import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
+import {
+  AllCommunityModule,
+  ColDef,
+  ModuleRegistry,
+  ValueFormatterParams,
+  ValueGetterParams,
+} from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { ProductoInCita } from "../../types/Producto";
+import { capitalizeFirstLetter } from "../../utils/utils";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -10,18 +17,16 @@ type Props = {
 };
 
 function TotalProductosTbl({ productos }: Props) {
-  const [rowsData, setRowsData] = React.useState<
-    Array<ProductoInCita> | undefined
-  >(productos);
-  const [colDefs, setColDefs] = React.useState<Array<any>>([
-    { field: "estilista", headerName: "Estilista" },
+  const [colDefs] = React.useState<ColDef<ProductoInCita>[]>([
+    { field: "estilista", headerName: "Estilista", valueFormatter: (params: ValueFormatterParams<ProductoInCita>) => capitalizeFirstLetter(params.value) },
     { field: "nombre", headerName: "Nombre del producto" },
     { field: "precio", headerName: "Precio unitario" },
     { field: "cantidad", headerName: "Cantidad" },
     {
       field: "total",
       headerName: "Total",
-      valueGetter: (params: any) => params.data.precio * params.data.cantidad,
+      valueGetter: (params: ValueGetterParams<ProductoInCita>) =>
+        params.data ? params.data.precio * params.data.cantidad : 0,
     },
   ]);
   return (

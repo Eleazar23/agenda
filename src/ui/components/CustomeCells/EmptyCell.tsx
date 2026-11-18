@@ -1,15 +1,22 @@
 import { Button } from "@mui/material";
-import { useState } from "react";
+import { useTheme } from "@mui/material/styles";
+import React from "react";
 import { useAgendaContext } from "../../contexts/AgendaContext";
+import { getCurrentDate, getCurrentTime } from "../../utils/utils";
 import type { CustomCellRendererProps } from "ag-grid-react";
 
 const EmptyCell = (params: CustomCellRendererProps) => {
-  const { cita, fecha } = useAgendaContext();
-  const estilista = (params.column as any)?.colId || "";
+  const { cita, fecha, removeServiceFromCita, addServiceToCita } =
+    useAgendaContext();
+  const theme = useTheme();
+  const estilista = params.column?.getColId() || "";
   const hr = params.data?.hour;
   const rowIndex = params.node?.rowIndex || 0;
-  const [isSelected, setIsSelected] = useState(false);
   const cellID = `${rowIndex}-${estilista}`;
+  // Derivado directamente del draft de la cita (no estado local), para que
+  // se mantenga en sincronía cuando se cancela la cita o se remueve el
+  // servicio desde otro lugar.
+  const isSelected = cita.servicios.some((s) => s.cellID === cellID);
   const cellData = {
     rowIndex,
     cellID,
@@ -23,17 +30,16 @@ const EmptyCell = (params: CustomCellRendererProps) => {
     horaInicio: hr.label24,
     horaFin: hr.label24,
     duracion: 30,
+    fechaCreacion: getCurrentDate().formattedDate,
+    horaCreacion: getCurrentTime(),
   };
-  const { removeServiceFromCita, addServiceToCita } = useAgendaContext();
   // console.log('Empty Cell Params:', params)
 
   const handleClick = async () => {
     if (!isSelected) {
-      setIsSelected(() => true);
       addServiceToCita(cellData);
       return;
     }
-    setIsSelected(() => false);
     removeServiceFromCita(cellData);
   };
 
@@ -41,7 +47,15 @@ const EmptyCell = (params: CustomCellRendererProps) => {
     <>
       <Button
         color="secondary"
-        sx={{ width: "100%" }}
+        sx={{
+          width: "100%",
+          height: "100%",
+          minWidth: 0,
+          minHeight: 0,
+          borderRadius: 0,
+          padding: "2px 4px",
+          ...(isSelected ? {} : { color: theme.palette.agenda.emptyCell.dash }),
+        }}
         variant={isSelected ? "contained" : "text"}
         onClick={handleClick}
       >
@@ -52,4 +66,7 @@ const EmptyCell = (params: CustomCellRendererProps) => {
   );
 };
 
-export default EmptyCell;
+export default React.memo(
+  EmptyCell,
+  (prevProps, nextProps) => prevProps.value === nextProps.value,
+);

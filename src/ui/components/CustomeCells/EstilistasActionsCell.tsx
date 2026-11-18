@@ -1,22 +1,18 @@
-import React, { useEffect, useState } from "react";
-import type { CustomCellRendererProps } from "ag-grid-react";
+import React, { useState } from "react";
 import { Box } from "@mui/material";
 import EditBtn from "../buttons/EditBtn";
 import DeleteBtn from "../buttons/DeleteBtn";
+import VacacionesBtn from "../buttons/VacacionesBtn";
 import EditEstilistasModal from "../modals/EditEstilistaModal";
-import { useEstilistasCtx } from "../../contexts/EstilistaContext";
+import VacacionesModal from "../modals/VacacionesModal";
 import ElimEstilistaModal from "../modals/ElimEstilistaModal";
+import type { CustomCellRendererProps } from "ag-grid-react";
+import { Estilista } from "../../types/Estilista";
 
-function EstilistasActionsCell(params: any) {
-  const [isOpenModal, setIsOpenModal] = useState(false);
+function EstilistasActionsCell(params: CustomCellRendererProps<Estilista>) {
   const [isEditing, setIsEditing] = useState(false);
   const [isEliminar, setIsEliminar] = useState(false);
-  const { dataTable, setDataTable } = useEstilistasCtx();
-
-  const handleCloseModal = () => {
-    setIsOpenModal(false);
-  };
-
+  const [isVacaciones, setIsVacaciones] = useState(false);
   const handleEditClick = () => {
     console.log("Edit button clicked", params);
     setIsEditing(true);
@@ -33,19 +29,29 @@ function EstilistasActionsCell(params: any) {
   //   handleAlert("Estilista actualizado con éxito", "success");
   // };
 
+  if (!params.data) return null;
+  const rowIndex = params.node.rowIndex ?? 0;
+
   return (
     <>
       <Box display="flex" sx={{ width: "100%", height: "100%" }} gap={2}>
         <EditBtn onClick={handleEditClick} />
+        <VacacionesBtn onClick={() => setIsVacaciones(true)} />
         <DeleteBtn
           onClick={() => setIsEliminar(true)}
         />
       </Box>
       <EditEstilistasModal
-        rowIndex={params.node.rowIndex}
+        rowIndex={rowIndex}
         isOpen={isEditing}
         onClose={() => setIsEditing(false)}
         initialData={params.data}
+      />
+      <VacacionesModal
+        rowIndex={rowIndex}
+        isOpen={isVacaciones}
+        onClose={() => setIsVacaciones(false)}
+        estilistaData={params.data}
       />
       <ElimEstilistaModal
         isOpen={isEliminar}

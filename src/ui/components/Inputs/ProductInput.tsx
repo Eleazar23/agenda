@@ -21,7 +21,10 @@ export default function ProductInput({ value, onChange }: Props) {
   const [options, setOptions] = React.useState<Array<Producto>>([]);
   const [inputValue, setInputValue] = React.useState("");
 
-  const handleChange = (event: any, newValue: Producto | null) => {
+  const handleChange = (
+    event: React.SyntheticEvent,
+    newValue: Producto | null,
+  ) => {
     event.preventDefault();
     console.log("Selected product:", newValue);
     if (newValue) {
@@ -59,6 +62,9 @@ export default function ProductInput({ value, onChange }: Props) {
         />
       )}
       onChange={handleChange}
+      // Se recarga al abrir para mostrar el stock actual: la venta de
+      // productos lo descuenta en BD al momento.
+      onOpen={getProductos}
       onInputChange={(event, newInputValue) => {
         setInputValue(newInputValue);
       }}

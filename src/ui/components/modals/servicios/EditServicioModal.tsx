@@ -13,13 +13,15 @@ import { useServiciosCtx } from "../../../contexts/ServiciosContext";
 
 type Props = {
   isOpen: boolean;
-  rowIndex: number;
   onClose?: () => void;
-  initialData?: any;
+  initialData?: Servicio;
 };
 
-function EditServicioModal({ isOpen, rowIndex, onClose, initialData }: Props) {
-  const [formData, setFormData] = useState<Servicio>(
+// El precio se edita como texto y se convierte al guardar
+type ServicioForm = Omit<Servicio, "precio"> & { precio: number | string };
+
+function EditServicioModal({ isOpen, onClose, initialData }: Props) {
+  const [formData, setFormData] = useState<ServicioForm>(
     initialData || {
       id: 0,
       nombre: "",
@@ -40,7 +42,7 @@ function EditServicioModal({ isOpen, rowIndex, onClose, initialData }: Props) {
     }
   };
 
-  const validate = (data: Servicio) => {
+  const validate = (data: ServicioForm) => {
     const nextErrors: Partial<Record<keyof Servicio, string>> = {};
     if (!data.nombre?.trim()) nextErrors.nombre = "El nombre es obligatorio.";
     if (
@@ -58,7 +60,7 @@ function EditServicioModal({ isOpen, rowIndex, onClose, initialData }: Props) {
     const validationErrors = validate(formData);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length) return;
-    editServicio(rowIndex, { id, nombre, precio });
+    editServicio({ id, nombre, precio: Number(precio) });
     if (onClose) onClose();
   };
 

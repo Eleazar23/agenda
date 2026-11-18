@@ -32,8 +32,8 @@ type ClientesContextType = {
   dataTable: Array<Cliente>;
   setDataTable: React.Dispatch<React.SetStateAction<Array<Cliente>>>;
   handleAlert: (message: string, alertType: Alert) => void;
-  addCliente: (cliente: Cliente) => Promise<void>;
-  editCliente: (rowIndex: number, updatedCliente: Cliente) => Promise<void>;
+  addCliente: (cliente: Omit<Cliente, "id">) => Promise<void>;
+  editCliente: (updatedCliente: Cliente) => Promise<void>;
   removeCliente: (id: number) => Promise<void>;
 };
 
@@ -75,7 +75,11 @@ export const ClientesCtxProvider = ({ children }: Props) => {
     }
   };
 
-  const addCliente = async (cliente: Cliente) => {
+  const addCliente = async (cliente: Omit<Cliente, "id">) => {
+    if (!cliente.nombre || !cliente.telefono) {
+      handleAlert("Nombre y teléfono son obligatorios", "error");
+      return;
+    }
     try {
       const newCliente = await window.api.addCliente({
         nombre: cliente.nombre,
@@ -91,12 +95,12 @@ export const ClientesCtxProvider = ({ children }: Props) => {
     }
   };
 
-  const editCliente = async (rowIndex: number, updatedCliente: Cliente) => {
+  const editCliente = async (updatedCliente: Cliente) => {
     try {
       await window.api.updateCliente(updatedCliente);
       setDataTable((prev) =>
-        prev.map((cliente, index) =>
-          index === rowIndex ? updatedCliente : cliente
+        prev.map((cliente) =>
+          cliente.id === updatedCliente.id ? updatedCliente : cliente
         )
       );
       handleAlert("Cliente actualizado con éxito", "success");
@@ -113,7 +117,13 @@ export const ClientesCtxProvider = ({ children }: Props) => {
       handleAlert("Cliente eliminado con éxito", "success");
     } catch (error) {
       console.error("Error deleting cliente:", error);
-      handleAlert("Error al eliminar cliente", "error");
+      const match =
+        error instanceof Error &&
+        error.message.match(/^HAS_REFERENCES:cliente:(\d+)/);
+      const message = match
+        ? `No se puede eliminar: el cliente tiene ${match[1]} cita(s) en su historial`
+        : "Error al eliminar cliente";
+      handleAlert(message, "error");
     }
   };
 

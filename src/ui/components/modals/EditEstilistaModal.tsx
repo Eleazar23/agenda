@@ -11,16 +11,22 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  SelectChangeEvent,
 } from "@mui/material";
 import PhoneInput from "../Inputs/PhoneInput";
-import { set } from "mongoose";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
+
+interface Vacacion {
+  inicio: string;
+  fin: string;
+}
 
 interface Estilista {
   id: number;
   name: string;
   telefono: string;
   role: string;
+  vacaciones?: Vacacion[];
 }
 
 
@@ -50,7 +56,7 @@ const EditEstilistasModal: React.FC<ClientDialogProps> = ({
     setFormData((prev) => ({ ...prev, [name!]: value }));
   };
 
-  const handleRoleChange = (e: any) => {
+  const handleRoleChange = (e: SelectChangeEvent<string>) => {
     setFormData((prev) => ({ ...prev, role: e.target.value }));
   };
 

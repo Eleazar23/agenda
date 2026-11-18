@@ -3,9 +3,8 @@ import { useState } from "react";
 
 import {
   AllCommunityModule,
-  CellEditingStartedEvent,
+  ColDef,
   ModuleRegistry,
-  CellValueChangedEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import ClientesActionsCell from "../CustomeCells/ClientesActionsCell";
@@ -38,17 +37,14 @@ const colsData = [
 ];
 
 type Props = {
-  setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
-  handleEdit?: (node: any) => void;
   searchTerm?: string;
 };
 
-const ClientsTables = ({ setIsEditing, handleEdit, searchTerm }: Props) => {
-  const gridRef = React.useRef<AgGridReact<any>>(null);
+const ClientsTables = ({ searchTerm }: Props) => {
   // Row Data: The data to be displayed.
   const {dataTable } = useClientesCtx();
   // Column Definitions: Defines the columns to be displayed.
-  const [colDefs, setColDefs] = useState<null | Array<any>>(colsData);
+  const [colDefs] = useState<ColDef[]>(colsData);
 
   const defaultColDef = React.useMemo(
     () => ({
@@ -66,16 +62,6 @@ const ClientsTables = ({ setIsEditing, handleEdit, searchTerm }: Props) => {
       cliente.correo.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [dataTable, searchTerm]);
-
-  const handleEditingStarted = (event: CellEditingStartedEvent) => {
-    console.log("Cell editing started", event);
-    setIsEditing(true);
-  };
-
-  const hanldeCellChanged = (event: CellValueChangedEvent<any, any, any>) => {
-    console.log("Cell value changed", event);
-    handleEdit && handleEdit(event.node);
-  };
 
   // React.useEffect(() => {
   //   setRowData(globalData.clientes);

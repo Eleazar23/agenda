@@ -1,150 +1,144 @@
 # Copilot Instructions for Agenda Repository
 
+<!-- Kept in sync with CLAUDE.md at the repo root. Update both together. -->
+
 ## Project Overview
-**Status Salon Agenda** is a desktop salon management app built with Electron + React/TypeScript.  
-Manages appointments (citas), clients, stylists (estilistas), services, and products.
 
-**Current State:** Full-stack implementation with MongoDB persistence via IPC. React UI communicates with Electron main process through `window.api.*()` → `ipcMain.handle()` → Mongoose models. Legacy `globalData` mock exists but is **no longer used**.
+**Status Salon Agenda** is a desktop salon management app built with Electron + React/TypeScript. It manages appointments (citas, including tips/propinas), clients, stylists (estilistas, including vacaciones), services (servicios), products (productos), expenses (gastos), agenda notes (notas), holidays (feriados), and stylist time blocks (bloqueos).
 
-**Key Constraint:** All internal date strings are `DD-MM-YYYY`; HTML `<input type="date">` requires `YYYY-MM-DD` format conversion via `formatDateToHTML()` / `formatDateFromHTML()`.
+React UI communicates with the Electron main process through `window.api.*()` → `ipcMain.handle()` → Mongoose models → MongoDB. A legacy `globalData` mock exists in `src/ui/mock/` but is **no longer used**.
 
-## Build & Development Workflow
+## Commands
 
 | Command | Purpose | Notes |
 |---------|---------|--------|
 | `npm run dev` | Vite dev server (React only) | HMR at port 5173; fast iteration without Electron |
-| `npm run build` | Full production compile | TypeScript + Vite build; outputs `dist-react/` + `dist-electron/` |
+| `npm run build` | Full production compile | `tsc` + Vite build → outputs `dist-react/` + `dist-electron/` |
 | `npm run transpile:electron` | Compile Electron TypeScript only | Fast recompile of `src/electron/` after main.ts changes |
-| `npm run dev:electron` | Launch desktop app | Requires `npm run build` first |
-| `npm run lint` | Check TypeScript + ESLint | Fails on unused `// eslint-disable` directives |
-| `npm run seed:db` | Seed MongoDB with test data | Compiles Electron + runs seed.ts script |
+| `npm run dev:electron` | Launch desktop app | Runs `npm run build` first, then `electron .` |
+| `npm run lint` | ESLint (`ts,tsx`) | Fails on unused `// eslint-disable` directives, `--max-warnings 0` |
+| `npm run seed:db` | Seed MongoDB with test data | Compiles Electron + runs `dist-electron/seed.js` |
+| `npm run seed:reportes` | Seed data for the Reportes page | Runs `dist-electron/seedReportes.js` |
+| `npm run migrate:clienteid` / `migrate:citaids` | One-off data migrations | Scripts in `src/electron/migrate*.ts`; run against existing production DBs when upgrading |
+| `npm run dist:win` | Build Windows installer | `electron-builder --win --x64` |
 
-**Development Workflow:** `npm run dev` for UI iteration → `npm run build` + `npm run dev:electron` to test desktop app
+No test runner is configured in this repo.
 
-**MongoDB Setup:** Requires local MongoDB at `mongodb://localhost:27017/agenda`. See [MONGODB_SETUP.md](MONGODB_SETUP.md) for installation. Seed initial data with `npm run seed:db`.
+**Typical workflow:** `npm run dev` for UI iteration → `npm run build` + `npm run dev:electron` to verify inside the desktop app.
+
+**MongoDB:** Requires a local instance at `mongodb://localhost:27017/agenda` (override with the `MONGODB_URI` env var) (see [MONGODB_SETUP.md](MONGODB_SETUP.md)). Seed with `npm run seed:db`.
 
 ## Architecture
 
-### Three-Layer Stack (Current)
-1. **React UI** (`src/ui/`) – HashRouter pages (Agenda, Clientes, Estilistas, Servicios, Productos, Reportes)
-2. **Electron IPC Bridge** (`src/electron/preload.ts`) – contextBridge exposing `window.api.*()` methods
-3. **Electron Main + MongoDB** (`src/electron/main.ts`) – ipcMain handlers + Mongoose models in `src/electron/models/`
+### Three-layer stack
+1. **React UI** (`src/ui/`) – HashRouter pages (Agenda, Clientes, Estilistas, Servicios, Productos, Gastos, Reportes)
+2. **Electron IPC bridge** ([src/electron/preload.ts](src/electron/preload.ts)) – `contextBridge` exposing `window.api.*()` methods
+3. **Electron main + MongoDB** ([src/electron/main.ts](src/electron/main.ts)) – `ipcMain.handle()` handlers + Mongoose models in `src/electron/models/`
 
-**Data Flow:** React component → Context → `window.api.addCliente(data)` → `ipcMain.handle('add-cliente')` → Mongoose `Cliente.save()` → MongoDB
+**Data flow:** React component → Context → `window.api.addCliente(data)` → `ipcMain.handle('add-cliente')` → `Cliente.save()` → MongoDB. Contexts load data from MongoDB on mount and update local state after successful mutations (e.g. `await window.api.addCliente(data)` → `setDataTable([...newData])`).
 
-**IPC API Surface** ([preload.ts](src/electron/preload.ts)):
-```typescript
-window.api = {
-  // Each entity (clientes, estilistas, servicios, productos, citas)
-  get{Entity}s: () => Promise<Entity[]>
-  add{Entity}: (data) => Promise<Entity>
-  update{Entity}: (data) => Promise<Entity>
-  delete{Entity}: (id: number) => Promise<void>
-  // Special: getCitasByFecha(fecha: "DD-MM-YYYY")
-}
+**Mongoose models:** `src/electron/models/{Cliente,Estilista,Servicio,Producto,Cita,Gasto,Nota,Feriado,Bloqueo}.ts` use a numeric `id` field (not MongoDB `_id`) as the primary key. IPC handlers auto-increment it via `findOne().sort('-id')` + 1. `update-*` handlers strip `_id`/`__v` (via `sinCamposMongo`) before writing back. Sub-documents worth knowing: `Cita.propinas[]`, `Estilista.vacaciones[]` (`{inicio, fin}` in DD-MM-YYYY); `Bloqueo` is a separate collection keyed by `estilista` + `fecha` + `horaInicio`/`horaFin` (HH:mm). (Note: `Cita copy.ts` in that directory is a stray/unused duplicate — don't confuse it with `Cita.ts`.)
+
+**IPC API surface** ([preload.ts](src/electron/preload.ts)): each entity generally follows `get{Entity}s`, `add{Entity}`, `update{Entity}`, `delete{Entity}(id)`, plus entity-specific queries (e.g. `getCitasByFecha(fecha)`, `getCitasByFechaClienteId(fecha, clienteId)`, `getGastosByCategoria(categoria)`, `getGastosTotals()`, `getProductoById(id)`, `decrementProductoStock(id, cantidad)`, `getNotasByFecha(fecha)`, `getFeriadosByAnio(anio)`, `getBloqueosByFecha(fecha)`). Clients are linked to citas by numeric `clienteId`, not by name.
+
+### Provider nesting order ([App.tsx](src/ui/App.tsx))
+```
+ThemeProvider (src/ui/theme/theme)
+  └─ HashRouter
+      └─ SnackbarProvider (notistack; maxSnack=3, 3s auto-hide)
+          └─ SideBarContextProvider (sidebar expand/collapse)
+              └─ FeriadosCtxProvider (holidays)
+                  └─ AgendaContextProvider (appointments, dates, booking, estilistas, bloqueos)
+                      └─ NotasCtxProvider (agenda notes panel)
+                          └─ MenuAppBar, SideBar, Home (routes → pages)
 ```
 
-**Mongoose Models:** `src/electron/models/{Cliente,Estilista,Servicio,Producto,Cita}.ts` – use numeric `id` field (not MongoDB `_id`) for primary keys
+### Contexts (state management)
 
-### Provider Nesting Order (App.tsx)
-```
-HashRouter
-  └─ SnackbarProvider (notistack; maxSnack=3, 3s auto-hide)
-      └─ SideBarContextProvider (sidebar expand/collapse)
-          └─ AgendaContextProvider (appointments, dates, booking)
-              └─ Page components (Agenda.tsx, Clientes.tsx, etc.)
-```
+| Context | File | Scope |
+|---------|------|-------|
+| **AgendaContext** | [src/ui/contexts/AgendaContext.tsx](src/ui/contexts/AgendaContext.tsx) | Global — current `fecha`, `citas`, in-progress `cita`; `addServiceToCita()`, `removeServiceFromCita()`, `updateService()`, `updateDuracion()`, `guardarCita()`, `handleEditCita()`, `guardarProductosCita()`, `addBloqueo()`/`removeBloqueo()`, `estilistas` |
+| **FeriadosCtx** | [src/ui/contexts/FeriadosCtx.tsx](src/ui/contexts/FeriadosCtx.tsx) | Global — holidays by year |
+| **NotasCtx** | [src/ui/contexts/NotasCtx.tsx](src/ui/contexts/NotasCtx.tsx) | Global — agenda notes; `isNotasOpen` toggles `panels/NotasPanel` beside the Agenda table |
+| **EstilistaContext** | [src/ui/contexts/EstilistaContext.tsx](src/ui/contexts/EstilistaContext.tsx) | Page-level — `addEstilista()`, `editEstilista()`, `removeEstilista()`, `handleAlert()` |
+| **ClientesContext** | [src/ui/contexts/ClientesCtx.tsx](src/ui/contexts/ClientesCtx.tsx) | Page-level — `addCliente()`, `editCliente()`, `removeCliente()`, `handleAlert()` |
+| **ProductosCtx** | [src/ui/contexts/ProductosCtx.tsx](src/ui/contexts/ProductosCtx.tsx) | Page-level — product CRUD + stock |
+| **ServiciosContext** | [src/ui/contexts/ServiciosContext.tsx](src/ui/contexts/ServiciosContext.tsx) | Page-level — service CRUD |
+| **GastosCtx** | [src/ui/contexts/GastosCtx.tsx](src/ui/contexts/GastosCtx.tsx) | Page-level — expense CRUD + totals |
+| **SideBarContext** | [src/ui/contexts/SideBarContext.tsx](src/ui/contexts/SideBarContext.tsx) | Global — sidebar open/close state |
 
-## Critical Patterns
+**Pattern:** Contexts use notistack's `enqueueSnackbar()` for user feedback. Call `handleAlert(message, alertType)` for consistent success/error/info/warning notifications.
 
-### Date Handling ⚠️
-- **Internal:** `DD-MM-YYYY` (e.g., `"24-01-2026"`)
-- **HTML input:** `YYYY-MM-DD` (reverse direction)
+### Scheduling rules
+Overlap/availability logic lives in [src/ui/utils/utils.tsx](src/ui/utils/utils.tsx) and is used by AgendaContext: `getOccupiedRows()`, `seSobreponeConOtroServicio()`, `citaTieneServiciosSobrepuestos()`, `estaDeVacaciones()`, `getBloqueoOccupiedRows()`, `celdaEstaBloqueada()`. Reuse these rather than re-implementing time-slot math; grid rows map to fixed time slots from `getHrs()`/`getOfficeHours()`.
+
+### Date handling ⚠️
+- **Internal format:** `DD-MM-YYYY` (e.g. `"24-01-2026"`)
+- **HTML `<input type="date">`:** requires `YYYY-MM-DD` — convert at the boundary
 - **Utilities** in [src/ui/utils/utils.tsx](src/ui/utils/utils.tsx):
   - `formatDateToHTML("24-01-2026")` → `"2026-01-24"` (set input.value)
   - `formatDateFromHTML("2026-01-24")` → `"24-01-2026"` (read input onChange)
   - `getCurrentDate()` → `{dateObj, formattedDate: "DD-MM-YYYY", day, month, year}`
-  - `getTargetDate(dateString)` → dayjs object from "DD-MM-YYYY" string
+  - `getTargetDate(dateString)` → dayjs object from a `"DD-MM-YYYY"` string
 - **Library:** dayjs with `objectSupport` + `customParseFormat` plugins
 
-### Contexts (State Management)
-
-| Context | File | Scope | Key Methods |
-|---------|------|-------|------------|
-| **AgendaContext** | [src/ui/contexts/AgendaContext.tsx](src/ui/contexts/AgendaContext.tsx) | Global | `addCita()`, `addService()`, `updateService()`, `removeService()`, `updateDuracion()` |
-| **EstilistaContext** | [src/ui/contexts/EstilistaContext.tsx](src/ui/contexts/EstilistaContext.tsx) | Page-level | `addEstilista()`, `editEstilista()`, `removeEstilista()`, `handleAlert()` |
-| **ClientesContext** | [src/ui/contexts/ClientesCtx.tsx](src/ui/contexts/ClientesCtx.tsx) | Page-level | `addCliente()`, `editCliente()`, `removeCliente()`, `handleAlert()` |
-| **SideBarContext** | [src/ui/contexts/SideBarContext.tsx](src/ui/contexts/SideBarContext.tsx) | Global | Sidebar open/close state |
-
-**Pattern:** Contexts use `notistack`'s `enqueueSnackbar()` for user feedback (success/error/info/warning). Call `handleAlert(message, alertType)` for consistent notifications.
-
-**Data Mutation:** All CRUD operations are async IPC calls via `window.api.*()`. Contexts load data from MongoDB on mount and update local state after successful mutations (e.g., `await window.api.addCliente(data)` → `setDataTable([...newData])`)
-
-### Component File Structure
+### Component file structure
 ```
 src/ui/components/
   ├─ pages/           → Route containers (Agenda.tsx, Clientes.tsx, etc.)
   ├─ containers/      → Business logic wrappers (NuevaCitaContainer.tsx)
   ├─ tables/          → ag-grid tables (AgendaTable.tsx, ClientsTable.tsx)
   ├─ forms/           → Input forms (ClienteForm.tsx, ServiciosForm.tsx)
-  ├─ modals/          → Dialog modals (CitaModal.tsx, EditCliente.tsx)
+  ├─ modals/           → Dialog modals, grouped by domain (cita/, clientes/, gastos/, productos/, servicios/)
   ├─ Inputs/          → Reusable inputs (FechaInput.tsx, PhoneInput.tsx)
   ├─ CustomeCells/    → ag-grid renderers (CitaCell.tsx, CutomeCellRenderer.tsx)
+  ├─ panels/          → Side panels (NotasPanel.tsx)
   ├─ cards/           → Card components (ClienteCard.tsx)
   └─ buttons/         → Button components (DeleteBtn.tsx, EditBtn.tsx)
 ```
-**Note:** ag-grid cell renderers live in `CustomeCells/` (note spelling: "Cutome" not "Custom")
+**Note:** ag-grid cell renderers live in `CustomeCells/` (note the spelling: "Custome"/"Cutome", not "Custom").
 
-### ag-grid Patterns (AgendaTable.tsx)
-- **Dynamic columns:** Generated from `globalData.estilistas` array
-- **Cell spanning:** Uses `spanRows: customSpanFunc` to merge cells with same `cellID` and `servicio`
-- **Custom rendering:** `cellRenderer: CutomeCellRenderer` → routes to `CitaCell`, `EmptyCell`, etc.
-- **Cell data structure:** Expects `{nombreCliente, telefonoCliente, servicio: {servicio, duracion, cellID, ...}}`
+### ag-grid patterns (AgendaTable.tsx)
+- **Dynamic columns:** generated from the estilistas list
+- **Cell spanning:** `spanRows: customSpanFunc` merges cells sharing the same `cellID` and `servicio`
+- **Custom rendering:** `cellRenderer: CutomeCellRenderer` routes to `CitaCell`, `EmptyCell`, etc.
+- **Cell data shape:** `{nombreCliente, telefonoCliente, servicio: {servicio, duracion, cellID, ...}}`
 
-### Adding a New Feature
-1. **Mongoose Model:** Create schema in `src/electron/models/YourModel.ts` (use numeric `id` field, not `_id`)
-2. **IPC Handlers:** Add CRUD handlers in `src/electron/main.ts`:
+### Adding a new feature (entity CRUD)
+1. **Mongoose model:** create schema in `src/electron/models/YourModel.ts` (numeric `id` field, not `_id`)
+2. **IPC handlers:** add CRUD handlers in `src/electron/main.ts`:
    ```typescript
    ipcMain.handle('get-entities', async () => await YourModel.find().lean());
    ipcMain.handle('add-entity', async (_event, data) => { /* auto-increment id */ });
    ```
-3. **Preload Bridge:** Expose in `src/electron/preload.ts`:
+3. **Preload bridge:** expose in `src/electron/preload.ts`:
    ```typescript
    contextBridge.exposeInMainWorld('api', {
      getEntities: () => ipcRenderer.invoke('get-entities'),
      // ...
    });
    ```
-4. **TypeScript Types:** Add interface in `src/ui/types/YourType.tsx`, extend `window.api` in `src/ui/electron.d.ts`
-5. **Context:** Create provider in `src/ui/contexts/YourContext.tsx` using async `window.api.*()` calls
-6. **UI:** Build components in `src/ui/components/{pages,forms,tables,modals}/`
-7. **Routes:** Add to [src/ui/components/pages/Home.tsx](src/ui/components/pages/Home.tsx) and link in `SideBar.tsx`
-8. **Verify:** `npm run dev` for UI → `npm run build` + `npm run dev:electron` for desktop app
+4. **TypeScript types:** add interface in `src/ui/types/YourType.tsx`, extend `window.api` in `src/ui/electron.d.ts`
+5. **Context:** create provider in `src/ui/contexts/YourContext.tsx` using async `window.api.*()` calls
+6. **UI:** build components in `src/ui/components/{pages,forms,tables,modals}/`
+7. **Routes:** add to [src/ui/components/pages/Home.tsx](src/ui/components/pages/Home.tsx) and link in `SideBar.tsx`
+8. **Verify:** `npm run dev` for UI, then `npm run build` + `npm run dev:electron` for the desktop app
 
-**ID Generation Pattern:** All Mongoose models use `id: Number` (not MongoDB `_id`). IPC handlers auto-increment via `findOne().sort('-id')` + 1
-
-### TypeScript Conventions
-- **Strict mode:** `noImplicitAny: true`, `strictNullChecks: true` – explicit types required
+### TypeScript conventions
+- **Strict mode:** `strict: true`, `noImplicitAny: true`, `strictNullChecks: true` — explicit types required. (`noUnusedLocals`/`noUnusedParameters` are off.)
 - **Naming:** PascalCase components (`ClienteCard.tsx`), camelCase utilities (`utils.tsx`)
-- **Domain terms:** Keep Spanish (Cita, Estilista, Servicio, Cliente)
+- **Domain terms:** kept in Spanish (Cita, Estilista, Servicio, Cliente, Gasto, Producto, Nota, Feriado, Bloqueo, Propina, Vacacion) — match this in new code
 - **JSX mode:** `react-jsx` (no React import needed)
-- **Type definitions:** Centralized in `src/ui/types/` (Cita.tsx, Estilista.tsx, Producto.tsx, Servicio.tsx)
+- **Type definitions:** centralized in `src/ui/types/` (Cita.tsx, Estilista.tsx, Producto.tsx, Servicio.tsx, ...)
+- `src/electron/` has its own [tsconfig.json](src/electron/tsconfig.json) and is excluded from the root `tsconfig.json` (`src` only, `src/electron` excluded)
 
-## Current State (Jan 2026)
-- ✅ **MongoDB Persistence:** Fully implemented via IPC bridge
-  - All CRUD operations async: `await window.api.addCliente(data)` → Mongoose → MongoDB
-  - Contexts: AgendaContext, EstilistaContext, ClientesCtx, ProductosCtx, ServiciosContext
-  - IPC handlers in `main.ts` + contextBridge in `preload.ts`
-  - Mongoose models in `src/electron/models/` with numeric `id` field
-- ⚠️ **Legacy Code:** `globalData` mock still exists in `src/ui/mock/` but is **not used** by current implementation
+## Quick troubleshooting
 
-## Quick Troubleshooting
-
-| Issue | Root Cause | Fix |
+| Issue | Root cause | Fix |
 |-------|-----------|-----|
-| Electron won't launch | Missing build | `npm run build` first |
-| React HMR not working | Wrong dev command | Use `npm run dev` (not dev:electron) |
+| Electron won't launch | Missing build | Run `npm run build` first |
+| React HMR not working | Wrong dev command | Use `npm run dev` (not `dev:electron`) |
 | Date displays wrong in tables | Format mismatch (DD-MM-YYYY vs YYYY-MM-DD) | Use `formatDateToHTML()`/`formatDateFromHTML()` at boundaries |
 | Context hook throws error | Component outside provider wrapper | Check provider nesting in [App.tsx](src/ui/App.tsx) |
-| ag-grid cells render empty | Missing renderer or bad data | Verify component exists in CustomeCells/; check cell data structure |
-| Notification doesn't appear | Missing SnackbarProvider | Ensure component wrapped by SnackbarProvider (in [App.tsx](src/ui/App.tsx)) |
+| ag-grid cells render empty | Missing renderer or bad data | Verify component exists in `CustomeCells/`; check cell data structure |
+| Notification doesn't appear | Missing SnackbarProvider | Ensure component is wrapped by `SnackbarProvider` (in [App.tsx](src/ui/App.tsx)) |

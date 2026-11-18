@@ -8,11 +8,12 @@ import {
   Typography,
 } from "@mui/material";
 import { useProductosCtx } from "../../../contexts/ProductosCtx";
+import { Producto } from "../../../types/Producto";
 
 type Props = {
   isOpen: boolean;
   onClose?: () => void;
-  productoData?: any;
+  productoData?: Producto;
 };
 
 function ElimProductoModal({ isOpen, onClose, productoData }: Props) {

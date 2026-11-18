@@ -8,11 +8,12 @@ import {
   Typography,
 } from "@mui/material";
 import { useServiciosCtx } from "../../../contexts/ServiciosContext";
+import { Servicio } from "../../../types/Servicio";
 
 type Props = {
   isOpen: boolean;
   onClose?: () => void;
-  servicioData?: any;
+  servicioData?: Servicio;
 };
 
 function ElimServicioModal({ isOpen, onClose, servicioData }: Props) {

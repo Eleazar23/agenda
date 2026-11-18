@@ -1,5 +1,4 @@
 import { Route, Routes } from "react-router-dom";
-import ClientsTables from "../tables/ClientsTable";
 import Agenda from "./Agenda";
 import Estilistas from "./Estilistas";
 import { Grid } from "@mui/material";

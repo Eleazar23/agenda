@@ -1,17 +1,12 @@
 import { useRef, useCallback } from 'react';
 
-interface ThrottleOptions {
-  delay?: number;
-}
-
-interface ThrottleCallback {
-  (...args: any[]): void;
-}
-
-export function useThrottle(callback: ThrottleCallback, delay: number = 500): (...args: any[]) => void {
+export function useThrottle<Args extends unknown[]>(
+  callback: (...args: Args) => void,
+  delay: number = 500,
+): (...args: Args) => void {
   const lastCall = useRef<number>(0);
 
-  return useCallback((...args: any[]) => {
+  return useCallback((...args: Args) => {
     const now = Date.now();
     if (now - lastCall.current >= delay) {
       lastCall.current = now;

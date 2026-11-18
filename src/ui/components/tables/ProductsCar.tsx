@@ -7,8 +7,9 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import ClearIcon from "@mui/icons-material/Clear";
-import { Producto } from "../../types/Producto";
-import { IconButton } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import { IconButton, Stack } from "@mui/material";
 
 type Props = {
   products: {
@@ -20,6 +21,8 @@ type Props = {
     estilista: string;
   }[];
   handleRemoveProducto: (id: number) => void;
+  handleCambiarCantidad: (id: number, cantidad: number) => void;
+  disabled?: boolean;
 };
 
 interface Column {
@@ -58,7 +61,12 @@ const columns: readonly Column[] = [
   },
 ];
 
-function ProductsCar({ products, handleRemoveProducto }: Props) {
+function ProductsCar({
+  products,
+  handleRemoveProducto,
+  handleCambiarCantidad,
+  disabled,
+}: Props) {
   const [page, setPage] = React.useState(0);
   // const [isPagination, setIsPagination] = React.useState(false);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -104,14 +112,45 @@ function ProductsCar({ products, handleRemoveProducto }: Props) {
                   <TableCell key={`${product.id}-${product.precio}`}>
                     {product.precio}
                   </TableCell>
-                  <TableCell key={`${product.id}-${product.cantidad}`}>
-                    {product.cantidad}
+                  <TableCell key={`${product.id}-cantidad`}>
+                    {/* Para dejarlo en 0 se usa la X de acciones */}
+                    <Stack direction="row" alignItems="center" gap={1}>
+                      <IconButton
+                        aria-label="disminuir cantidad"
+                        size="small"
+                        disabled={disabled || Number(product.cantidad) <= 1}
+                        onClick={() =>
+                          handleCambiarCantidad(
+                            product.id,
+                            Number(product.cantidad) - 1,
+                          )
+                        }
+                      >
+                        <RemoveIcon fontSize="inherit" />
+                      </IconButton>
+                      {product.cantidad}
+                      <IconButton
+                        aria-label="aumentar cantidad"
+                        size="small"
+                        disabled={disabled}
+                        onClick={() =>
+                          handleCambiarCantidad(
+                            product.id,
+                            Number(product.cantidad) + 1,
+                          )
+                        }
+                      >
+                        <AddIcon fontSize="inherit" />
+                      </IconButton>
+                    </Stack>
                   </TableCell>
-                  <TableCell key={`${product.id}-${product.total}`}>
-                    {product.total}
+                  {/* Se calcula: "total" no se guarda en BD (el esquema de
+                      Cita no lo tiene), así que no viene al recargar */}
+                  <TableCell key={`${product.id}-total`}>
+                    {Number(product.precio) * Number(product.cantidad)}
                   </TableCell>
                   <TableCell key={`${product.id}-acciones`}>
-                    <IconButton aria-label="delete" size="small" onClick={() => handleRemoveProducto(product.id)}>
+                    <IconButton aria-label="delete" size="small" disabled={disabled} onClick={() => handleRemoveProducto(product.id)}>
                       <ClearIcon fontSize="inherit" />
                     </IconButton>
                   </TableCell>

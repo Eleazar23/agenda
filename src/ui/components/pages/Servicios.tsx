@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Box, Button, Grid, Paper } from "@mui/material";
+import { Button, Grid, Paper } from "@mui/material";
 import ServiciosTable from "../tables/ServiciosTable";
 import { ServiciosCtxProvider } from "../../contexts/ServiciosContext";
 import AddServicioModal from "../modals/servicios/AddServicioModal";
-import { Search } from "@mui/icons-material";
 import SearchInput from "../Inputs/SearchInput";
 
 const styles = {

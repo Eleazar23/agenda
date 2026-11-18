@@ -4,8 +4,10 @@ import EditBtn from "../buttons/EditBtn";
 import DeleteBtn from "../buttons/DeleteBtn";
 import EditServicioModal from "../modals/servicios/EditServicioModal";
 import ElimServicioModal from "../modals/servicios/ElimServicioModal";
+import type { CustomCellRendererProps } from "ag-grid-react";
+import { Servicio } from "../../types/Servicio";
 
-function ServiciosActionsCell(params: any) {
+function ServiciosActionsCell(params: CustomCellRendererProps<Servicio>) {
   const [isEditing, setIsEditing] = useState(false);
   const [isEliminar, setIsEliminar] = useState(false);
 
@@ -26,7 +28,6 @@ function ServiciosActionsCell(params: any) {
         <DeleteBtn onClick={handleDeleteClick} />
       </Box>
       <EditServicioModal
-        rowIndex={params.node.rowIndex}
         isOpen={isEditing}
         onClose={() => setIsEditing(false)}
         initialData={params.data}

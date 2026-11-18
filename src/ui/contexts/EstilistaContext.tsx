@@ -7,12 +7,18 @@ type Props = {
   children: React.ReactNode;
 };
 
+type Vacacion = {
+  inicio: string;
+  fin: string;
+};
+
 type Estilista = {
   id: number;
   name: string;
   telefono: string;
   displayName?: string;
   role: string;
+  vacaciones?: Vacacion[];
 };
 
 type EstilistasContexType = {
@@ -109,7 +115,13 @@ export const EstilistasCtxProvider = ({ children }: Props) => {
       handleAlert("Estilista eliminado con éxito", "success");
     } catch (error) {
       console.error("Error deleting estilista:", error);
-      handleAlert("Error al eliminar estilista", "error");
+      const match =
+        error instanceof Error &&
+        error.message.match(/^HAS_REFERENCES:estilista:(.+)/);
+      const message = match
+        ? `No se puede eliminar: el estilista tiene ${match[1]} en su historial`
+        : "Error al eliminar estilista";
+      handleAlert(message, "error");
     }
   };
 

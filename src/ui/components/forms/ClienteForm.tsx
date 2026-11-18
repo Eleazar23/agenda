@@ -7,7 +7,6 @@ import {
   CardHeader,
   Divider,
   Grid,
-  Typography,
 } from "@mui/material";
 import PhoneInput from "../Inputs/PhoneInput";
 import { useAgendaContext } from "../../contexts/AgendaContext";
@@ -15,62 +14,57 @@ import ClienteInput from "../Inputs/ClienteInput";
 import { Cliente } from "../../types/Cliente";
 
 const ClienteForm = () => {
-  const {
-    cita,
-    setCita,
-    searchClienteByPhone,
-    handleAlert,
-    addCliente,
-  } = useAgendaContext();
-  const [isNewCliente, setIsNewCliente] = useState(false);
+  const { cita, setCita, handleAlert, addCliente } = useAgendaContext();
   const [allClientes, setAllClientes] = useState<Cliente[]>([]);
 
-
-  const updateCitaCliente = (nombre: string, telefono: string) => {
+  const updateCitaCliente = (nombre: string, telefono: string, clienteId: number) => {
     setCita((prev) => ({
       ...prev,
       nombreCliente: nombre,
       telefonoCliente: telefono,
+      clienteId,
     }));
   };
 
   const dispatchCliente = (value: string) => {
+    // Cualquier edición manual del nombre invalida la selección previa:
+    // se requiere volver a seleccionar/crear el cliente antes de guardar.
     setCita((prevCita) => ({
       ...prevCita,
       nombreCliente: value,
+      clienteId: 0,
     }));
   };
 
   const dispatchPhone = (value: string) => {
+    // Igual que con el nombre: editar el teléfono a mano invalida la
+    // selección previa hasta volver a elegir/crear el cliente.
     setCita((prevCita) => ({
       ...prevCita,
       telefonoCliente: value,
+      clienteId: 0,
     }));
   };
 
-  const searchByPhone = async (telefono: string) => {
-    const cliente = await searchClienteByPhone(telefono);
-    if (cliente) {
-      handleAlert("Cliente encontrado", "success");
-      updateCitaCliente(cliente.nombre, cliente.telefono);
-      return;
-    }
-    setIsNewCliente(() => true);
-    handleAlert("Cliente no encontrado", "error");
-  };
+  const isNombreValido = cita.nombreCliente.trim().length >= 3;
+  const isTelefonoValido = /^\d{10,}$/.test(cita.telefonoCliente || "");
+  const canGuardarNuevoCliente =
+    isNombreValido && isTelefonoValido && !cita.clienteId;
 
-  const handleGuardarNuevoCliente = () => {
-    if (!cita.nombreCliente || !cita.telefonoCliente) {
+  const handleGuardarNuevoCliente = async () => {
+    if (!canGuardarNuevoCliente) {
       handleAlert("Nombre y teléfono son obligatorios", "error");
       return;
     }
-    addCliente({
+    const newCliente = await addCliente({
       nombre: cita.nombreCliente,
       telefono: cita.telefonoCliente,
       correo: "",
       lastVisit: "",
-    } as any);
-    setIsNewCliente(false);
+    } as Cliente);
+    if (newCliente) {
+      updateCitaCliente(newCliente.nombre, newCliente.telefono, newCliente.id);
+    }
   };
 
     useEffect(() => {
@@ -101,27 +95,32 @@ const ClienteForm = () => {
               dispatchContext={dispatchCliente}
               autoFocus={true}
               onSelectCliente={(cliente) =>
-                updateCitaCliente(cliente.nombre, cliente.telefono)
+                updateCitaCliente(cliente.nombre, cliente.telefono, cliente.id)
               }
               ctxOptions={allClientes}
             />
             <PhoneInput
               valueContext={cita.telefonoCliente}
               dispatchContext={dispatchPhone}
-              handleSearch={searchByPhone}
+              onSelectCliente={(cliente) =>
+                updateCitaCliente(cliente.nombre, cliente.telefono, cliente.id)
+              }
+              ctxOptions={allClientes}
             />
-            {isNewCliente && (
-              <Box
-                component="div"
-                display={"flex"}
-                sx={{ width: "100%" }}
-                justifyContent={"flex-end"}
+            <Box
+              component="div"
+              display={"flex"}
+              sx={{ width: "100%" }}
+              justifyContent={"flex-end"}
+            >
+              <Button
+                variant="contained"
+                onClick={handleGuardarNuevoCliente}
+                disabled={!canGuardarNuevoCliente}
               >
-                <Button variant="contained" onClick={handleGuardarNuevoCliente}>
-                  Guardar nuevo cliente
-                </Button>
-              </Box>
-            )}
+                Guardar nuevo cliente
+              </Button>
+            </Box>
           </Grid>
         </CardContent>
       </Card>

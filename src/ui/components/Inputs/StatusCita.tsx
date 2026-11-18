@@ -1,5 +1,11 @@
 import * as React from "react";
-import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import {
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+} from "@mui/material";
 import { capitalizeFirstLetter } from "../../utils/utils";
 import { statusCitaOptions } from "../../utils/StatusCitaOptions";
 
@@ -26,7 +32,7 @@ export default function StatusCita({ ctxValue, ctxDispatch, readOnly }: Props) {
     }
   }, [ctxValue]);
 
-  const handleChange = (event: any) => {
+  const handleChange = (event: SelectChangeEvent<string>) => {
     if (ctxDispatch) {
       ctxDispatch("estado", event.target.value as string);
     } else {

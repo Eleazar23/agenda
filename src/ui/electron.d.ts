@@ -4,6 +4,9 @@ import { Servicio } from './types/Servicio';
 import { Producto } from './types/Producto';
 import { Cita } from './types/Cita';
 import { Gasto } from './types/Gasto';
+import { Nota } from './types/Nota';
+import { Feriado } from './types/Feriado';
+import { Bloqueo } from './types/Bloqueo';
 
 export interface IElectronAPI {
   // Clientes
@@ -32,6 +35,7 @@ export interface IElectronAPI {
   addProducto: (producto: Omit<Producto, 'id'>) => Promise<Producto>;
   updateProducto: (producto: Producto) => Promise<Producto>;
   deleteProducto: (id: number) => Promise<void>;
+  decrementProductoStock: (id: number, cantidad: number) => Promise<Producto | null>;
 
   // Citas
   getCitas: () => Promise<Cita[]>;
@@ -39,8 +43,10 @@ export interface IElectronAPI {
   updateCita: (cita: Cita) => Promise<Cita>;
   deleteCita: (id: string) => Promise<void>;
   getCitasByFecha: (fecha: string) => Promise<Cita[]>;
-  getCitasByFechaCliente: (fecha: string, nombreCliente: string) => Promise<Cita[]>;
-  getCitaByFechaCliente: (fecha: string, nombreCliente: string) => Promise<Cita | null>;
+  getCitasByFechaClienteId: (fecha: string, clienteId: number) => Promise<Cita[]>;
+  getCitaByFechaClienteId: (fecha: string, clienteId: number) => Promise<Cita | null>;
+  getCitaById: (id: string) => Promise<Cita | null>;
+  getCitasByCliente: (clienteId: number, nombreCliente: string, telefonoCliente: string) => Promise<Cita[]>;
 
   // Gastos
   getGastos: () => Promise<Gasto[]>;
@@ -50,6 +56,24 @@ export interface IElectronAPI {
   updateGasto: (gasto: Gasto) => Promise<Gasto>;
   deleteGasto: (id: number) => Promise<void>;
   getGastosTotals: () => Promise<Array<{ _id: string; total: number; count: number }>>;
+
+  // Notas
+  getNotas: () => Promise<Nota[]>;
+  getNotasByEstilista: (estilistaId: number) => Promise<Nota[]>;
+  getNotasByFecha: (fecha: string) => Promise<Nota[]>;
+  addNota: (nota: Omit<Nota, 'id'>) => Promise<Nota>;
+  updateNota: (nota: Nota) => Promise<Nota>;
+  deleteNota: (id: number) => Promise<void>;
+
+  // Feriados
+  getFeriadosByAnio: (anio: number) => Promise<Feriado[]>;
+  addFeriado: (feriado: Omit<Feriado, 'id'>) => Promise<Feriado>;
+  deleteFeriado: (id: number) => Promise<void>;
+
+  // Bloqueos
+  getBloqueosByFecha: (fecha: string) => Promise<Bloqueo[]>;
+  addBloqueo: (bloqueo: Omit<Bloqueo, 'id'>) => Promise<Bloqueo>;
+  deleteBloqueo: (id: number) => Promise<void>;
 }
 
 declare global {

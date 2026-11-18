@@ -8,7 +8,7 @@ type Props = {
   variant?: "outlined" | "standard" | "filled";
   size?: "medium" | "small";
   name?: string;
-  defaultProps?: any;
+  disabled?: boolean;
 };
 
 function CantidadInput({

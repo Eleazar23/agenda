@@ -3,8 +3,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
 } from "@mui/material";
 import GastoForm from "../forms/GastoForm";
 import { useGastosCtx } from "../../contexts/GastosCtx";

@@ -15,7 +15,7 @@ const productoSchema = new Schema<IProducto>({
   marca: { type: String, required: true },
   precio: { type: String, required: true },
   descripcion: { type: String, required: false },
-  stock: { type: Number, required: false },
+  stock: { type: Number, required: false, default: 0 },
 });
 
 export const Producto = model<IProducto>('Producto', productoSchema);

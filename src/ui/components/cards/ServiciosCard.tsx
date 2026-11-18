@@ -1,18 +1,6 @@
-import { Card, CardContent, CardHeader, Divider, Grid, Stack } from "@mui/material";
+import { Card, CardContent, CardHeader, Divider, Stack } from "@mui/material";
 import ServiciosForm from "../forms/ServiciosForm";
 import { useAgendaContext } from "../../contexts/AgendaContext";
-import { useEffect, useState } from "react";
-
-type Servicio = {
-  rowIndex: number | 0;
-  estilista: string;
-  servicio: string;
-  hora: string;
-};
-
-type Props = {
-  servicios: Array<Servicio>;
-};
 
 const ServiciosCard = () => {
   const { cita } = useAgendaContext();
@@ -23,7 +11,7 @@ const ServiciosCard = () => {
       <Divider />
       <CardContent sx={{maxHeight: "100%", overflowY: "auto" }}>
         <Stack gap={2} sx={{ width: "100%" }}>
-          {servicios.map((servicio, index) => {
+          {servicios.map((servicio) => {
             return (
               <ServiciosForm
                 key={`${servicio.cellID}-${servicio.estilista}`}

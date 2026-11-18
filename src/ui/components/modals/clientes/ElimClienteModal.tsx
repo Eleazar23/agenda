@@ -9,7 +9,6 @@ import {
   Box,
 } from "@mui/material";
 import WarningIcon from "@mui/icons-material/Warning";
-import { useSnackbar } from "notistack";
 import { useClientesCtx } from "../../../contexts/ClientesCtx";
 
 interface Cliente {
@@ -24,14 +23,12 @@ interface ElimClienteModalProps {
   isOpen: boolean;
   onClose?: () => void;
   clienteData?: Cliente;
-  onConfirm?: (cliente: Cliente) => void;
 }
 
 const ElimClienteModal: React.FC<ElimClienteModalProps> = ({
   isOpen,
   onClose,
   clienteData,
-  onConfirm,
 }) => {
   const { removeCliente } = useClientesCtx();
 

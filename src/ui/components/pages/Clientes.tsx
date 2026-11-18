@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Box, Button, Grid, Paper } from "@mui/material";
+import { useCallback, useState } from "react";
+import { Button, Grid, Paper } from "@mui/material";
 import ClientsTables from "../tables/ClientsTable";
 import { ClientesCtxProvider } from "../../contexts/ClientesCtx";
 import { ClientesModal } from "../modals/clientes/ClientesModal";
 import SearchInput from "../Inputs/SearchInput";
-import { useThrottle } from "../../hooks/useThrottle";
 
 type Cliente = {
   nombre: string;
@@ -38,38 +37,12 @@ const STYLES = {
 } as const;
 
 const Clientes = () => {
-  const [isEditing, setIsEditing] = useState(false);
-  // const [clientesData, setClientesData] = useState<Cliente[]>(globalData.clientes);
-  const [editedClientes, setEditedClientes] = useState<Record<number, Cliente>>(
-    {},
-  );
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const handleGuardar = useCallback(() => {
-    console.log("Guardar cambios:", editedClientes);
-    setIsEditing(false);
-  }, [editedClientes]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
-
-  const handleEdit = useCallback(
-    (node: { rowIndex: number; data: Cliente }) => {
-      const { rowIndex, data } = node;
-      setEditedClientes((prev) => ({
-        ...prev,
-        [rowIndex]: data,
-      }));
-    },
-    [],
-  );
-
-  const handleCancelar = useCallback(() => {
-    setEditedClientes({});
-    setIsEditing(false);
-  }, []);
 
   const handleOpenModal = useCallback(() => {
     setIsOpenModal(true);
@@ -136,11 +109,7 @@ const Clientes = () => {
           </Paper>
         </Grid>
         <Grid container sx={STYLES.tableContainer} size={12}>
-          <ClientsTables
-            setIsEditing={setIsEditing}
-            handleEdit={handleEdit}
-            searchTerm={searchTerm}
-          />
+          <ClientsTables searchTerm={searchTerm} />
         </Grid>
         <ClientesModal
           isOpen={isOpenModal}

@@ -11,6 +11,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  SelectChangeEvent,
 } from "@mui/material";
 import PhoneInput from "../Inputs/PhoneInput";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
@@ -52,7 +53,7 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
     setFormData((prev) => ({ ...prev, [name!]: value }));
   };
 
-  const handleRoleChange = (e: any) => {
+  const handleRoleChange = (e: SelectChangeEvent<string>) => {
     setFormData((prev) => ({ ...prev, role: e.target.value }));
   };
 

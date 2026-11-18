@@ -5,9 +5,12 @@ import {
   CellEditingStartedEvent,
   ModuleRegistry,
   CellValueChangedEvent,
+  ColDef,
   GridApi,
+  GridReadyEvent,
+  ValueFormatterParams,
 } from "ag-grid-community";
-import { AgGridReact } from "ag-grid-react";
+import { AgGridReact, CustomCellRendererProps } from "ag-grid-react";
 import GastoActionsCell from "../CustomeCells/GastoActionsCell";
 import { useGastosCtx } from "../../contexts/GastosCtx";
 import { Gasto } from "../../types/Gasto";
@@ -15,7 +18,7 @@ import { Gasto } from "../../types/Gasto";
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-const colsData = [
+const colsData: ColDef<Gasto>[] = [
   {
     field: "proveedorNombre",
     headerName: "Proveedor",
@@ -25,7 +28,8 @@ const colsData = [
     field: "monto",
     headerName: "Monto",
     editable: true,
-    valueFormatter: (params: any) => `$${parseFloat(params.value).toFixed(2)}`,
+    valueFormatter: (params: ValueFormatterParams<Gasto>) =>
+      `$${parseFloat(params.value).toFixed(2)}`,
   },
   {
     field: "fecha",
@@ -48,9 +52,8 @@ const colsData = [
     editable: true,
   },
   {
-    field: "acciones",
+    colId: "acciones",
     headerName: "Acciones",
-    cellRenderer: (props: any) => <GastoActionsCell {...props} />,
   },
 ];
 
@@ -73,10 +76,8 @@ const GastosTable = ({
   setDownload,
   searchTerm
 }: Props) => {
-  const { dataTable, getGastosByFecha, fechaGastos, setFechaGastos } =
-    useGastosCtx();
-  const [colDefs] = useState<any[]>(colsData);
-  const gridRef = React.useRef<AgGridReact>(null);
+  const { dataTable, fechaGastos, setFechaGastos } = useGastosCtx();
+  const [colDefs] = useState<ColDef<Gasto>[]>(colsData);
 
   const defaultColDef = React.useMemo(
     () => ({
@@ -87,7 +88,7 @@ const GastosTable = ({
   );
 
   const gridOptions = {
-    onGridReady: (params: any) => {
+    onGridReady: (params: GridReadyEvent<Gasto>) => {
       gridApi = params.api;
       // gridApi = gridRef.current!.api
       gridApi.sizeColumnsToFit();
@@ -109,7 +110,7 @@ const GastosTable = ({
     console.log("Cell editing started", event);
   };
 
-  const handleCellChanged = (event: CellValueChangedEvent<any, any, any>) => {
+  const handleCellChanged = (event: CellValueChangedEvent<Gasto>) => {
     console.log("Cell value changed", event);
   };
 
@@ -146,12 +147,13 @@ const GastosTable = ({
         rowData={filteredData}
         gridOptions={gridOptions}
         columnDefs={colDefs.map((col) => {
-          if (col.field === "acciones") {
+          if (col.colId === "acciones") {
             return {
               ...col,
-              cellRenderer: (props: any) => (
-                <GastoActionsCell {...props} onEdit={onEdit} />
-              ),
+              cellRenderer: (props: CustomCellRendererProps<Gasto>) =>
+                props.data ? (
+                  <GastoActionsCell data={props.data} onEdit={onEdit} />
+                ) : null,
             };
           }
           return col;

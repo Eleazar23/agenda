@@ -5,16 +5,14 @@ import {
   Grid,
   IconButton,
   Paper,
-  Stack,
   Typography,
 } from "@mui/material";
 import GastosTable from "../tables/GastosTable";
-import { GastosCtxProvider, useGastosCtx } from "../../contexts/GastosCtx";
+import { GastosCtxProvider } from "../../contexts/GastosCtx";
 import GastoModal from "../modals/GastoModal";
 import { Gasto } from "../../types/Gasto";
 import FechaInput from "../Inputs/FechaInput";
 import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
-import { Search } from "@mui/icons-material";
 import SearchInput from "../Inputs/SearchInput";
 
 const STYLES = {
