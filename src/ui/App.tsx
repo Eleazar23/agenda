@@ -1,3 +1,4 @@
+import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider } from "@mui/material/styles";
 import MenuAppBar from "./components/MenuAppBar";
@@ -22,9 +23,24 @@ function App() {
               <AgendaContextProvider>
                 <NotasCtxProvider>
                   <CssBaseline />
-                  <MenuAppBar />
-                  <SideBar />
-                  <Home />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      height: "100vh",
+                    }}
+                  >
+                    <MenuAppBar />
+                    <Box sx={{ display: "flex", flex: 1, minHeight: 0 }}>
+                      <SideBar />
+                      <Box
+                        component="main"
+                        sx={{ flex: 1, minWidth: 0, overflow: "auto" }}
+                      >
+                        <Home />
+                      </Box>
+                    </Box>
+                  </Box>
                 </NotasCtxProvider>
               </AgendaContextProvider>
             </FeriadosCtxProvider>

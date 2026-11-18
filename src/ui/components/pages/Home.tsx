@@ -13,7 +13,7 @@ export default function Home() {
     <>
       <Grid
         container
-        sx={{ height: "calc(100% - 64px)", padding: "1rem" }}
+        sx={{ height: "100%", padding: "1rem" }}
         gap={1}
         flexWrap={"nowrap"}
         size={12}

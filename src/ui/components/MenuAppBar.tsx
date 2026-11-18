@@ -32,7 +32,6 @@ export default function MenuAppBar() {
     const handleToggleDrawer = () =>{
       const {isOpen} = sideBarData
       setSideBarData({...sideBarData, isOpen: !isOpen})
-      console.log({sideBarData})
     }
 
 
