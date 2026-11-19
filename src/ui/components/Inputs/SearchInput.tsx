@@ -26,10 +26,10 @@ const Search = styled("div")(({ theme }) => ({
     // marginLeft: theme.spacing(1),
     width: "fit-content",
     '& .MuiInputBase-input': {
-      width: '12ch',
+      width: '18ch',
     },
     '&:focus-within .MuiInputBase-input': {
-      width: '35ch',
+      width: '42ch',
     },
   },
 }));
@@ -61,6 +61,9 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     // vertical padding + font size from searchIcon
     // paddingLeft: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create("width"),
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
   },
 }));
 

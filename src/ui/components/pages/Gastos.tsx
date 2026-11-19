@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Grid,
-  IconButton,
   Paper,
   Typography,
 } from "@mui/material";
@@ -90,7 +89,12 @@ const Gastos = () => {
           <Paper sx={STYLES.paper}>
             <Grid container component="div" sx={STYLES.actionBar}>
               <Grid size={4}>
-                <FechaInput ctxValue={fecha} ctxDispatch={handleFechaChange} />
+                <FechaInput
+                  ctxValue={fecha}
+                  ctxDispatch={handleFechaChange}
+                  variant="outlined"
+                  size="small"
+                />
               </Grid>
               <Grid size={4} sx={{ display: "flex", justifyContent: "center" }}>
                 <SearchInput
@@ -111,13 +115,14 @@ const Gastos = () => {
                 >
                   Agregar Gasto
                 </Button>
-                <IconButton
+                <Button
+                  variant="outlined"
                   color="primary"
-                  aria-label="download Gastos"
+                  startIcon={<DownloadForOfflineIcon />}
                   onClick={handleDownload}
                 >
-                  <DownloadForOfflineIcon />
-                </IconButton>
+                  Descargar
+                </Button>
               </Grid>
             </Grid>
           </Paper>

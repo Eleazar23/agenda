@@ -3,15 +3,11 @@ import {
   Box,
   TextField,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  SelectChangeEvent,
   Stack,
 } from "@mui/material";
 import { Gasto } from "../../types/Gasto";
 import FechaInput from "../Inputs/FechaInput";
+import MetodoPagoInput from "../Inputs/MetodoPagoInput";
 
 type Props = {
   onSubmit: (gasto: Gasto) => Promise<void>;
@@ -49,9 +45,7 @@ const GastoForm = ({ onSubmit, onCancel, initialData }: Props) => {
   };
 
   const handleChange = (
-    e:
-      | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-      | SelectChangeEvent<string>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -160,19 +154,15 @@ const GastoForm = ({ onSubmit, onCancel, initialData }: Props) => {
         fullWidth
       />
 
-      <FormControl fullWidth>
-        <InputLabel>Método de Pago</InputLabel>
-        <Select
-          name="metodoPago"
-          value={formData.metodoPago}
-          onChange={handleChange}
-          label="Método de Pago"
-        >
-          <MenuItem value="efectivo">Efectivo</MenuItem>
-          <MenuItem value="tarjeta">Tarjeta</MenuItem>
-          <MenuItem value="transferencia">Transferencia</MenuItem>
-        </Select>
-      </FormControl>
+      <MetodoPagoInput
+        ctxValue={formData.metodoPago}
+        ctxDispatch={(_inputName, value) =>
+          setFormData((prev) => ({
+            ...prev,
+            metodoPago: value as Gasto["metodoPago"],
+          }))
+        }
+      />
 
       <Stack direction="row" spacing={2} justifyContent="flex-end">
         <Button onClick={onCancel} variant="outlined" color="error">

@@ -43,7 +43,7 @@ export default function MenuAppBar() {
             size="large"
             edge="start"
             color="inherit"
-            aria-label="menu"
+            aria-label="expandir o colapsar menú"
             sx={{ mr: 2 }}
             onClick={handleToggleDrawer}
           >
@@ -53,43 +53,40 @@ export default function MenuAppBar() {
             Status Salon | {sideBarData.currentPage.charAt(0).toUpperCase() + sideBarData.currentPage.slice(1)}
           </Typography>
           {esAgenda ? (
-            <Button
-              size="small"
-              variant={esFeriado ? "contained" : "outlined"}
-              color={esFeriado ? "error" : "inherit"}
-              startIcon={<EventBusyIcon />}
-              onClick={() => setIsFeriadoModalOpen(true)}
-              sx={{ mr: 2 }}
-            >
-              Feriado
-            </Button>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <DateBar />
+              <Button
+                size="small"
+                variant={esFeriado ? "contained" : "outlined"}
+                color={esFeriado ? "error" : "inherit"}
+                startIcon={<EventBusyIcon />}
+                onClick={() => setIsFeriadoModalOpen(true)}
+              >
+                Feriado
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                color="inherit"
+                startIcon={<FreeBreakfastIcon />}
+                onClick={() => setIsBloqueoModalOpen(true)}
+              >
+                Descanso
+              </Button>
+              <Badge badgeContent={pendingCount} color="error">
+                <Button
+                  size="small"
+                  variant={isNotasOpen ? "contained" : "outlined"}
+                  color={isNotasOpen ? "secondary" : "inherit"}
+                  startIcon={<NoteAltIcon />}
+                  aria-label="notas"
+                  onClick={toggleNotasOpen}
+                >
+                  Notas
+                </Button>
+              </Badge>
+            </Box>
           ) : null}
-          {esAgenda ? (
-            <Button
-              size="small"
-              variant="outlined"
-              color="inherit"
-              startIcon={<FreeBreakfastIcon />}
-              onClick={() => setIsBloqueoModalOpen(true)}
-              sx={{ mr: 2 }}
-            >
-              Descanso
-            </Button>
-          ) : null}
-          <Badge badgeContent={pendingCount} color="error" sx={{ mr: 2 }}>
-            <Button
-              size="small"
-              variant={isNotasOpen ? "contained" : "outlined"}
-              color={isNotasOpen ? "warning" : "inherit"}
-              startIcon={<NoteAltIcon />}
-              aria-label="notas"
-              onClick={toggleNotasOpen}
-            >
-              Notas
-            </Button>
-          </Badge>
-          {/* {sideBarData.currentPage == "agenda" ? <DateBar /> : <SearchBar />} */}
-          {esAgenda ? <DateBar /> : null}
         </Toolbar>
       </AppBar>
       {esAgenda ? (

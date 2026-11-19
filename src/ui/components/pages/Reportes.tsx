@@ -264,23 +264,22 @@ const Reportes = () => {
     >
       <Grid container size={12}>
         <Paper sx={styles.paper}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            {fechaFilter
-              ? `Reporte del ${fechaFilter}`
-              : "Selecciona una fecha para ver el reporte"}
-          </Typography>
           <Box component="div" sx={styles.actionBar}>
             <Box component="div" display={"flex"} sx={{ gap: 2 }}>
               <Box component="div" sx={{ width: "200px" }}>
                 <EstilistaFilter
                   ctxValue={estilistaFilter}
                   ctxDispatch={handleEstilistaChange}
+                  variant="outlined"
+                  size="small"
                 />
               </Box>
               <Box component="div" sx={{ width: "200px" }}>
                 <FechaInput
                   ctxValue={fechaFilter}
                   ctxDispatch={handleFechaChange}
+                  variant="outlined"
+                  size="small"
                 />
               </Box>
             </Box>

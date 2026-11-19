@@ -400,6 +400,7 @@ function ServicioForm({
             <MetodoPagoInput
               ctxDispatch={handleCitaChange}
               ctxValue={citaForm.metodoDePago}
+              name="metodoDePago"
             />
           </Stack>
         </Grid>

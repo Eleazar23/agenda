@@ -10,8 +10,6 @@ import {
   MenuItem,
   Stack,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
   Typography,
 } from "@mui/material";
 import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
@@ -21,6 +19,7 @@ import { ServicioAgendado } from "../../types/ServicioAgendado";
 import { ProductoInCita } from "../../types/Producto";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import { capitalizeFirstLetter } from "../../utils/utils";
+import MetodoPagoInput from "../Inputs/MetodoPagoInput";
 
 type Props = {
   propinas: Propina[];
@@ -265,17 +264,18 @@ function PropinasForm({
             }}
           />
 
-          <ToggleButtonGroup
+          <MetodoPagoInput
+            variant="outlined"
             size="small"
-            exclusive
-            value={fila.propina?.metodoDePago || metodoDePagoDefault}
-            onChange={(_e, metodo: string | null) => {
-              if (metodo) updatePropina(fila.estilista, { metodoDePago: metodo });
-            }}
-          >
-            <ToggleButton value="efectivo">Efectivo</ToggleButton>
-            <ToggleButton value="tarjeta">Tarjeta</ToggleButton>
-          </ToggleButtonGroup>
+            fullWidth={false}
+            label="Pago"
+            name="metodoDePago"
+            ctxValue={fila.propina?.metodoDePago || metodoDePagoDefault}
+            ctxDispatch={(_inputName, metodo) =>
+              updatePropina(fila.estilista, { metodoDePago: metodo })
+            }
+            sx={{ width: 150 }}
+          />
 
           <Box flexGrow={1} />
 

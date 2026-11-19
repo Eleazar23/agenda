@@ -9,6 +9,7 @@ type Props = {
   ctxDispatch?: (inputName:string, value: string) => void;
   readOnly?: boolean;
   variant?: "filled" | "outlined" | "standard";
+  size?: "small" | "medium";
 };
 
 const styles = {
@@ -22,6 +23,7 @@ export default function EstilistaFilter({
   ctxDispatch,
   readOnly,
   variant,
+  size,
 }: Props) {
   const [estilistas, setEstilistas] = React.useState<Estilista[]>([]);
   const [value, setValue] = React.useState<string>(ctxValue || "");
@@ -32,7 +34,6 @@ export default function EstilistaFilter({
       try {
         const data = await window.api.getEstilistas();
         const dataWithTodos = [defaultTodos, ...data];
-        console.log("Fetched estilistas:", dataWithTodos);
         setEstilistas(dataWithTodos);
         if (!ctxValue && dataWithTodos.length > 0) {
           setValue(dataWithTodos[0].name);
@@ -53,7 +54,7 @@ export default function EstilistaFilter({
   };
 
   return (
-    <FormControl variant={variant || "filled"} fullWidth>
+    <FormControl variant={variant || "filled"} size={size} fullWidth>
       <InputLabel id="demo-select-label">Estilista</InputLabel>
       <Select
         labelId="demo-select-label"

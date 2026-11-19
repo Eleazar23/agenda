@@ -1,4 +1,4 @@
-import { TextField } from "@mui/material";
+import { TextField, TextFieldVariants } from "@mui/material";
 import React, { useEffect } from "react";
 import { formatDateToHTML, getCurrentDate, formatDateFromHTML } from "../../utils/utils";
 
@@ -7,14 +7,15 @@ const { formattedDate } = getCurrentDate();
 type Props = {
     ctxValue?: string;
     ctxDispatch?: (inputName:string, value: string) => void;
+    variant?: TextFieldVariants;
+    size?: "small" | "medium";
 };
 
-function FechaInput({ ctxValue, ctxDispatch }: Props) {
+function FechaInput({ ctxValue, ctxDispatch, variant = "filled", size }: Props) {
     const [value, setValue] = React.useState(ctxValue || formattedDate);
 
     const handleDateChange = (newValue: string) => {
         const formattedNewValue = formatDateFromHTML(newValue);
-        console.log({newValue, formattedNewValue});
         setValue(formattedNewValue);
     }
 
@@ -30,7 +31,8 @@ function FechaInput({ ctxValue, ctxDispatch }: Props) {
       name="fecha"
       id="filled-basic"
       label="Fecha"
-      variant="filled"
+      variant={variant}
+      size={size}
       value={formatDateToHTML(value)}
       onChange={(e) => handleDateChange(e.target.value)}
     />

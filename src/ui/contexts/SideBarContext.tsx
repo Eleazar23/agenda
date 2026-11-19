@@ -1,4 +1,5 @@
-import React, { useState, createContext, useContext } from 'react';
+import React, { useState, createContext, useContext, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 type Props = {
     children: React.ReactNode;
@@ -24,7 +25,13 @@ const initialContextData = {
 
 export const SideBarContextProvider = ({children}: Props) =>{
     const [sideBarData, setSideBarData] = useState<DataSideBar>(initialContextData)
-    
+    const location = useLocation()
+
+    useEffect(() => {
+        const page = location.pathname.replace(/^\//, '').split('/')[0] || 'agenda'
+        setSideBarData((prev) => prev.currentPage === page ? prev : { ...prev, currentPage: page })
+    }, [location.pathname])
+
     return (
         <SideBarContext.Provider value={{sideBarData, setSideBarData}}>
             {children}
