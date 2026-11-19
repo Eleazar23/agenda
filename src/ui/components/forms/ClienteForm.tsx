@@ -11,6 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import PersonIcon from "@mui/icons-material/Person";
 import PhoneInput from "../Inputs/PhoneInput";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import ClienteInput from "../Inputs/ClienteInput";
@@ -102,6 +103,7 @@ const ClienteForm = () => {
     <Grid size={12}>
       <Card variant="outlined">
         <CardHeader
+          avatar={<PersonIcon color="primary" />}
           title="Cliente"
           action={
             cita.clienteId ? (

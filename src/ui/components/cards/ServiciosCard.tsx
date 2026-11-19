@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, Chip, Divider, Stack } from "@mui/material";
+import ContentCutIcon from "@mui/icons-material/ContentCut";
 import ServiciosForm from "../forms/ServiciosForm";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 
@@ -12,6 +13,7 @@ const ServiciosCard = () => {
   return (
     <Card variant="outlined" sx={{ width: "100%", maxHeight: "100%"}}>
       <CardHeader
+        avatar={<ContentCutIcon color="primary" />}
         title="Servicios"
         action={
           subtotal > 0 ? (
