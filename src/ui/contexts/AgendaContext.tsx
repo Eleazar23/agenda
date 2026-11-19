@@ -493,7 +493,7 @@ export const AgendaContextProvider = ({ children }: Props) => {
 
   const handleCancelarCita = () => {
     setCita(initialContextData.cita);
-    setIsBooking(() => false);
+    setIsBooking(false);
   };
 
   const guardarCitaExistente = async (citaExistente: Cita) => {

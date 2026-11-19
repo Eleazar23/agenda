@@ -285,6 +285,11 @@ export function estaDeVacaciones(
   });
 }
 
+// El horario de oficina es fijo (09:00-20:00): se calcula una sola vez en
+// lugar de recomputarlo en cada llamada a getBloqueoOccupiedRows, que corre
+// por cada celda bloqueada en cada render de la agenda.
+const officeHours = getOfficeHours();
+
 // Filas de 30 min (mismo sistema de índices 0-based desde las 09:00 que usa
 // ServicioAgendado.rowIndex) que ocupa un bloqueo (comida/descanso).
 export function getBloqueoOccupiedRows(bloqueo: Bloqueo): number[] {
@@ -293,7 +298,6 @@ export function getBloqueoOccupiedRows(bloqueo: Bloqueo): number[] {
   // La última fila de la agenda es la hora de cierre (no se atiende). Un
   // bloqueo que termina al cierre cubre también esa fila, para que el resto
   // del día quede bloqueado completo.
-  const officeHours = getOfficeHours();
   if (bloqueo.horaFin === officeHours[officeHours.length - 1].label24) {
     finIndex += 1;
   }
