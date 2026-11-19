@@ -1,11 +1,5 @@
 import { useCallback, useState } from "react";
-import {
-  Box,
-  Button,
-  Grid,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Paper, Typography } from "@mui/material";
 import GastosTable from "../tables/GastosTable";
 import { GastosCtxProvider } from "../../contexts/GastosCtx";
 import GastoModal from "../modals/GastoModal";
@@ -13,28 +7,13 @@ import { Gasto } from "../../types/Gasto";
 import FechaInput from "../Inputs/FechaInput";
 import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
 import SearchInput from "../Inputs/SearchInput";
+import CrudPageLayout from "./CrudPageLayout";
+import PageActionBar from "./PageActionBar";
 
 const STYLES = {
-  gastosContainer: {
-    width: "100%",
-    height: "100%",
-    justifyContent: "space-between",
-    maxHeight: "100vh",
-    flexWrap: "nowrap" as const,
-  },
   paper: {
     padding: 2,
     width: "100%",
-  },
-  actionBar: {
-    display: "flex",
-    flexWrap: "nowrap",
-    justifyContent: "space-between",
-    width: "100%",
-    gap: 1,
-  },
-  tableContainer: {
-    height: "100%",
   },
   footer: {
     display: "flex",
@@ -79,35 +58,27 @@ const Gastos = () => {
   };
   return (
     <GastosCtxProvider>
-      <Grid
-        container
-        sx={STYLES.gastosContainer}
-        direction="column"
-        spacing={2}
-      >
-        <Grid container size={12}>
-          <Paper sx={STYLES.paper}>
-            <Grid container component="div" sx={STYLES.actionBar}>
-              <Grid size={4}>
-                <FechaInput
-                  ctxValue={fecha}
-                  ctxDispatch={handleFechaChange}
-                  variant="outlined"
-                  size="small"
-                />
-              </Grid>
-              <Grid size={4} sx={{ display: "flex", justifyContent: "center" }}>
-                <SearchInput
-                  placeholder="Buscar gasto"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onClear={() => setSearchTerm("")}
-                />
-              </Grid>
-              <Grid
-                size={4}
-                sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}
-              >
+      <CrudPageLayout
+        actionBar={
+          <PageActionBar
+            left={
+              <FechaInput
+                ctxValue={fecha}
+                ctxDispatch={handleFechaChange}
+                variant="outlined"
+                size="small"
+              />
+            }
+            center={
+              <SearchInput
+                placeholder="Buscar gasto"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onClear={() => setSearchTerm("")}
+              />
+            }
+            right={
+              <>
                 <Button
                   variant="contained"
                   color="primary"
@@ -123,29 +94,27 @@ const Gastos = () => {
                 >
                   Descargar
                 </Button>
-              </Grid>
-            </Grid>
-          </Paper>
-        </Grid>
-
-        <Grid container size={12} sx={STYLES.tableContainer}>
-          <GastosTable
-            onEdit={handleEditGasto}
-            setTotalGastos={setTotalGastos}
-            fecha={fecha}
-            download={download}
-            setDownload={setDownload}
-            searchTerm={searchTerm}
+              </>
+            }
           />
-        </Grid>
-        <Grid container size={12}>
+        }
+        footer={
           <Paper sx={STYLES.paper}>
             <Box component="div" sx={STYLES.footer}>
               <Typography variant="h6">{`Total: $${totalGastos.toFixed(2)}`}</Typography>
             </Box>
           </Paper>
-        </Grid>
-      </Grid>
+        }
+      >
+        <GastosTable
+          onEdit={handleEditGasto}
+          setTotalGastos={setTotalGastos}
+          fecha={fecha}
+          download={download}
+          setDownload={setDownload}
+          searchTerm={searchTerm}
+        />
+      </CrudPageLayout>
 
       <GastoModal
         isOpen={isOpenModal}
