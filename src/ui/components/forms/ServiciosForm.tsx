@@ -1,7 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import ServiciosInput from "../Inputs/ServiciosInput";
-import HoraInput from "../Inputs/HoraInput";
 import { Servicio } from "../../types/Servicio";
 import HoraFinInput from "../Inputs/HoraFinInput";
 import { useAgendaContext } from "../../contexts/AgendaContext";
@@ -94,7 +93,7 @@ const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
         </Box>
         <ServiciosInput value={servicio} onChange={handleServicioChange} />
         <Box component="div" sx={{ display: "flex", gap: 1, width: "100%" }}>
-          <HoraInput label="Inicio" hora={hora} readOnly={true} />
+          <HoraFinInput label="Inicio" hora={hora} readOnly={true} />
           <HoraFinInput
             label="Fin"
             hora={horaFin}
