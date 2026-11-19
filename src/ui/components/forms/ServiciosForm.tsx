@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Collapse, IconButton, Stack, Typography } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ServiciosInput from "../Inputs/ServiciosInput";
 import { Servicio } from "../../types/Servicio";
 import HoraFinInput from "../Inputs/HoraFinInput";
@@ -20,6 +21,7 @@ const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
   const [servicio, setServicio] = useState<Servicio | null>(null);
   const [horaFin, setHoraFin] = useState<string>(addMinutesToHora(hora, 30));
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const handleRemove = () => {
     setIsConfirmOpen(false);
@@ -81,26 +83,60 @@ const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
       >
         <Box
           component="div"
+          onClick={() => setIsExpanded((prev) => !prev)}
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             width: "100%",
+            cursor: "pointer",
           }}
         >
-          <Typography variant="h6">{estilista.toUpperCase()}</Typography>
-          <DeleteBtn onClick={() => setIsConfirmOpen(true)} />
+          <Stack direction="row" alignItems="center" gap={1} sx={{ minWidth: 0 }}>
+            <Typography variant="h6">{estilista.toUpperCase()}</Typography>
+            {!isExpanded && (
+              <Typography variant="body2" color="text.secondary" noWrap>
+                {servicio?.nombre || "Sin servicio"} · {hora} - {horaFin}
+              </Typography>
+            )}
+          </Stack>
+          <Stack direction="row" alignItems="center">
+            <IconButton
+              size="small"
+              aria-label={isExpanded ? "Colapsar servicio" : "Expandir servicio"}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded((prev) => !prev);
+              }}
+              sx={{
+                transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.2s",
+              }}
+            >
+              <ExpandMoreIcon fontSize="small" />
+            </IconButton>
+            <DeleteBtn
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsConfirmOpen(true);
+              }}
+            />
+          </Stack>
         </Box>
-        <ServiciosInput value={servicio} onChange={handleServicioChange} />
-        <Box component="div" sx={{ display: "flex", gap: 1, width: "100%" }}>
-          <HoraFinInput label="Inicio" hora={hora} readOnly={true} />
-          <HoraFinInput
-            label="Fin"
-            hora={horaFin}
-            readOnly={false}
-            onChange={handleChangeHoraFin}
-          />
-        </Box>
+        <Collapse in={isExpanded} sx={{ width: "100%" }}>
+          <Stack gap={1} sx={{ width: "100%" }}>
+            <ServiciosInput value={servicio} onChange={handleServicioChange} />
+            <Box component="div" sx={{ display: "flex", gap: 1, width: "100%" }}>
+              <HoraFinInput label="Inicio" hora={hora} readOnly={true} />
+              <HoraFinInput
+                label="Fin"
+                hora={horaFin}
+                readOnly={false}
+                onChange={handleChangeHoraFin}
+              />
+            </Box>
+          </Stack>
+        </Collapse>
       </Stack>
       <ConfirmDeleteModal
         isOpen={isConfirmOpen}
