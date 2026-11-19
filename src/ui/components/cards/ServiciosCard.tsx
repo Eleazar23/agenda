@@ -11,7 +11,16 @@ const ServiciosCard = () => {
     0,
   );
   return (
-    <Card variant="outlined" sx={{ width: "100%", maxHeight: "100%"}}>
+    <Card
+      variant="outlined"
+      sx={{
+        width: "100%",
+        flex: 1,
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <CardHeader
         avatar={<ContentCutIcon color="primary" fontSize="small" />}
         title="Servicios"
@@ -30,7 +39,7 @@ const ServiciosCard = () => {
         }
       />
       <Divider />
-      <CardContent sx={{maxHeight: "100%", overflowY: "auto" }}>
+      <CardContent sx={{ flex: 1, minHeight: 0, overflowY: "auto", pb: 3 }}>
         <Stack gap={2} sx={{ width: "100%" }}>
           {servicios.map((servicio) => {
             return (
