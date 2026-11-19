@@ -1,15 +1,8 @@
-import React from "react";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
-import TableRow from "@mui/material/TableRow";
+import { Box, IconButton, Stack, Typography } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
-import { IconButton, Stack } from "@mui/material";
+import { capitalizeFirstLetter } from "../../utils/utils";
 
 type Props = {
   products: {
@@ -25,41 +18,27 @@ type Props = {
   disabled?: boolean;
 };
 
-interface Column {
-  id: "nombre" | "precio" | "cantidad" | "total" | "acciones" | "estilista";
-  label: string;
-  minWidth?: number;
-  align?: "right";
-  format?: (value: number) => string;
-}
+const BORDER = "#edeef0";
 
-const columns: readonly Column[] = [
-  { id: "nombre", label: "Nombre", minWidth: 170 },
-  { id: "estilista", label: "Estilista", minWidth: 170},
-  {
-    id: "precio",
-    label: "Precio",
-    minWidth: 100,
-    format: (value: number) => value.toLocaleString("en-US"),
-  },
-  {
-    id: "cantidad",
-    label: "Cantidad",
-    minWidth: 100,
-    format: (value: number) => value.toLocaleString("en-US"),
-  },
-  {
-    id: "total",
-    label: "Total",
-    minWidth: 100,
-    format: (value: number) => value.toLocaleString("en-US"),
-  },
-  {
-    id: "acciones",
-    label: "Acciones",
-    minWidth: 100,
-  },
-];
+const COLUMNS = {
+  nombre: { flex: 2.2 },
+  estilista: { flex: 1 },
+  precio: { flex: 0.8, textAlign: "right" as const },
+  cantidad: { flex: 1.1, textAlign: "center" as const },
+  total: { flex: 0.9, textAlign: "right" as const },
+  acciones: { width: 36, flexShrink: 0 },
+};
+
+const stepBtnSx = {
+  width: 22,
+  height: 22,
+  borderRadius: 1.5,
+  bgcolor: "#f3f4f6",
+  color: "#5b6069",
+  "&:hover": { bgcolor: "#e9ebee" },
+};
+
+const formatMoney = (value: number) => `$${value.toFixed(2)}`;
 
 function ProductsCar({
   products,
@@ -67,111 +46,129 @@ function ProductsCar({
   handleCambiarCantidad,
   disabled,
 }: Props) {
-  const [page, setPage] = React.useState(0);
-  // const [isPagination, setIsPagination] = React.useState(false);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
+  // "total" no se guarda en BD (el esquema de Cita no lo tiene), así que se
+  // calcula a partir de precio × cantidad.
+  const totalProductos = products.reduce(
+    (acc, p) => acc + Number(p.precio) * Number(p.cantidad),
+    0,
+  );
 
   return (
-    <>
-      <TableContainer sx={{ maxHeight: 440 }}>
-        <Table stickyHeader aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                  key={column.id}
-                  align={column.align}
-                  style={{ minWidth: column.minWidth }}
+    <Box
+      sx={{ border: `1px solid ${BORDER}`, borderRadius: 2.5, overflow: "hidden" }}
+    >
+      <Stack
+        direction="row"
+        alignItems="center"
+        sx={{
+          px: 1.75,
+          py: 1.25,
+          bgcolor: "#f8f9fb",
+          fontSize: 11,
+          letterSpacing: ".03em",
+          color: "text.secondary",
+          fontWeight: 700,
+        }}
+      >
+        <Box sx={COLUMNS.nombre}>PRODUCTO</Box>
+        <Box sx={COLUMNS.estilista}>ESTILISTA</Box>
+        <Box sx={COLUMNS.precio}>PRECIO</Box>
+        <Box sx={COLUMNS.cantidad}>CANTIDAD</Box>
+        <Box sx={COLUMNS.total}>TOTAL</Box>
+        <Box sx={COLUMNS.acciones} />
+      </Stack>
+
+      <Box sx={{ maxHeight: 260, overflowY: "auto" }}>
+        {products.map((product) => {
+          const cantidad = Number(product.cantidad);
+          return (
+            <Stack
+              key={product.id}
+              direction="row"
+              alignItems="center"
+              sx={{ px: 1.75, py: 1.5, borderTop: `1px solid ${BORDER}` }}
+            >
+              <Typography sx={{ ...COLUMNS.nombre, fontSize: 13.5, fontWeight: 500 }}>
+                {product.nombre}
+              </Typography>
+              <Typography
+                sx={{ ...COLUMNS.estilista, fontSize: 13, color: "text.secondary" }}
+              >
+                {capitalizeFirstLetter(product.estilista || "")}
+              </Typography>
+              <Typography
+                sx={{ ...COLUMNS.precio, fontSize: 13, color: "text.secondary" }}
+              >
+                {formatMoney(Number(product.precio))}
+              </Typography>
+              {/* Para dejarlo en 0 se usa la X de acciones */}
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="center"
+                gap={1.25}
+                sx={COLUMNS.cantidad}
+              >
+                <IconButton
+                  aria-label="disminuir cantidad"
+                  size="small"
+                  disabled={disabled || cantidad <= 1}
+                  onClick={() => handleCambiarCantidad(product.id, cantidad - 1)}
+                  sx={stepBtnSx}
                 >
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {products.map((product) => {
-              return (
-                <TableRow hover tabIndex={-1} key={product.id}>
-                  <TableCell key={`${product.id}-${product.nombre}`}>
-                    {product.nombre}
-                  </TableCell>
-                  <TableCell key={`${product.id}-${product.estilista}`}>
-                    {product.estilista}
-                  </TableCell>
-                  <TableCell key={`${product.id}-${product.precio}`}>
-                    {product.precio}
-                  </TableCell>
-                  <TableCell key={`${product.id}-cantidad`}>
-                    {/* Para dejarlo en 0 se usa la X de acciones */}
-                    <Stack direction="row" alignItems="center" gap={1}>
-                      <IconButton
-                        aria-label="disminuir cantidad"
-                        size="small"
-                        disabled={disabled || Number(product.cantidad) <= 1}
-                        onClick={() =>
-                          handleCambiarCantidad(
-                            product.id,
-                            Number(product.cantidad) - 1,
-                          )
-                        }
-                      >
-                        <RemoveIcon fontSize="inherit" />
-                      </IconButton>
-                      {product.cantidad}
-                      <IconButton
-                        aria-label="aumentar cantidad"
-                        size="small"
-                        disabled={disabled}
-                        onClick={() =>
-                          handleCambiarCantidad(
-                            product.id,
-                            Number(product.cantidad) + 1,
-                          )
-                        }
-                      >
-                        <AddIcon fontSize="inherit" />
-                      </IconButton>
-                    </Stack>
-                  </TableCell>
-                  {/* Se calcula: "total" no se guarda en BD (el esquema de
-                      Cita no lo tiene), así que no viene al recargar */}
-                  <TableCell key={`${product.id}-total`}>
-                    {Number(product.precio) * Number(product.cantidad)}
-                  </TableCell>
-                  <TableCell key={`${product.id}-acciones`}>
-                    <IconButton aria-label="delete" size="small" disabled={disabled} onClick={() => handleRemoveProducto(product.id)}>
-                      <ClearIcon fontSize="inherit" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {products.length > 5 && (
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 15]}
-          component="div"
-          count={products.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      )}
-    </>
+                  <RemoveIcon sx={{ fontSize: 14 }} />
+                </IconButton>
+                <Typography
+                  sx={{ fontSize: 13, fontWeight: 600, minWidth: 14, textAlign: "center" }}
+                >
+                  {cantidad}
+                </Typography>
+                <IconButton
+                  aria-label="aumentar cantidad"
+                  size="small"
+                  disabled={disabled}
+                  onClick={() => handleCambiarCantidad(product.id, cantidad + 1)}
+                  sx={stepBtnSx}
+                >
+                  <AddIcon sx={{ fontSize: 14 }} />
+                </IconButton>
+              </Stack>
+              <Typography sx={{ ...COLUMNS.total, fontSize: 13.5, fontWeight: 700 }}>
+                {formatMoney(Number(product.precio) * cantidad)}
+              </Typography>
+              <Box sx={{ ...COLUMNS.acciones, display: "flex", justifyContent: "center" }}>
+                <IconButton
+                  aria-label="quitar producto"
+                  size="small"
+                  disabled={disabled}
+                  onClick={() => handleRemoveProducto(product.id)}
+                  sx={{ color: "#b9bdc4", "&:hover": { color: "error.main" } }}
+                >
+                  <ClearIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Box>
+            </Stack>
+          );
+        })}
+      </Box>
+
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="flex-end"
+        gap={1.25}
+        sx={{ px: 1.75, py: 1.5, borderTop: `1px solid ${BORDER}`, bgcolor: "#f8f9fb" }}
+      >
+        <Typography
+          sx={{ fontSize: 12.5, fontWeight: 600, color: "text.secondary" }}
+        >
+          TOTAL PRODUCTOS
+        </Typography>
+        <Typography sx={{ fontSize: 15, fontWeight: 700 }}>
+          {formatMoney(totalProductos)}
+        </Typography>
+      </Stack>
+    </Box>
   );
 }
 
