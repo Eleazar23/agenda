@@ -30,12 +30,13 @@ const ServiciosForm = ({
   const [isExpanded, setIsExpanded] = useState(true);
 
   // Rojo solo tras un intento de Guardar fallido, y solo mientras no se
-  // haya elegido servicio; además, fuerza a expandir la tarjeta si estaba
-  // colapsada para que el error sea visible.
+  // haya elegido servicio.
   const servicioVacio = showErrors && !servicio;
-  useEffect(() => {
-    if (servicioVacio) setIsExpanded(true);
-  }, [servicioVacio]);
+  // Mientras haya un error sin resolver, se muestra expandida sí o sí
+  // (ignora el toggle manual) para que el input con el error nunca quede
+  // oculto; en cuanto se elige un servicio, vuelve a mandar la preferencia
+  // manual del usuario.
+  const effectiveExpanded = isExpanded || servicioVacio;
 
   const handleRemove = () => {
     setIsConfirmOpen(false);
@@ -110,7 +111,7 @@ const ServiciosForm = ({
             <Typography variant="subtitle1" fontWeight="bold">
               {estilista.toUpperCase()}
             </Typography>
-            {!isExpanded && (
+            {!effectiveExpanded && (
               <Typography variant="body2" color="text.secondary" noWrap>
                 {servicio?.nombre || "Sin servicio"} · {hora} - {horaFin}
               </Typography>
@@ -119,13 +120,13 @@ const ServiciosForm = ({
           <Stack direction="row" alignItems="center">
             <IconButton
               size="small"
-              aria-label={isExpanded ? "Colapsar servicio" : "Expandir servicio"}
+              aria-label={effectiveExpanded ? "Colapsar servicio" : "Expandir servicio"}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsExpanded((prev) => !prev);
               }}
               sx={{
-                transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                transform: effectiveExpanded ? "rotate(180deg)" : "rotate(0deg)",
                 transition: "transform 0.2s",
               }}
             >
@@ -139,7 +140,7 @@ const ServiciosForm = ({
             />
           </Stack>
         </Box>
-        <Collapse in={isExpanded} sx={{ width: "100%" }}>
+        <Collapse in={effectiveExpanded} sx={{ width: "100%" }}>
           <Stack gap={1} sx={{ width: "100%" }}>
             <ServiciosInput
               id={servicioInputId(cellID)}
