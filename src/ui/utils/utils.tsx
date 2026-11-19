@@ -201,7 +201,6 @@ export const getDuracion = (horaInicio: string, horaFin: string) => {
   const endTotalMins = endHrs * 60 + endMins;
   const diffMins = endTotalMins - startTotalMins;
   const realDiffMins = diffMins >= 0 ? diffMins : 0;
-  console.log("Duracion actualizada a:", diffMins);
   return realDiffMins;
 };
 

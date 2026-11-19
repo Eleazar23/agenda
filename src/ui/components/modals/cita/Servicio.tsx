@@ -243,17 +243,6 @@ function ServicioForm({
     updateServicioInCita(servicioForm);
   }, [servicioForm]);
 
-  // useEffect(() => {
-  //   if (servicio) {
-  //     setModalForm((prev) => ({
-  //       ...prev,
-  //       horaInicio: servicio.horaInicio,
-  //       horaFin: servicio.horaFin,
-  //       duracion: servicio.duracion,
-  //     }));
-  //   }
-  // }, [servicio]);
-
   return (
     <Grid container spacing={2} gap={2} flexGrow={1}>
       <Grid size={12}>

@@ -33,7 +33,6 @@ const EmptyCell = (params: CustomCellRendererProps) => {
     fechaCreacion: getCurrentDate().formattedDate,
     horaCreacion: getCurrentTime(),
   };
-  // console.log('Empty Cell Params:', params)
 
   const handleClick = async () => {
     if (!isSelected) {

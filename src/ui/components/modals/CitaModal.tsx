@@ -144,7 +144,7 @@ export default function CitaModal({
       );
       setResolvedServicio(matchingServicio || servicio);
     } catch (error) {
-      console.log("Error al agregar cliente", "error");
+      console.error("Error al agregar cliente", error);
     }
   };
 

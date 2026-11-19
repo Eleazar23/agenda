@@ -2,9 +2,7 @@ import * as React from "react";
 import { useState } from "react";
 import {
   AllCommunityModule,
-  CellEditingStartedEvent,
   ModuleRegistry,
-  CellValueChangedEvent,
   ColDef,
   GridApi,
   GridReadyEvent,
@@ -77,7 +75,7 @@ const GastosTable = ({
   setDownload,
   searchTerm
 }: Props) => {
-  const { dataTable, fechaGastos, setFechaGastos } = useGastosCtx();
+  const { dataTable, setFechaGastos } = useGastosCtx();
   const [colDefs] = useState<ColDef<Gasto>[]>(colsData);
 
   const defaultColDef = React.useMemo(
@@ -103,14 +101,6 @@ const GastosTable = ({
     "metodoPago",
   ]);
 
-  const handleEditingStarted = (event: CellEditingStartedEvent) => {
-    console.log("Cell editing started", event);
-  };
-
-  const handleCellChanged = (event: CellValueChangedEvent<Gasto>) => {
-    console.log("Cell value changed", event);
-  };
-
   const totalGastos = React.useMemo(() => {
     return filteredData.reduce((total, gasto) => total + gasto.monto, 0);
   }, [filteredData]);
@@ -120,9 +110,7 @@ const GastosTable = ({
   }, [totalGastos, setTotalGastos]);
 
   React.useEffect(() => {
-    // getGastosByFecha(fecha)
     setFechaGastos(fecha);
-    console.log("Fecha de gastos", fechaGastos);
   }, [fecha]);
 
   const handleDownloadComplete = () => {
@@ -156,8 +144,6 @@ const GastosTable = ({
           return col;
         })}
         defaultColDef={defaultColDef}
-        onCellEditingStarted={handleEditingStarted}
-        onCellValueChanged={handleCellChanged}
         pagination={true}
         paginationAutoPageSize={true}
         enableCellTextSelection={true}

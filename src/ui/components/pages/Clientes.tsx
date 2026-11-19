@@ -7,13 +7,6 @@ import SearchInput from "../Inputs/SearchInput";
 import CrudPageLayout from "./CrudPageLayout";
 import PageActionBar from "./PageActionBar";
 
-type Cliente = {
-  nombre: string;
-  telefono: string;
-  correo: string;
-  lastVisit: string;
-};
-
 const Clientes = () => {
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,27 +22,6 @@ const Clientes = () => {
   const handleCloseModal = useCallback(() => {
     setIsOpenModal(false);
   }, []);
-
-  const handleSaveClient = useCallback(
-    (client: { nombre: string; telefono: string; correo?: string }) => {
-      const today = new Date();
-      const lastVisit = `${String(today.getDate()).padStart(2, "0")}-${String(today.getMonth() + 1).padStart(2, "0")}-${today.getFullYear()}`;
-
-      const newClient: Cliente = {
-        nombre: client.nombre,
-        telefono: client.telefono,
-        correo: client.correo || "",
-        lastVisit,
-      };
-      console.log("Cliente guardado:", newClient);
-      setIsOpenModal(false);
-    },
-    [],
-  );
-
-  // useEffect(() => {
-  //   setClientesData(globalData.clientes);
-  // }, []);
 
   return (
     <ClientesCtxProvider>
@@ -78,11 +50,7 @@ const Clientes = () => {
       >
         <ClientsTables searchTerm={searchTerm} />
       </CrudPageLayout>
-      <ClientesModal
-        isOpen={isOpenModal}
-        onClose={handleCloseModal}
-        onSave={handleSaveClient}
-      />
+      <ClientesModal isOpen={isOpenModal} onClose={handleCloseModal} />
     </ClientesCtxProvider>
   );
 };

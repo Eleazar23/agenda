@@ -34,7 +34,6 @@ export default function EstilistaInput({
     const fetchEstilistas = async () => {
       try {
         const data = await window.api.getEstilistas();
-        console.log("Fetched estilistas:", data);
         setEstilistas(
           soloEstilistas
             ? data.filter((estilista) => estilista.role === "estilista")

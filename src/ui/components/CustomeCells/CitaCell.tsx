@@ -78,7 +78,6 @@ const CitaCell = (params: CustomCellRendererProps) => {
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    console.log("Opening modal for:", value);
     setIsCitaOpen(true);
   };
 

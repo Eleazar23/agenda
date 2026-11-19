@@ -61,10 +61,6 @@ const ClientsTables = ({ searchTerm }: Props) => {
     "correo",
   ]);
 
-  // React.useEffect(() => {
-  //   setRowData(globalData.clientes);
-  // }, []);
-
   return (
     // Data Grid will fill the size of the parent container
     <div style={{ height: "100%", width: "100%" }}>

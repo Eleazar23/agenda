@@ -64,7 +64,6 @@ export const ClientesCtxProvider = ({ children }: Props) => {
 
   const getClientes = async () => {
     try {
-      console.log("Obteniendo datos de clientes...");
       const clientes = await window.api.getClientes();
       setDataTable(clientes);
       return clientes;

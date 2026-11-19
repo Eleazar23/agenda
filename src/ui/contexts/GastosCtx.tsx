@@ -66,7 +66,7 @@ export const GastosCtxProvider = ({ children }: Props) => {
       setDataTable(gastosByFecha);
       return gastosByFecha;
     } catch (error) {
-      console.log("Error al obtener gastos por fecha:", error);
+      console.error("Error al obtener gastos por fecha:", error);
       handleAlert("Error al obtener gasto por fecha", "error");
       return [];
     }
@@ -120,10 +120,6 @@ export const GastosCtxProvider = ({ children }: Props) => {
     (total, gasto) => total + gasto.monto,
     0,
   );
-
-  //   React.useEffect(() => {
-  //     getGastos();
-  //   }, []);
 
   React.useEffect(() => {
     getGastosByFecha(fechaGastos);

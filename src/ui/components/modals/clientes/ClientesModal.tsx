@@ -13,7 +13,6 @@ interface Client {
 interface ClientDialogProps {
   isOpen: boolean;
   onClose?: () => void;
-  onSave: (client: Client) => void;
   initialClient?: Client;
 }
 

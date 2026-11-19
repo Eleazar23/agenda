@@ -35,13 +35,11 @@ export default function ServiciosInput({ value, onChange }: Props) {
     event.preventDefault();
     if (newValue) {
       onChange(newValue);
-      console.log("Selected service:", newValue);
     }
   };
 
   const getServicios = async () => {
     try {
-      console.log("Obteniendo datos de servicios...");
       const servicios = await window.api.getServicios();
       setOptions(servicios);
       return servicios;

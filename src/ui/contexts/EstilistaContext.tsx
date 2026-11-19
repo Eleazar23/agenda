@@ -58,7 +58,6 @@ export const EstilistasCtxProvider = ({ children }: Props) => {
 
   const getEstilistasData = async () => {
     try {
-      console.log("Obteniendo datos de estilistas...");
       const estilistas = await window.api.getEstilistas();
       setDataTable(estilistas);
       return estilistas;

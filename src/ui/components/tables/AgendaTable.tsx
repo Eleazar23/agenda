@@ -243,8 +243,6 @@ const AgendaTable = () => {
   const updateRowsDataByCitas = useCallback(() => {
     if (rowInitData.length === 0) return;
 
-    console.log("Updating rows data by citas...", todaysCitas.length, "appointments for", fecha);
-
     const prevRowsData = prevRowsDataRef.current;
 
     // Compute the target cell values for every row (estilista columns only)
@@ -332,7 +330,6 @@ const AgendaTable = () => {
   ]);
 
   useEffect(() => {
-    console.log("Citas or fecha changed, updating rows data...");
     updateRowsDataByCitas();
   }, [updateRowsDataByCitas]);
 

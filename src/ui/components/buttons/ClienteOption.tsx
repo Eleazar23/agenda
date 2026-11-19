@@ -19,7 +19,6 @@ function ClienteOption({ nombre, telefono, key, ctxOnClick }: Props) {
     nombre: string,
     telefono: string,
   ) {
-    console.log({ nombre, telefono });
     ctxOnClick({nombre, telefono});
   }
 

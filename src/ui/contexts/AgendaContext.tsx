@@ -400,10 +400,8 @@ export const AgendaContextProvider = ({ children }: Props) => {
       // Protección contra doble clic/doble evento: no duplicar la misma
       // celda si ya está en el draft.
       if (prev.servicios.some((s) => s.cellID === servicio.cellID)) {
-        console.log("Servicio ya agregado a cita:", servicio);
         return prev;
       }
-      console.log("Servicio agregado a cita:", servicio);
       return {
         ...prev,
         fecha,
@@ -417,7 +415,6 @@ export const AgendaContextProvider = ({ children }: Props) => {
       ...prev,
       servicios: prev.servicios.filter((s) => s.cellID !== servicio.cellID),
     }));
-    console.log("Servicio removido de cita:", servicio);
   };
 
   const updateServicioAgendado = (
@@ -551,7 +548,6 @@ export const AgendaContextProvider = ({ children }: Props) => {
       fechaCreacion: getCurrentDate().formattedDate,
       horaCreacion: getCurrentTime(),
     };
-    console.log("Guardando nueva cita:", citaToSave);
     const savedCita = await window.api.addCita(citaToSave);
     setCitas((prevCitas) => [...prevCitas, savedCita]);
     setCita(initialContextData.cita);

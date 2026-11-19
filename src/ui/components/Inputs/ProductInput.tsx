@@ -26,7 +26,6 @@ export default function ProductInput({ value, onChange }: Props) {
     newValue: Producto | null,
   ) => {
     event.preventDefault();
-    console.log("Selected product:", newValue);
     if (newValue) {
       onChange(newValue);
     }

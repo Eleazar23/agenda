@@ -45,7 +45,6 @@ export const ProductosCtxProvider = ({ children }: Props) => {
 
   const getProductosData = async () => {
     try {
-      console.log("Obteniendo datos de productos...");
       const productos = await window.api.getProductos();
       setDataTable(productos);
       return productos;
