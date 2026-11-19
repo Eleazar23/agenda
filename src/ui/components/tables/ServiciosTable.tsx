@@ -8,6 +8,7 @@ import {
 import { AgGridReact } from "ag-grid-react";
 import { useServiciosCtx } from "../../contexts/ServiciosContext";
 import ServiciosActionsCell from "../CustomeCells/ServiciosActionsCell";
+import { useFilteredRowData } from "../../hooks/useFilteredRowData";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -39,9 +40,7 @@ const ServiciosTable = ({ searchTerm }: { searchTerm: string }) => {
     []
   );
 
-  const filteredData = dataTable.filter((servicio) =>
-    servicio.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = useFilteredRowData(dataTable, searchTerm, ["nombre"]);
 
   return (
     <div style={{ height: "100%", width: "100%" }}>

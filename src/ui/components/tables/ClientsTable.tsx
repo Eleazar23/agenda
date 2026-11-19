@@ -9,6 +9,7 @@ import {
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import ClientesActionsCell from "../CustomeCells/ClientesActionsCell";
 import { useClientesCtx } from "../../contexts/ClientesCtx";
+import { useFilteredRowData } from "../../hooks/useFilteredRowData";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -54,14 +55,11 @@ const ClientsTables = ({ searchTerm }: Props) => {
     []
   );
 
-  const filteredData = React.useMemo(() => {
-    if (!searchTerm) return dataTable;
-    return dataTable.filter((cliente) =>
-      cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cliente?.telefono?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cliente.correo.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [dataTable, searchTerm]);
+  const filteredData = useFilteredRowData(dataTable, searchTerm, [
+    "nombre",
+    "telefono",
+    "correo",
+  ]);
 
   // React.useEffect(() => {
   //   setRowData(globalData.clientes);

@@ -11,6 +11,7 @@ import VacacionesCell from "../CustomeCells/VacacionesCell";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
 import { Estilista } from "../../types/Estilista";
 import { capitalizeFirstLetter } from "../../utils/utils";
+import { useFilteredRowData } from "../../hooks/useFilteredRowData";
 
 
 // Register all Community features
@@ -60,14 +61,10 @@ const EstilistasTable = ({ searchTerm }: Props) => {
     []
   );
 
-  const filteredData = React.useMemo(() => {
-    if (!searchTerm) return dataTable;
-    const lowerSearchTerm = searchTerm.toLowerCase();
-    return dataTable.filter((estilista) =>
-      estilista.name.toLowerCase().includes(lowerSearchTerm) ||
-      estilista.telefono.toLowerCase().includes(lowerSearchTerm)
-    );
-  }, [dataTable, searchTerm]);
+  const filteredData = useFilteredRowData(dataTable, searchTerm, [
+    "name",
+    "telefono",
+  ]);
 
   return (
     // Data Grid will fill the size of the parent container

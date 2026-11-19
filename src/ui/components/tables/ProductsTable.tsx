@@ -9,6 +9,7 @@ import {
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import ProductosActionsCell from "../CustomeCells/ProductosActionsCell";
 import { useProductosCtx } from "../../contexts/ProductosCtx";
+import { useFilteredRowData } from "../../hooks/useFilteredRowData";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -70,16 +71,10 @@ const ProductsTable = ({ searchTerm }: Props) => {
     []
   );
 
-  const filteredData = React.useMemo(() => {
-    if (!searchTerm) return dataTable;
-    const lowerSearchTerm = searchTerm.toLowerCase();
-    return dataTable.filter((row) => {
-      return (
-        row.nombre.toLowerCase().includes(lowerSearchTerm) ||
-        row.marca.toLowerCase().includes(lowerSearchTerm)
-      );
-    });
-  }, [searchTerm, dataTable]);
+  const filteredData = useFilteredRowData(dataTable, searchTerm, [
+    "nombre",
+    "marca",
+  ]);
 
 
   return (

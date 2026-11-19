@@ -14,6 +14,7 @@ import { AgGridReact, CustomCellRendererProps } from "ag-grid-react";
 import GastoActionsCell from "../CustomeCells/GastoActionsCell";
 import { useGastosCtx } from "../../contexts/GastosCtx";
 import { Gasto } from "../../types/Gasto";
+import { useFilteredRowData } from "../../hooks/useFilteredRowData";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -95,16 +96,12 @@ const GastosTable = ({
     },
   };
 
-  const filteredData = React.useMemo(() => {
-    if (!searchTerm) return dataTable;
-    const lowerSearchTerm = searchTerm.toLowerCase();
-    return dataTable.filter((gasto) =>
-      gasto.proveedorNombre.toLowerCase().includes(lowerSearchTerm) ||
-      gasto.categoria.toLowerCase().includes(lowerSearchTerm) ||
-      gasto.descripcion.toLowerCase().includes(lowerSearchTerm) ||
-      gasto.metodoPago.toLowerCase().includes(lowerSearchTerm)
-    );
-  }, [dataTable, searchTerm]);
+  const filteredData = useFilteredRowData(dataTable, searchTerm, [
+    "proveedorNombre",
+    "categoria",
+    "descripcion",
+    "metodoPago",
+  ]);
 
   const handleEditingStarted = (event: CellEditingStartedEvent) => {
     console.log("Cell editing started", event);
