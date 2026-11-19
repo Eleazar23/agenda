@@ -1,4 +1,4 @@
-import { Autocomplete, TextField } from "@mui/material";
+import { Autocomplete, SxProps, TextField, Theme } from "@mui/material";
 import { getHrs } from "../../utils/utils";
 
 type Props = {
@@ -7,17 +7,32 @@ type Props = {
   hora?: string;
   onChange?: (newHora: string) => void;
   size?: "small" | "medium";
+  variant?: "filled" | "outlined" | "standard";
+  hideLabel?: boolean;
+  id?: string;
+  sx?: SxProps<Theme>;
 };
 
 const hrs = getHrs().map((hora, index) => ({...hora, id: index}));
 
-function HoraFinInput({ label, readOnly, hora, onChange, size }: Props) {
+function HoraFinInput({
+  label,
+  readOnly,
+  hora,
+  onChange,
+  size,
+  variant = "filled",
+  hideLabel,
+  id,
+  sx,
+}: Props) {
   return (
     <Autocomplete
+      id={id}
       renderInput={(params) => (
         <TextField
-          label={label}
-          variant="filled"
+          label={hideLabel ? undefined : label}
+          variant={variant}
           {...params}
         />
       )}
@@ -32,6 +47,7 @@ function HoraFinInput({ label, readOnly, hora, onChange, size }: Props) {
       }}
       disabled={readOnly}
       size={size}
+      sx={sx}
       fullWidth
     />
   );

@@ -204,6 +204,15 @@ export const getDuracion = (horaInicio: string, horaFin: string) => {
   return realDiffMins;
 };
 
+export function formatDuracion(minutes: number): string {
+  if (!minutes || minutes <= 0) return "0m";
+  const hrs = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hrs === 0) return `${mins}m`;
+  if (mins === 0) return `${hrs}h`;
+  return `${hrs}h ${mins}m`;
+}
+
 // Filas de 30 min que ocupa un servicio agendado, a partir de su propio
 // rowIndex/duracion (independiente de cuántas entradas contiguas existan).
 export function getOccupiedRows(

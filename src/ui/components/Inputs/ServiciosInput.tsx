@@ -2,7 +2,7 @@ import * as React from "react";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import { Servicio } from "../../types/Servicio";
-import { Box } from "@mui/material";
+import { Box, SxProps, Theme } from "@mui/material";
 
 type Props = {
   serviceIndex?: number;
@@ -12,6 +12,9 @@ type Props = {
   id?: string;
   error?: boolean;
   helperText?: string;
+  variant?: "filled" | "outlined" | "standard";
+  hideLabel?: boolean;
+  sx?: SxProps<Theme>;
 };
 
 const styles = {
@@ -34,6 +37,9 @@ export default function ServiciosInput({
   id,
   error,
   helperText,
+  variant = "filled",
+  hideLabel,
+  sx,
 }: Props) {
   // const { servicios } = useAgendaContext();
   const [options, setOptions] = React.useState<Array<Servicio>>([]);
@@ -70,13 +76,14 @@ export default function ServiciosInput({
       options={options}
       fullWidth
       size={size}
+      sx={sx}
       value={value}
       renderInput={(params) => (
         <TextField
           {...params}
           sx={styles.textField}
-          label="Servicio"
-          variant="filled"
+          label={hideLabel ? undefined : "Servicio"}
+          variant={variant}
           size={size}
           error={error}
           helperText={helperText}

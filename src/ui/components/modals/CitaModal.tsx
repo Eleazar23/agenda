@@ -10,6 +10,7 @@ import { useAgendaContext } from "../../contexts/AgendaContext";
 import {
   Avatar,
   Box,
+  Chip,
   Divider,
   Stack,
   TextField,
@@ -18,6 +19,7 @@ import {
   Typography,
 } from "@mui/material";
 import {
+  capitalizeFirstLetter,
   formatDateFromHTML,
   formatDateToHTML,
   getOfficeHours,
@@ -35,6 +37,11 @@ import { getCitasByFechaClienteId } from "../../services/citasApi";
 import PropinaModal from "./PropinaModal";
 import CambiosSinGuardarDialog from "./cita/CambiosSinGuardarDialog";
 import VolunteerActivismOutlinedIcon from "@mui/icons-material/VolunteerActivismOutlined";
+import BitacoraBtn from "../buttons/BitacoraBtn";
+import BitacoraModal from "./clientes/BitacoraModal";
+import { getEstadoCitaColor } from "../../utils/estadoCitaColors";
+import FieldLabel from "../Inputs/FieldLabel";
+import { compactFieldSx } from "../../utils/compactFieldSx";
 
 type CitaModalProps = {
   fecha: string;
@@ -86,12 +93,6 @@ const resumenEditable = (c: Cita) =>
       })),
   });
 
-const CustomeInputField = styled(TextField)(() => ({
-  "& .MuiInputBase-input": {
-    textTransform: "capitalize",
-  },
-}));
-
 export default function CitaModal({
   fecha,
   clienteId,
@@ -109,6 +110,7 @@ export default function CitaModal({
   const [view, setView] = useState("servicio");
   const [isSaving, setIsSaving] = useState(false);
   const [isPropinaOpen, setIsPropinaOpen] = useState(false);
+  const [isBitacoraOpen, setIsBitacoraOpen] = useState(false);
   const [isConfirmCerrarOpen, setIsConfirmCerrarOpen] = useState(false);
   const [resolvedServicio, setResolvedServicio] =
     useState<ServicioAgendado>(servicio);
@@ -405,21 +407,32 @@ export default function CitaModal({
                 </Typography>
               </Stack>
             </Stack>
+
+            <BitacoraBtn
+              onClick={() => setIsBitacoraOpen(true)}
+              sx={{
+                bgcolor: "#eef1f6",
+                color: "#5b4bb8",
+                "&:hover": { bgcolor: "#e3e7f5" },
+              }}
+            />
           </Stack>
 
           <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
 
-          <CustomeInputField
-            name="fecha"
-            type="date"
-            id="filled-basic"
-            label="Fecha"
-            variant="filled"
-            size="small"
-            value={formatDateToHTML(citaForm.fecha)}
-            onChange={(e) => handleChangeFecha(e.target.value)}
-            sx={{ maxWidth: 190 }}
-          />
+          <Box>
+            <FieldLabel htmlFor="fecha-cita-input">Fecha</FieldLabel>
+            <TextField
+              name="fecha"
+              type="date"
+              id="fecha-cita-input"
+              variant="outlined"
+              size="small"
+              value={formatDateToHTML(citaForm.fecha)}
+              onChange={(e) => handleChangeFecha(e.target.value)}
+              sx={[compactFieldSx, { width: 170 }]}
+            />
+          </Box>
 
           <Box flexGrow={1} />
 
@@ -446,6 +459,55 @@ export default function CitaModal({
           </IconButton>
         </Box>
 
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          px={3}
+          py={1.5}
+          sx={(theme) => ({
+            bgcolor: theme.palette.action.hover,
+            borderBottom: `1px solid ${theme.palette.divider}`,
+          })}
+        >
+          <Stack direction="row" alignItems="baseline" gap={1}>
+            <Typography
+              variant="caption"
+              fontWeight={600}
+              color="text.secondary"
+            >
+              TOTAL CITA
+            </Typography>
+            <Typography variant="subtitle1" fontWeight={700}>
+              ${totalACobrar.toFixed(2)}
+            </Typography>
+          </Stack>
+
+          <Stack direction="row" alignItems="center" gap={1.5}>
+            <Button
+              size="small"
+              startIcon={<VolunteerActivismOutlinedIcon />}
+              onClick={() => setIsPropinaOpen(true)}
+              sx={{ borderRadius: 5 }}
+              variant="outlined"
+              color="secondary"
+            >
+              {totalPropinas > 0
+                ? `Propina · $${totalPropinas.toFixed(2)}`
+                : "Propina"}
+            </Button>
+            <Chip
+              size="small"
+              label={capitalizeFirstLetter(citaForm.estado || "")}
+              sx={{
+                bgcolor: getEstadoCitaColor(citaForm.estado).bg,
+                color: getEstadoCitaColor(citaForm.estado).color,
+                fontWeight: 700,
+              }}
+            />
+          </Stack>
+        </Box>
+
         <DialogContent dividers>
           {view === "servicio" ? (
             <ServicioForm
@@ -468,20 +530,8 @@ export default function CitaModal({
           )}
         </DialogContent>
 
-        <DialogActions>
-          <Button
-            startIcon={<VolunteerActivismOutlinedIcon />}
-            color="secondary"
-            onClick={() => setIsPropinaOpen(true)}
-            sx={{ mr: "auto" }}
-          >
-            {totalPropinas > 0
-              ? `Propina · $${totalPropinas.toFixed(2)}`
-              : "Propina"}
-          </Button>
-          <Button autoFocus onClick={handleCancelar}>
-            Cancelar
-          </Button>
+        <DialogActions sx={{ gap: 1.5 }}>
+          <Button onClick={handleCancelar}>Cancelar</Button>
           {view === "total" ? (
             <Button
               onClick={() => handleGuardar({ estado: "pagado" })}
@@ -509,6 +559,17 @@ export default function CitaModal({
         onSeguirEditando={() => setIsConfirmCerrarOpen(false)}
         onDescartar={handleCancelar}
         onGuardar={handleGuardarDesdeConfirmacion}
+      />
+      <BitacoraModal
+        isOpen={isBitacoraOpen}
+        onClose={() => setIsBitacoraOpen(false)}
+        cliente={{
+          id: clienteId,
+          nombre: nombreCliente,
+          telefono: telefonoCliente || "",
+          correo: "",
+          lastVisit: "",
+        }}
       />
       {isPropinaOpen && (
         <PropinaModal

@@ -1,10 +1,15 @@
 import { useState } from "react";
-import { Grid, IconButton, InputAdornment, TextField } from "@mui/material";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import CantidadInput from "../Inputs/CantidadInput";
+import { Box, Button, IconButton, Stack, Typography } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 import { Producto } from "../../types/Producto";
 import ProductInput from "../Inputs/ProductInput";
 import EstilistaInput from "../Inputs/EstilistaInput";
+import FieldLabel from "../Inputs/FieldLabel";
+import {
+  COMPACT_FIELD_HEIGHT as FIELD_HEIGHT,
+  compactFieldSx,
+} from "../../utils/compactFieldSx";
 
 type Props = {
   ctxAddProducto: ({
@@ -27,9 +32,15 @@ const getInitialFormData = () => ({
     precio: 0,
     stock: 0,
   },
-  cantidad: 0,
+  cantidad: 1,
   estilista: "",
 });
+
+function Dot() {
+  return (
+    <Box sx={{ width: 3, height: 3, borderRadius: "50%", bgcolor: "divider" }} />
+  );
+}
 
 function AddProductForm({ ctxAddProducto }: Props) {
   const [formData, setFormData] = useState<{
@@ -38,6 +49,9 @@ function AddProductForm({ ctxAddProducto }: Props) {
     estilista: string;
   }>(getInitialFormData);
   const [isGuardando, setIsGuardando] = useState(false);
+
+  const hayProducto = !!formData.producto.nombre;
+  const stock = formData.producto.stock || 0;
 
   const handleChange = (field: string, value: unknown) => {
     setFormData((prev) => ({
@@ -52,98 +66,162 @@ function AddProductForm({ ctxAddProducto }: Props) {
     setFormData((prev) => ({
       ...prev,
       producto,
-      // Evita que la cantidad seleccionada para el producto anterior exceda el stock del nuevo producto
-      cantidad: Math.min(prev.cantidad, productoStock),
+      cantidad: Math.min(Math.max(prev.cantidad, 1), productoStock || 1),
     }));
   };
 
-  const handleCantidadChange = (value: number) => {
-    const productoStock = formData.producto.stock || 0;
-    const newValue = Math.min(value, productoStock); // Limitar la cantidad al stock disponible
-    handleChange("cantidad", newValue);
+  const handleCantidadChange = (delta: number) => {
+    setFormData((prev) => {
+      const nextStock = prev.producto.stock || 0;
+      const nextValue = Math.min(nextStock, Math.max(1, prev.cantidad + delta));
+      return { ...prev, cantidad: nextValue };
+    });
   };
 
   const handleAddProducto = async () => {
-    if (isGuardando || !formData.producto.nombre || formData.cantidad <= 0) {
+    if (
+      isGuardando ||
+      !formData.producto.nombre ||
+      !formData.estilista ||
+      formData.cantidad <= 0
+    ) {
       return;
     }
     setIsGuardando(true);
     try {
       if (await ctxAddProducto(formData)) {
-        setFormData(getInitialFormData()); // Reiniciar el formulario después de agregar el producto
+        setFormData(getInitialFormData());
       }
     } finally {
       setIsGuardando(false);
     }
   };
 
+  const subtotal = hayProducto
+    ? (Number(formData.producto.precio) * formData.cantidad).toFixed(2)
+    : "0.00";
+
   return (
-    <>
-      <Grid container size={12} gap={1} justifyContent="flex-start">
-        <Grid size={3}>
+    <Box sx={{ width: "100%" }}>
+      <Stack direction="row" alignItems="flex-end" gap={2.25}>
+        <Box sx={{ flex: 1.8, minWidth: 0 }}>
+          <FieldLabel>Producto</FieldLabel>
           <ProductInput
             value={formData.producto}
             onChange={handleProductoChange}
+            variant="outlined"
+            size="small"
+            hideLabel
+            sx={compactFieldSx}
           />
-        </Grid>
-        <Grid size={2}>
+        </Box>
+
+        <Box>
+          <FieldLabel>Cantidad</FieldLabel>
+          <Stack
+            direction="row"
+            alignItems="center"
+            sx={{
+              border: "1.5px solid",
+              borderColor: hayProducto ? "primary.main" : "#e3e5e8",
+              borderRadius: 2,
+              height: FIELD_HEIGHT,
+              boxSizing: "border-box",
+              bgcolor: hayProducto ? "background.paper" : "#fafafa",
+            }}
+          >
+            <IconButton
+              aria-label="disminuir cantidad"
+              size="small"
+              color="primary"
+              disabled={!hayProducto || formData.cantidad <= 1}
+              onClick={() => handleCantidadChange(-1)}
+            >
+              <RemoveIcon fontSize="small" />
+            </IconButton>
+            <Typography
+              sx={{
+                minWidth: 28,
+                textAlign: "center",
+                fontWeight: 700,
+                fontSize: 14,
+                color: hayProducto ? "text.primary" : "text.disabled",
+              }}
+            >
+              {formData.cantidad}
+            </Typography>
+            <IconButton
+              aria-label="aumentar cantidad"
+              size="small"
+              color="primary"
+              disabled={!hayProducto || formData.cantidad >= stock}
+              onClick={() => handleCantidadChange(1)}
+            >
+              <AddIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+        </Box>
+
+        <Box
+          sx={{ width: "1px", height: 46, bgcolor: "#e3e5e8", flexShrink: 0 }}
+        />
+
+        <Box sx={{ width: 200, flexShrink: 0 }}>
+          <FieldLabel>Para (estilista)</FieldLabel>
           <EstilistaInput
             ctxValue={formData?.estilista || ""}
             ctxDispatch={handleChange}
+            autoSelectFirst={false}
+            variant="outlined"
+            size="small"
+            hideLabel
+            sx={compactFieldSx}
           />
-        </Grid>
-        <Grid size={2}>
-          <TextField
-            label="Precio"
-            name="precio"
-            variant="filled"
-            fullWidth
-            value={formData.producto?.precio || ""}
-            slotProps={{
-              input: {
-                readOnly: true,
-                startAdornment: (
-                  <InputAdornment position="start">$</InputAdornment>
-                ),
-              },
-            }}
-          />
-        </Grid>
-        <Grid size={2}>
-          <TextField
-            label="Stock"
-            name="stock"
-            variant="filled"
-            fullWidth
-            value={formData.producto?.stock || 0}
-            slotProps={{
-              input: {
-                readOnly: true,
-              },
-            }}
-          />
-        </Grid>
-        <Grid size={1}>
-          <CantidadInput
-            variant="filled"
-            ctxValue={formData.cantidad || 0}
-            ctxOnChange={handleCantidadChange}
-            disabled={!formData.producto.nombre}
-          />
-        </Grid>
-        <Grid size={1} display="flex" justifyContent="center">
-          <IconButton
-            aria-label="add-producto"
-            color="success"
-            size="medium"
-            onClick={handleAddProducto}
-            disabled={isGuardando}
-          >
-            <AddCircleOutlineIcon />
-          </IconButton>
-        </Grid>
-      </Grid>
-    </>
+        </Box>
+
+        <Box sx={{ flex: 1 }} />
+
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleAddProducto}
+          disabled={isGuardando || !hayProducto || !formData.estilista}
+          sx={{
+            height: FIELD_HEIGHT,
+            px: 2.5,
+            borderRadius: 2,
+            flexShrink: 0,
+          }}
+        >
+          Agregar
+        </Button>
+      </Stack>
+
+      {hayProducto && (
+        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mt: 1.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12.5 }}>
+            Precio unitario{" "}
+            <Box component="b" sx={{ color: "text.primary" }}>
+              ${Number(formData.producto.precio).toFixed(2)}
+            </Box>
+          </Typography>
+          <Dot />
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12.5 }}>
+            Stock disponible{" "}
+            <Box component="b" sx={{ color: "text.primary" }}>
+              {stock}
+            </Box>
+          </Typography>
+          <Dot />
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12.5 }}>
+            Subtotal{" "}
+            <Box component="b" sx={{ color: "success.main" }}>
+              ${subtotal}
+            </Box>
+          </Typography>
+        </Stack>
+      )}
+    </Box>
   );
 }
 
