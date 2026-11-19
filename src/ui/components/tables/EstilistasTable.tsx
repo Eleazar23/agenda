@@ -6,6 +6,7 @@ import {
   ColDef,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
+import { agGridTheme } from "../../theme/agGridTheme";
 import EstilistasActionsCell from "../CustomeCells/EstilistasActionsCell";
 import VacacionesCell from "../CustomeCells/VacacionesCell";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
@@ -70,6 +71,7 @@ const EstilistasTable = ({ searchTerm }: Props) => {
     // Data Grid will fill the size of the parent container
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
+        theme={agGridTheme}
         rowData={filteredData}
         columnDefs={colsData}
         defaultColDef={defaultColDef}

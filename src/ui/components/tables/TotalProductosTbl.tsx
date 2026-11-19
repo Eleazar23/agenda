@@ -7,6 +7,7 @@ import {
   ValueGetterParams,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
+import { agGridTheme } from "../../theme/agGridTheme";
 import { ProductoInCita } from "../../types/Producto";
 import { capitalizeFirstLetter } from "../../utils/utils";
 
@@ -31,7 +32,7 @@ function TotalProductosTbl({ productos }: Props) {
   ]);
   return (
     <div style={{ height: 250 }}>
-      <AgGridReact rowData={productos} columnDefs={colDefs} />
+      <AgGridReact theme={agGridTheme} rowData={productos} columnDefs={colDefs} />
     </div>
   );
 }

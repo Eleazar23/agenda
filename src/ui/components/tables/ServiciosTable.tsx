@@ -6,6 +6,7 @@ import {
   ModuleRegistry,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
+import { agGridTheme } from "../../theme/agGridTheme";
 import { useServiciosCtx } from "../../contexts/ServiciosContext";
 import ServiciosActionsCell from "../CustomeCells/ServiciosActionsCell";
 import { useFilteredRowData } from "../../hooks/useFilteredRowData";
@@ -45,6 +46,7 @@ const ServiciosTable = ({ searchTerm }: { searchTerm: string }) => {
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
+        theme={agGridTheme}
         rowData={filteredData}
         columnDefs={colDefs}
         defaultColDef={defaultColDef}

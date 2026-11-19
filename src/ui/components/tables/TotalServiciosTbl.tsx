@@ -5,6 +5,7 @@ import {
   ModuleRegistry,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
+import { agGridTheme } from "../../theme/agGridTheme";
 import { Box, IconButton, Popover, Stack, Typography } from "@mui/material";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
 import { capitalizeFirstLetter } from "../../utils/utils";
@@ -109,7 +110,7 @@ function TotalServiciosTbl({
 
   return (
     <div style={{ height: 250 }}>
-      <AgGridReact rowData={servicios} columnDefs={colDefs} />
+      <AgGridReact theme={agGridTheme} rowData={servicios} columnDefs={colDefs} />
     </div>
   );
 }

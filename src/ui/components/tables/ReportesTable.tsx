@@ -9,6 +9,7 @@ import {
   ValueGetterParams,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
+import { agGridTheme } from "../../theme/agGridTheme";
 import { capitalizeFirstLetter } from "../../utils/utils";
 
 // Register all Community features
@@ -181,6 +182,7 @@ const ReportesTable = ({
     // Data Grid will fill the size of the parent container
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
+        theme={agGridTheme}
         ref={gridRef}
         rowData={reportesData}
         columnDefs={colDef}

@@ -4,6 +4,7 @@ import {
   ModuleRegistry,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
+import { agGridTheme } from "../../theme/agGridTheme";
 import { Propina } from "../../types/Cita";
 import { capitalizeFirstLetter } from "../../utils/utils";
 
@@ -34,7 +35,7 @@ const colDefs: ColDef<Propina>[] = [
 function TotalPropinasTbl({ propinas }: Props) {
   return (
     <div style={{ height: 150 }}>
-      <AgGridReact rowData={propinas} columnDefs={colDefs} />
+      <AgGridReact theme={agGridTheme} rowData={propinas} columnDefs={colDefs} />
     </div>
   );
 }

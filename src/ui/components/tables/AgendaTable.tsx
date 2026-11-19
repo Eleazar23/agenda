@@ -5,9 +5,9 @@ import {
   ColDef,
   ModuleRegistry,
   SpanRowsParams,
-  themeQuartz,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
+import { agGridTheme } from "../../theme/agGridTheme";
 import { useTheme } from "@mui/material/styles";
 import { getHrs, celdaEstaBloqueada } from "../../utils/utils";
 import CutomeCellRenderer from "../CustomeCells/CutomeCellRenderer";
@@ -156,7 +156,7 @@ const AgendaTable = () => {
   // to use myTheme in an application, pass it to the theme grid option
   const myTheme = useMemo(
     () =>
-      themeQuartz.withParams({
+      agGridTheme.withParams({
         columnBorder: true,
         rowBorder: false,
         oddRowBackgroundColor: theme.palette.agenda.oddRow,

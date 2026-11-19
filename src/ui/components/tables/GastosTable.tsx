@@ -9,6 +9,7 @@ import {
   ValueFormatterParams,
 } from "ag-grid-community";
 import { AgGridReact, CustomCellRendererProps } from "ag-grid-react";
+import { agGridTheme } from "../../theme/agGridTheme";
 import GastoActionsCell from "../CustomeCells/GastoActionsCell";
 import { useGastosCtx } from "../../contexts/GastosCtx";
 import { Gasto } from "../../types/Gasto";
@@ -129,6 +130,7 @@ const GastosTable = ({
   return (
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
+        theme={agGridTheme}
         rowData={filteredData}
         gridOptions={gridOptions}
         columnDefs={colDefs.map((col) => {
