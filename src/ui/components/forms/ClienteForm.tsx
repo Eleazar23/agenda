@@ -7,6 +7,7 @@ import {
   CardHeader,
   Divider,
   Grid,
+  Typography,
 } from "@mui/material";
 import PhoneInput from "../Inputs/PhoneInput";
 import { useAgendaContext } from "../../contexts/AgendaContext";
@@ -50,6 +51,18 @@ const ClienteForm = () => {
   const isTelefonoValido = /^\d{10,}$/.test(cita.telefonoCliente || "");
   const canGuardarNuevoCliente =
     isNombreValido && isTelefonoValido && !cita.clienteId;
+
+  // Explica por qué el botón está deshabilitado en vez de dejarlo gris sin
+  // contexto; null cuando ya hay un cliente vinculado (el botón no aplica).
+  const guardarNuevoClienteHint = cita.clienteId
+    ? null
+    : !isNombreValido && !isTelefonoValido
+      ? "Escribe el nombre (mínimo 3 caracteres) y el teléfono (10 dígitos) para guardar un cliente nuevo"
+      : !isNombreValido
+        ? "El nombre debe tener al menos 3 caracteres"
+        : !isTelefonoValido
+          ? "El teléfono debe tener 10 dígitos"
+          : null;
 
   const handleGuardarNuevoCliente = async () => {
     if (!canGuardarNuevoCliente) {
@@ -110,8 +123,10 @@ const ClienteForm = () => {
             <Box
               component="div"
               display={"flex"}
+              flexDirection={"column"}
+              alignItems={"flex-end"}
+              gap={0.5}
               sx={{ width: "100%" }}
-              justifyContent={"flex-end"}
             >
               <Button
                 variant="contained"
@@ -120,6 +135,11 @@ const ClienteForm = () => {
               >
                 Guardar nuevo cliente
               </Button>
+              {guardarNuevoClienteHint && (
+                <Typography variant="caption" color="text.secondary">
+                  {guardarNuevoClienteHint}
+                </Typography>
+              )}
             </Box>
           </Grid>
         </CardContent>
