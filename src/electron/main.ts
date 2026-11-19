@@ -441,7 +441,10 @@ ipcMain.handle('add-cita', async (_event, cita) => {
         // const maxId = await Cita.findOne().sort('-id').lean();
         // const newId = maxId ? maxId.id + 1 : 1;
         // const newCita = new Cita({ ...cita, id: newId });
-        const newCita = new Cita({ ...cita });
+        // La UI recrea citas a partir de documentos leídos de la BD (al
+        // cancelar o mover de fecha); sin quitar _id el insert choca con el
+        // original, que todavía existe en ese momento.
+        const newCita = new Cita(sinCamposMongo(cita));
         await newCita.save();
         return newCita.toObject();
     } catch (error) {

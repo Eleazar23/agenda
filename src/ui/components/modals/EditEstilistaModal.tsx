@@ -89,6 +89,7 @@ const EditEstilistasModal: React.FC<ClientDialogProps> = ({
     }
 
     editEstilista(rowIndex, formData);
+    onClose?.();
   };
 
   return (

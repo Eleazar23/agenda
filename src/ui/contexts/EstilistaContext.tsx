@@ -116,7 +116,7 @@ export const EstilistasCtxProvider = ({ children }: Props) => {
       console.error("Error deleting estilista:", error);
       const match =
         error instanceof Error &&
-        error.message.match(/^HAS_REFERENCES:estilista:(.+)/);
+        error.message.match(/HAS_REFERENCES:estilista:(.+)/);
       const message = match
         ? `No se puede eliminar: el estilista tiene ${match[1]} en su historial`
         : "Error al eliminar estilista";

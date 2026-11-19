@@ -118,7 +118,7 @@ export const ClientesCtxProvider = ({ children }: Props) => {
       console.error("Error deleting cliente:", error);
       const match =
         error instanceof Error &&
-        error.message.match(/^HAS_REFERENCES:cliente:(\d+)/);
+        error.message.match(/HAS_REFERENCES:cliente:(\d+)/);
       const message = match
         ? `No se puede eliminar: el cliente tiene ${match[1]} cita(s) en su historial`
         : "Error al eliminar cliente";
