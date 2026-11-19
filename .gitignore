@@ -31,3 +31,9 @@ out/
 # Local MongoDB backups (contain real client data, never commit)
 Resplados manuales BD/
 *.bson
+
+# Playwright e2e output
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
