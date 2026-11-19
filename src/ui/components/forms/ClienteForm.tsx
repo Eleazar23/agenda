@@ -136,27 +136,32 @@ const ClienteForm = () => {
               }
               ctxOptions={allClientes}
             />
-            <Box
-              component="div"
-              display={"flex"}
-              flexDirection={"column"}
-              alignItems={"flex-end"}
-              gap={0.5}
-              sx={{ width: "100%" }}
-            >
-              <Button
-                variant="contained"
-                onClick={handleGuardarNuevoCliente}
-                disabled={!canGuardarNuevoCliente}
+            {/* Solo aplica mientras no haya un cliente ya vinculado (ver chip
+                "Cliente existente" en el header); si ya está vinculado, no
+                hay nada que guardar y el botón solo ocuparía espacio. */}
+            {!cita.clienteId && (
+              <Box
+                component="div"
+                display={"flex"}
+                flexDirection={"column"}
+                alignItems={"flex-end"}
+                gap={0.5}
+                sx={{ width: "100%" }}
               >
-                Guardar nuevo cliente
-              </Button>
-              {guardarNuevoClienteHint && (
-                <Typography variant="caption" color="text.secondary">
-                  {guardarNuevoClienteHint}
-                </Typography>
-              )}
-            </Box>
+                <Button
+                  variant="contained"
+                  onClick={handleGuardarNuevoCliente}
+                  disabled={!canGuardarNuevoCliente}
+                >
+                  Guardar nuevo cliente
+                </Button>
+                {guardarNuevoClienteHint && (
+                  <Typography variant="caption" color="text.secondary">
+                    {guardarNuevoClienteHint}
+                  </Typography>
+                )}
+              </Box>
+            )}
           </Grid>
         </CardContent>
       </Card>
