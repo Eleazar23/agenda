@@ -58,11 +58,11 @@ const NuevaCitaContainer = () => {
             alignItems: "center",
             justifyContent: "center",
             width: "100%",
-            height: 48,
+            height: 36,
             padding: "5px 0px",
           }}
         >
-          <Typography variant="h5" align="center">
+          <Typography variant="h6" align="center">
             Nueva Cita
           </Typography>
         </Paper>

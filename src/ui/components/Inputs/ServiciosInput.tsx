@@ -8,6 +8,7 @@ type Props = {
   serviceIndex?: number;
   value: Servicio | null;
   onChange: (newValue: Servicio | null) => void;
+  size?: "small" | "medium";
 };
 
 const styles = {
@@ -23,7 +24,7 @@ const styles = {
 //   "Peinado",
 // ];
 
-export default function ServiciosInput({ value, onChange }: Props) {
+export default function ServiciosInput({ value, onChange, size }: Props) {
   // const { servicios } = useAgendaContext();
   const [options, setOptions] = React.useState<Array<Servicio>>([]);
   const [inputValue, setInputValue] = React.useState("");
@@ -58,6 +59,7 @@ export default function ServiciosInput({ value, onChange }: Props) {
       getOptionLabel={(option) => option.nombre}
       options={options}
       fullWidth
+      size={size}
       value={value}
       renderInput={(params) => (
         <TextField
@@ -65,6 +67,7 @@ export default function ServiciosInput({ value, onChange }: Props) {
           sx={styles.textField}
           label="Servicio"
           variant="filled"
+          size={size}
         />
       )}
       onChange={handleChange}

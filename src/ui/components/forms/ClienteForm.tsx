@@ -103,8 +103,10 @@ const ClienteForm = () => {
     <Grid size={12}>
       <Card variant="outlined">
         <CardHeader
-          avatar={<PersonIcon color="primary" />}
+          avatar={<PersonIcon color="primary" fontSize="small" />}
           title="Cliente"
+          titleTypographyProps={{ variant: "subtitle1" }}
+          sx={{ py: 1 }}
           action={
             cita.clienteId ? (
               <Chip
@@ -119,7 +121,7 @@ const ClienteForm = () => {
           }
         />
         <Divider sx={{ margin: "0 1rem" }} />
-        <CardContent>
+        <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
           <Grid container gap={1} sx={{ width: "100%" }}>
             <ClienteInput
               ctxValue={cita.nombreCliente}
@@ -129,6 +131,7 @@ const ClienteForm = () => {
                 updateCitaCliente(cliente.nombre, cliente.telefono, cliente.id)
               }
               ctxOptions={allClientes}
+              size="small"
             />
             <PhoneInput
               valueContext={cita.telefonoCliente}
@@ -137,6 +140,7 @@ const ClienteForm = () => {
                 updateCitaCliente(cliente.nombre, cliente.telefono, cliente.id)
               }
               ctxOptions={allClientes}
+              size="small"
             />
             {/* Solo aplica mientras no haya un cliente ya vinculado (ver chip
                 "Cliente existente" en el header); si ya está vinculado, no
@@ -152,6 +156,7 @@ const ClienteForm = () => {
               >
                 <Button
                   variant="contained"
+                  size="small"
                   onClick={handleGuardarNuevoCliente}
                   disabled={!canGuardarNuevoCliente}
                 >

@@ -9,6 +9,7 @@ type Props = {
   ctxOptions: Cliente[];
   dispatchContext?: (value: string) => void;
   onSelectCliente?: (cliente: Cliente) => void;
+  size?: "small" | "medium";
 };
 
 function ClienteInput({
@@ -18,6 +19,7 @@ function ClienteInput({
   autoFocus,
   onSelectCliente,
   ctxOptions,
+  size,
 }: Props) {
   const options = useMemo(() => {
     const seen = new Set<number>();
@@ -92,6 +94,7 @@ function ClienteInput({
       onChange={handleAutocompleteChange}
       onInputChange={handleInputChange}
       fullWidth
+      size={size}
       renderInput={(params) => (
         <TextField
           {...params}
@@ -100,6 +103,7 @@ function ClienteInput({
           id="outlined-basic-client-input"
           label="Nombre del Cliente"
           variant="filled"
+          size={size}
           sx={{ width: "100%" }}
           autoFocus={autoFocus}
         />

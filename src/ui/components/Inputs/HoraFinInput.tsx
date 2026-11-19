@@ -6,11 +6,12 @@ type Props = {
   readOnly?: boolean;
   hora?: string;
   onChange?: (newHora: string) => void;
+  size?: "small" | "medium";
 };
 
 const hrs = getHrs().map((hora, index) => ({...hora, id: index}));
 
-function HoraFinInput({ label, readOnly, hora, onChange }: Props) {
+function HoraFinInput({ label, readOnly, hora, onChange, size }: Props) {
   return (
     <Autocomplete
       renderInput={(params) => (
@@ -30,6 +31,7 @@ function HoraFinInput({ label, readOnly, hora, onChange }: Props) {
         }
       }}
       disabled={readOnly}
+      size={size}
       fullWidth
     />
   );

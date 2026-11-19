@@ -12,6 +12,7 @@ type Props = {
   autoFocus?: boolean;
   ctxOptions?: Cliente[];
   onSelectCliente?: (cliente: Cliente) => void;
+  size?: "small" | "medium";
 };
 
 const sanitizePhone = (raw: string) => raw.replace(/[^0-9]/g, "");
@@ -25,6 +26,7 @@ function PhoneInput({
   autoFocus,
   ctxOptions,
   onSelectCliente,
+  size,
 }: Props) {
   const [value, setValue] = useState("");
   const [inputValue, setInputValue] = useState<string>(valueContext || "");
@@ -110,6 +112,7 @@ function PhoneInput({
         onChange={handleAutocompleteChange}
         onInputChange={handleAutocompleteInputChange}
         fullWidth
+        size={size}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -120,6 +123,7 @@ function PhoneInput({
             variant={variant || "filled"}
             placeholder="Ingresa teléfono"
             type="tel"
+            size={size}
             sx={{ width: "100%" }}
           />
         )}
@@ -151,6 +155,7 @@ function PhoneInput({
         variant={variant || "filled"}
         placeholder="Ingresa teléfono"
         type="tel"
+        size={size}
         value={valueContext ? valueContext : value}
         onChange={handleChange}
         sx={{ width: "100%" }}

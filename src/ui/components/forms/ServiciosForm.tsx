@@ -93,7 +93,9 @@ const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
           }}
         >
           <Stack direction="row" alignItems="center" gap={1} sx={{ minWidth: 0 }}>
-            <Typography variant="h6">{estilista.toUpperCase()}</Typography>
+            <Typography variant="subtitle1" fontWeight="bold">
+              {estilista.toUpperCase()}
+            </Typography>
             {!isExpanded && (
               <Typography variant="body2" color="text.secondary" noWrap>
                 {servicio?.nombre || "Sin servicio"} · {hora} - {horaFin}
@@ -125,14 +127,24 @@ const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
         </Box>
         <Collapse in={isExpanded} sx={{ width: "100%" }}>
           <Stack gap={1} sx={{ width: "100%" }}>
-            <ServiciosInput value={servicio} onChange={handleServicioChange} />
+            <ServiciosInput
+              value={servicio}
+              onChange={handleServicioChange}
+              size="small"
+            />
             <Box component="div" sx={{ display: "flex", gap: 1, width: "100%" }}>
-              <HoraFinInput label="Inicio" hora={hora} readOnly={true} />
+              <HoraFinInput
+                label="Inicio"
+                hora={hora}
+                readOnly={true}
+                size="small"
+              />
               <HoraFinInput
                 label="Fin"
                 hora={horaFin}
                 readOnly={false}
                 onChange={handleChangeHoraFin}
+                size="small"
               />
             </Box>
           </Stack>

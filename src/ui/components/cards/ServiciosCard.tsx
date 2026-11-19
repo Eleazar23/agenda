@@ -13,8 +13,10 @@ const ServiciosCard = () => {
   return (
     <Card variant="outlined" sx={{ width: "100%", maxHeight: "100%"}}>
       <CardHeader
-        avatar={<ContentCutIcon color="primary" />}
+        avatar={<ContentCutIcon color="primary" fontSize="small" />}
         title="Servicios"
+        titleTypographyProps={{ variant: "subtitle1" }}
+        sx={{ py: 1 }}
         action={
           subtotal > 0 ? (
             <Chip
