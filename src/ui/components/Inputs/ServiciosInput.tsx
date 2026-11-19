@@ -9,6 +9,9 @@ type Props = {
   value: Servicio | null;
   onChange: (newValue: Servicio | null) => void;
   size?: "small" | "medium";
+  id?: string;
+  error?: boolean;
+  helperText?: string;
 };
 
 const styles = {
@@ -24,7 +27,14 @@ const styles = {
 //   "Peinado",
 // ];
 
-export default function ServiciosInput({ value, onChange, size }: Props) {
+export default function ServiciosInput({
+  value,
+  onChange,
+  size,
+  id,
+  error,
+  helperText,
+}: Props) {
   // const { servicios } = useAgendaContext();
   const [options, setOptions] = React.useState<Array<Servicio>>([]);
   const [inputValue, setInputValue] = React.useState("");
@@ -68,6 +78,11 @@ export default function ServiciosInput({ value, onChange, size }: Props) {
           label="Servicio"
           variant="filled"
           size={size}
+          error={error}
+          helperText={helperText}
+          slotProps={{
+            htmlInput: { ...params.inputProps, id: id || params.inputProps?.id },
+          }}
         />
       )}
       onChange={handleChange}

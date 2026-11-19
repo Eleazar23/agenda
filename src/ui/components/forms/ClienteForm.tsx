@@ -17,7 +17,14 @@ import { useAgendaContext } from "../../contexts/AgendaContext";
 import ClienteInput from "../Inputs/ClienteInput";
 import { Cliente } from "../../types/Cliente";
 
-const ClienteForm = () => {
+export const NOMBRE_CLIENTE_INPUT_ID = "nueva-cita-nombre-cliente";
+export const TELEFONO_CLIENTE_INPUT_ID = "nueva-cita-telefono-cliente";
+
+type Props = {
+  showErrors?: boolean;
+};
+
+const ClienteForm = ({ showErrors }: Props) => {
   const { cita, setCita, handleAlert, addCliente } = useAgendaContext();
   const [allClientes, setAllClientes] = useState<Cliente[]>([]);
 
@@ -54,6 +61,12 @@ const ClienteForm = () => {
   const isTelefonoValido = /^\d{10,}$/.test(cita.telefonoCliente || "");
   const canGuardarNuevoCliente =
     isNombreValido && isTelefonoValido && !cita.clienteId;
+
+  // Rojo solo tras un intento de Guardar fallido (showErrors), y solo
+  // mientras el campo siga vacío: no se marca por estar "incompleto".
+  const nombreVacio = showErrors && cita.nombreCliente.trim().length === 0;
+  const telefonoVacio =
+    showErrors && (cita.telefonoCliente || "").trim().length === 0;
 
   // Explica por qué el botón está deshabilitado en vez de dejarlo gris sin
   // contexto; null cuando ya hay un cliente vinculado (el botón no aplica).
@@ -124,6 +137,7 @@ const ClienteForm = () => {
         <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
           <Grid container gap={1} sx={{ width: "100%" }}>
             <ClienteInput
+              id={NOMBRE_CLIENTE_INPUT_ID}
               ctxValue={cita.nombreCliente}
               dispatchContext={dispatchCliente}
               autoFocus={true}
@@ -132,8 +146,11 @@ const ClienteForm = () => {
               }
               ctxOptions={allClientes}
               size="small"
+              error={nombreVacio}
+              helperText={nombreVacio ? "Falta el nombre del cliente" : undefined}
             />
             <PhoneInput
+              id={TELEFONO_CLIENTE_INPUT_ID}
               valueContext={cita.telefonoCliente}
               dispatchContext={dispatchPhone}
               onSelectCliente={(cliente) =>
@@ -141,6 +158,8 @@ const ClienteForm = () => {
               }
               ctxOptions={allClientes}
               size="small"
+              error={telefonoVacio}
+              helperText={telefonoVacio ? "Falta el teléfono del cliente" : undefined}
             />
             {/* Solo aplica mientras no haya un cliente ya vinculado (ver chip
                 "Cliente existente" en el header); si ya está vinculado, no

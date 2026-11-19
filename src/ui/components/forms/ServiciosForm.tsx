@@ -5,7 +5,7 @@ import ServiciosInput from "../Inputs/ServiciosInput";
 import { Servicio } from "../../types/Servicio";
 import HoraFinInput from "../Inputs/HoraFinInput";
 import { useAgendaContext } from "../../contexts/AgendaContext";
-import { getDuracion, addMinutesToHora } from "../../utils/utils";
+import { getDuracion, addMinutesToHora, servicioInputId } from "../../utils/utils";
 import DeleteBtn from "../buttons/DeleteBtn";
 import ConfirmDeleteModal from "../modals/ConfirmDeleteModal";
 
@@ -13,15 +13,29 @@ type ServiciosFormProps = {
   cellID: string;
   estilista: string;
   hora: string;
+  showErrors?: boolean;
 };
 
-const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
+const ServiciosForm = ({
+  estilista,
+  hora,
+  cellID,
+  showErrors,
+}: ServiciosFormProps) => {
   const { updateDuracion, updateService, removeServiceFromCita, handleAlert } =
     useAgendaContext();
   const [servicio, setServicio] = useState<Servicio | null>(null);
   const [horaFin, setHoraFin] = useState<string>(addMinutesToHora(hora, 30));
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+
+  // Rojo solo tras un intento de Guardar fallido, y solo mientras no se
+  // haya elegido servicio; además, fuerza a expandir la tarjeta si estaba
+  // colapsada para que el error sea visible.
+  const servicioVacio = showErrors && !servicio;
+  useEffect(() => {
+    if (servicioVacio) setIsExpanded(true);
+  }, [servicioVacio]);
 
   const handleRemove = () => {
     setIsConfirmOpen(false);
@@ -128,9 +142,12 @@ const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
         <Collapse in={isExpanded} sx={{ width: "100%" }}>
           <Stack gap={1} sx={{ width: "100%" }}>
             <ServiciosInput
+              id={servicioInputId(cellID)}
               value={servicio}
               onChange={handleServicioChange}
               size="small"
+              error={servicioVacio}
+              helperText={servicioVacio ? "Selecciona un servicio" : undefined}
             />
             <Box component="div" sx={{ display: "flex", gap: 1, width: "100%" }}>
               <HoraFinInput

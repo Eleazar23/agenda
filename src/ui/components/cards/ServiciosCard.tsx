@@ -3,7 +3,11 @@ import ContentCutIcon from "@mui/icons-material/ContentCut";
 import ServiciosForm from "../forms/ServiciosForm";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 
-const ServiciosCard = () => {
+type Props = {
+  showErrors?: boolean;
+};
+
+const ServiciosCard = ({ showErrors }: Props) => {
   const { cita } = useAgendaContext();
   const {servicios} = cita
   const subtotal = servicios.reduce(
@@ -48,6 +52,7 @@ const ServiciosCard = () => {
                 cellID={servicio.cellID ?? ""}
                 estilista={servicio.estilista}
                 hora={servicio.horaInicio ?? ""}
+                showErrors={showErrors}
               />
             );
           })}

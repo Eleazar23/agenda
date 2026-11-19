@@ -13,6 +13,9 @@ type Props = {
   ctxOptions?: Cliente[];
   onSelectCliente?: (cliente: Cliente) => void;
   size?: "small" | "medium";
+  id?: string;
+  error?: boolean;
+  helperText?: string;
 };
 
 const sanitizePhone = (raw: string) => raw.replace(/[^0-9]/g, "");
@@ -27,6 +30,9 @@ function PhoneInput({
   ctxOptions,
   onSelectCliente,
   size,
+  id,
+  error,
+  helperText,
 }: Props) {
   const [value, setValue] = useState("");
   const [inputValue, setInputValue] = useState<string>(valueContext || "");
@@ -118,13 +124,17 @@ function PhoneInput({
             {...params}
             autoFocus={autoFocus}
             name="telefono"
-            id="outlined-basic"
             label="Teléfono"
             variant={variant || "filled"}
             placeholder="Ingresa teléfono"
             type="tel"
             size={size}
             sx={{ width: "100%" }}
+            error={error}
+            helperText={helperText}
+            slotProps={{
+              htmlInput: { ...params.inputProps, id: id || "outlined-basic" },
+            }}
           />
         )}
         renderOption={(props, option) => {
@@ -150,7 +160,7 @@ function PhoneInput({
       <TextField
         autoFocus={autoFocus}
         name="telefono"
-        id="outlined-basic"
+        id={id || "outlined-basic"}
         label="Teléfono"
         variant={variant || "filled"}
         placeholder="Ingresa teléfono"
@@ -159,6 +169,8 @@ function PhoneInput({
         value={valueContext ? valueContext : value}
         onChange={handleChange}
         sx={{ width: "100%" }}
+        error={error}
+        helperText={helperText}
         slotProps={{
           input: {
             endAdornment: searchIcon ? (

@@ -345,3 +345,7 @@ export function throttle<Args extends unknown[]>(
     }
   };
 }
+
+// Id del input de Servicio de cada tarjeta de servicio en Nueva Cita, para
+// poder enfocarlo/expandir su tarjeta cuando falla la validación al guardar.
+export const servicioInputId = (cellID: string) => `servicio-input-${cellID}`;

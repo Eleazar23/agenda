@@ -10,6 +10,9 @@ type Props = {
   dispatchContext?: (value: string) => void;
   onSelectCliente?: (cliente: Cliente) => void;
   size?: "small" | "medium";
+  id?: string;
+  error?: boolean;
+  helperText?: string;
 };
 
 function ClienteInput({
@@ -20,6 +23,9 @@ function ClienteInput({
   onSelectCliente,
   ctxOptions,
   size,
+  id,
+  error,
+  helperText,
 }: Props) {
   const options = useMemo(() => {
     const seen = new Set<number>();
@@ -100,12 +106,16 @@ function ClienteInput({
           {...params}
           type="text"
           name={name}
-          id="outlined-basic-client-input"
           label="Nombre del Cliente"
           variant="filled"
           size={size}
           sx={{ width: "100%" }}
           autoFocus={autoFocus}
+          error={error}
+          helperText={helperText}
+          slotProps={{
+            htmlInput: { ...params.inputProps, id: id || "outlined-basic-client-input" },
+          }}
         />
       )}
       renderOption={(props, option) => {
