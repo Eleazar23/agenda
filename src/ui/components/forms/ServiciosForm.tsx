@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
-import { Box, IconButton, Stack, Typography } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { Fragment, useEffect, useState } from "react";
+import { Box, Stack, Typography } from "@mui/material";
 import ServiciosInput from "../Inputs/ServiciosInput";
 import HoraInput from "../Inputs/HoraInput";
 import { Servicio } from "../../types/Servicio";
 import HoraFinInput from "../Inputs/HoraFinInput";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import { getDuracion, addMinutesToHora } from "../../utils/utils";
+import DeleteBtn from "../buttons/DeleteBtn";
+import ConfirmDeleteModal from "../modals/ConfirmDeleteModal";
 
 type ServiciosFormProps = {
   cellID: string;
@@ -19,8 +20,10 @@ const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
     useAgendaContext();
   const [servicio, setServicio] = useState<Servicio | null>(null);
   const [horaFin, setHoraFin] = useState<string>(addMinutesToHora(hora, 30));
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const handleRemove = () => {
+    setIsConfirmOpen(false);
     removeServiceFromCita({
       rowIndex: 0,
       cellID,
@@ -66,6 +69,7 @@ const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
   }, []);
 
   return (
+    <Fragment>
       <Stack
         sx={{
           width: "100%",
@@ -86,13 +90,7 @@ const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
           }}
         >
           <Typography variant="h6">{estilista.toUpperCase()}</Typography>
-          <IconButton
-            size="small"
-            aria-label="Quitar servicio"
-            onClick={handleRemove}
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
+          <DeleteBtn onClick={() => setIsConfirmOpen(true)} />
         </Box>
         <ServiciosInput value={servicio} onChange={handleServicioChange} />
         <Box component="div" sx={{ display: "flex", gap: 1, width: "100%" }}>
@@ -105,6 +103,21 @@ const ServiciosForm = ({ estilista, hora, cellID }: ServiciosFormProps) => {
           />
         </Box>
       </Stack>
+      <ConfirmDeleteModal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        title="Quitar servicio"
+        confirmQuestion="¿Quieres quitar este servicio de la cita?"
+        itemSummary={
+          <Typography variant="body2">
+            {estilista.toUpperCase()} — {servicio?.nombre || "Sin servicio"} (
+            {hora} - {horaFin})
+          </Typography>
+        }
+        onConfirm={handleRemove}
+        confirmLabel="Quitar"
+      />
+    </Fragment>
   );
 };
 
