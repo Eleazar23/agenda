@@ -50,6 +50,55 @@ export function formatDateFromHTML(dateString: string) {
   return dateObj.format("DD-MM-YYYY");
 }
 
+export type ReportePeriodo = "dia" | "semana" | "mes";
+
+const MESES_CORTOS = [
+  "ene", "feb", "mar", "abr", "may", "jun",
+  "jul", "ago", "sep", "oct", "nov", "dic",
+];
+
+// Máximo de días (ambos extremos incluidos) que admite cada tipo de reporte.
+export const REPORTE_MAX_DIAS: Record<ReportePeriodo, number> = {
+  dia: 1,
+  semana: 7,
+  mes: 31,
+};
+
+// Días entre `fechaInicio` y `fechaFin` (DD-MM-YYYY, ambos incluidos).
+// Devuelve la lista de días DD-MM-YYYY (en orden) para consultar con $in,
+// ya que las fechas guardadas como string no sirven para $gte/$lte, y un
+// texto corto del rango (ej. "17–23 nov 2026"). Si fin < inicio, `fechas`
+// queda vacío.
+export function getReporteRango(fechaInicio: string, fechaFin: string) {
+  const inicio = dayjs(fechaInicio, "DD-MM-YYYY");
+  const fin = dayjs(fechaFin, "DD-MM-YYYY");
+
+  const fechas: string[] = [];
+  for (let d = inicio; !d.isAfter(fin, "day"); d = d.add(1, "day")) {
+    fechas.push(d.format("DD-MM-YYYY"));
+  }
+
+  const fmt = (d: dayjs.Dayjs, conMes: boolean, conAnio: boolean) =>
+    `${d.date()}${conMes ? ` ${MESES_CORTOS[d.month()]}` : ""}${conAnio ? ` ${d.year()}` : ""}`;
+  let label: string;
+  if (fechas.length <= 1) {
+    label = fmt(inicio, true, true);
+  } else if (inicio.year() !== fin.year()) {
+    label = `${fmt(inicio, true, true)} – ${fmt(fin, true, true)}`;
+  } else if (inicio.month() !== fin.month()) {
+    label = `${fmt(inicio, true, false)} – ${fmt(fin, true, true)}`;
+  } else {
+    label = `${fmt(inicio, false, false)}–${fmt(fin, true, true)}`;
+  }
+
+  return { fechas, label };
+}
+
+// Convierte DD-MM-YYYY a YYYY-MM-DD para ordenar cronológicamente.
+export function fechaSortKey(fecha: string) {
+  return fecha ? formatDateToHTML(fecha) : "";
+}
+
 export function subtractDayToDate(dateString: string) {
   const cDate = dayjs(dateString, "DD-MM-YYYY");
   const newDate = cDate.subtract(1, "day");

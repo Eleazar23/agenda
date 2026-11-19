@@ -5,8 +5,10 @@ import {
   Chip,
   CircularProgress,
   Grid,
+  MenuItem,
   Paper,
   Stack,
+  TextField,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
@@ -17,7 +19,14 @@ import { Cita, Propina } from "../../types/Cita";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
 import { ProductoInCita } from "../../types/Producto";
 import EstilistaFilter from "../Inputs/EstilistaFilter";
-import { capitalizeFirstLetter, getCurrentDate } from "../../utils/utils";
+import {
+  capitalizeFirstLetter,
+  fechaSortKey,
+  getCurrentDate,
+  getReporteRango,
+  REPORTE_MAX_DIAS,
+  ReportePeriodo,
+} from "../../utils/utils";
 import { Gasto } from "../../types/Gasto";
 
 import { styled } from "@mui/material/styles";
@@ -27,6 +36,11 @@ import { toggleButtonGroupClasses } from "@mui/material/ToggleButtonGroup";
 type ServicioInReporte = ServicioAgendado & {
   nombreCliente: string;
   metodoDePago: string;
+};
+
+type ProductoInReporte = ProductoInCita & {
+  nombreCliente: string;
+  fecha: string;
 };
 
 type PropinaInReporte = Propina & {
@@ -49,8 +63,11 @@ const styles = {
   actionBar: {
     display: "flex",
     justifyContent: "space-between",
+    alignItems: "flex-start",
+    flexWrap: "wrap",
     width: "100%",
-    gap: 4,
+    columnGap: 4,
+    rowGap: 2,
   },
   footer: {
     display: "flex",
@@ -64,6 +81,15 @@ const styles = {
 };
 
 type ViewType = "servicios" | "productos" | "total" | "gastos" | "propinas";
+
+// Orden cronológico (fecha DD-MM-YYYY y, si existe, hora de inicio) para
+// que en Semana/Mes la tabla y el Excel salgan agrupados por día.
+const byFecha = <T extends { fecha?: string; horaInicio?: string }>(
+  a: T,
+  b: T,
+) =>
+  fechaSortKey(a.fecha || "").localeCompare(fechaSortKey(b.fecha || "")) ||
+  (a.horaInicio || "").localeCompare(b.horaInicio || "");
 
 const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
   gap: "2rem",
@@ -86,11 +112,13 @@ const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
 
 const Reportes = () => {
   const [servicios, setServicios] = useState<ServicioInReporte[]>([]);
-  const [productos, setProductos] = useState<ProductoInCita[]>([]);
+  const [productos, setProductos] = useState<ProductoInReporte[]>([]);
   const [gastos, setGastos] = useState<Gasto[]>([]);
   const [propinas, setPropinas] = useState<PropinaInReporte[]>([]);
   const [estilistaFilter, setEstilistaFilter] = useState("");
   const [fechaFilter, setFechaFilter] = useState(getCurrentDate().formattedDate);
+  const [fechaFin, setFechaFin] = useState(getCurrentDate().formattedDate);
+  const [periodo, setPeriodo] = useState<ReportePeriodo>("dia");
   const [download, setDownload] = useState(false);
   const [view, setView] = useState<ViewType>("servicios");
   const [isLoading, setIsLoading] = useState(false);
@@ -103,6 +131,34 @@ const Reportes = () => {
       setView(newView);
       return;
     }
+  };
+
+  const handlePeriodoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPeriodo(event.target.value as ReportePeriodo);
+  };
+
+  // En Día solo cuenta la fecha de inicio; en Semana/Mes el rango lo eligen
+  // los dos inputs y los botones solo validan su longitud máxima.
+  const rango = useMemo(
+    () =>
+      getReporteRango(fechaFilter, periodo === "dia" ? fechaFilter : fechaFin),
+    [fechaFilter, fechaFin, periodo],
+  );
+
+  const rangoError = useMemo(() => {
+    if (periodo === "dia") return "";
+    if (rango.fechas.length === 0) {
+      return "Debe ser igual o posterior a la fecha de inicio";
+    }
+    const max = REPORTE_MAX_DIAS[periodo];
+    if (rango.fechas.length > max) {
+      return `Máximo ${max} días para el reporte ${periodo === "semana" ? "semanal" : "mensual"} (${rango.fechas.length} seleccionados)`;
+    }
+    return "";
+  }, [periodo, rango]);
+
+  const handleFechaFinChange = (inputName: string, fecha: string) => {
+    setFechaFin(() => fecha);
   };
 
   const handleEstilistaChange = (inputName: string, estilista: string) => {
@@ -125,24 +181,41 @@ const Reportes = () => {
   };
 
   const getServiciosProductosFromCitas = (citas: Cita[]) => {
+    // La fecha de la cita es la que se consultó; se usa para todas las
+    // filas para que el rango y el orden coincidan con la consulta.
     setServicios(
-      citas.flatMap((cita) =>
-        cita.servicios.map((servicio) => ({
-          ...servicio,
-          nombreCliente: cita.nombreCliente,
-          metodoDePago: cita.metodoDePago,
-        })),
-      ),
+      citas
+        .flatMap((cita) =>
+          cita.servicios.map((servicio) => ({
+            ...servicio,
+            fecha: cita.fecha,
+            nombreCliente: cita.nombreCliente,
+            metodoDePago: cita.metodoDePago,
+          })),
+        )
+        .sort(byFecha),
     );
-    setProductos(citas.flatMap((cita) => cita.productos));
+    setProductos(
+      citas
+        .flatMap((cita) =>
+          (cita.productos || []).map((producto) => ({
+            ...producto,
+            nombreCliente: cita.nombreCliente,
+            fecha: cita.fecha,
+          })),
+        )
+        .sort(byFecha),
+    );
     setPropinas(
-      citas.flatMap((cita) =>
-        (cita.propinas || []).map((propina) => ({
-          ...propina,
-          nombreCliente: cita.nombreCliente,
-          fecha: cita.fecha,
-        })),
-      ),
+      citas
+        .flatMap((cita) =>
+          (cita.propinas || []).map((propina) => ({
+            ...propina,
+            nombreCliente: cita.nombreCliente,
+            fecha: cita.fecha,
+          })),
+        )
+        .sort(byFecha),
     );
   };
 
@@ -232,27 +305,47 @@ const Reportes = () => {
     if (!fechaFilter) {
       return;
     }
+    if (rangoError || rango.fechas.length === 0) {
+      // Rango inválido: no se consulta y se limpia para no mostrar totales
+      // de un rango anterior.
+      setServicios([]);
+      setProductos([]);
+      setPropinas([]);
+      setGastos([]);
+      return;
+    }
+    // Evita que una respuesta lenta de un rango anterior pise la actual.
+    let cancelado = false;
     // Lógica para obtener los datos de los reportes
     const loadReportes = async () => {
       setIsLoading(true);
       try {
         const [citasFromDB, gastosFromDB] = await Promise.all([
-          window.api.getCitasByFecha(fechaFilter),
-          window.api.getGastosByFecha(fechaFilter),
+          window.api.getCitasByFechas(rango.fechas),
+          window.api.getGastosByFechas(rango.fechas),
         ]);
+        if (cancelado) return;
         const citasPagadas = citasFromDB.filter(
           (cita: Cita) => cita.estado === "pagado",
         );
         getServiciosProductosFromCitas(citasPagadas);
-        setGastos(gastosFromDB);
+        setGastos([...gastosFromDB].sort(byFecha));
       } catch (error) {
         console.error("Error loading reportes:", error);
       } finally {
-        setIsLoading(false);
+        if (!cancelado) setIsLoading(false);
       }
     };
     loadReportes();
-  }, [fechaFilter]);
+    return () => {
+      cancelado = true;
+    };
+  }, [fechaFilter, rango, rangoError]);
+
+  const rangoArchivo =
+    rango.fechas.length > 1
+      ? `${rango.fechas[0]}_a_${rango.fechas[rango.fechas.length - 1]}`
+      : fechaFilter;
 
   return (
     // Data Grid will fill the size of the parent container
@@ -265,7 +358,13 @@ const Reportes = () => {
       <Grid container size={12}>
         <Paper sx={styles.paper}>
           <Box component="div" sx={styles.actionBar}>
-            <Box component="div" display={"flex"} sx={{ gap: 2 }}>
+            <Box
+              component="div"
+              display={"flex"}
+              alignItems="flex-start"
+              flexWrap="wrap"
+              sx={{ gap: 2 }}
+            >
               <Box component="div" sx={{ width: "200px" }}>
                 <EstilistaFilter
                   ctxValue={estilistaFilter}
@@ -274,23 +373,67 @@ const Reportes = () => {
                   size="small"
                 />
               </Box>
-              <Box component="div" sx={{ width: "200px" }}>
+              <Box component="div">
                 <FechaInput
                   ctxValue={fechaFilter}
                   ctxDispatch={handleFechaChange}
+                  label={periodo === "dia" ? "Fecha" : "Fecha Inicio"}
                   variant="outlined"
                   size="small"
                 />
               </Box>
+              {periodo !== "dia" && (
+                <Box component="div">
+                  <FechaInput
+                    ctxValue={fechaFin}
+                    ctxDispatch={handleFechaFinChange}
+                    name="fechaFin"
+                    label="Fecha Fin"
+                    variant="outlined"
+                    size="small"
+                    error={Boolean(rangoError)}
+                  />
+                </Box>
+              )}
+              <TextField
+                select
+                label="Tipo de reporte"
+                variant="outlined"
+                size="small"
+                value={periodo}
+                onChange={handlePeriodoChange}
+                sx={{ width: "160px" }}
+              >
+                <MenuItem value="dia">Diario</MenuItem>
+                <MenuItem value="semana">Semanal</MenuItem>
+                <MenuItem value="mes">Mensual</MenuItem>
+              </TextField>
             </Box>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleDownload}
-              disabled={isLoading || currentViewData.length === 0}
+            <Box
+              component="div"
+              display={"flex"}
+              alignItems="center"
+              sx={{ gap: 2, minHeight: 40, ml: "auto" }}
             >
-              Guardar Excel
-            </Button>
+              <Typography
+                variant="body1"
+                color={rangoError ? "error" : "text.secondary"}
+                sx={{ whiteSpace: rangoError ? "normal" : "nowrap", maxWidth: 320 }}
+              >
+                {rangoError || rango.label}
+              </Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{ whiteSpace: "nowrap", flexShrink: 0 }}
+                onClick={handleDownload}
+                disabled={
+                  isLoading || Boolean(rangoError) || currentViewData.length === 0
+                }
+              >
+                Guardar Excel
+              </Button>
+            </Box>
           </Box>
         </Paper>
       </Grid>
@@ -349,7 +492,7 @@ const Reportes = () => {
       {view === "propinas" && propinasPorEstilista.length > 0 && (
         <Grid container size={12} gap={1} alignItems="center">
           <Typography variant="subtitle2" color="text.secondary">
-            A pagar hoy:
+            {periodo === "dia" ? "A pagar hoy:" : "A pagar en el periodo:"}
           </Typography>
           {propinasPorEstilista.map(([estilista, monto]) => (
             <Chip
@@ -391,7 +534,9 @@ const Reportes = () => {
             }}
           >
             <Typography variant="body1" color="text.secondary">
-              No hay datos para mostrar con los filtros seleccionados.
+              {rangoError
+                ? "Corrige el rango de fechas para ver el reporte."
+                : "No hay datos para mostrar con los filtros seleccionados."}
             </Typography>
           </Box>
         ) : (
@@ -399,7 +544,7 @@ const Reportes = () => {
             reportesData={currentViewData}
             download={download}
             setDownload={setDownload}
-            currentDate={fechaFilter}
+            currentDate={rangoArchivo}
             filtro={estilistaFilter}
             view={view}
           />

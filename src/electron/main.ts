@@ -376,6 +376,19 @@ ipcMain.handle('get-citas-by-fecha', async (_event, fecha) => {
     }
 });
 
+// Reportes por rango (día/semana/mes). Las fechas se guardan como string
+// DD-MM-YYYY, que no ordena cronológicamente, así que el UI manda la lista
+// explícita de días del rango y aquí se consulta con $in.
+ipcMain.handle('get-citas-by-fechas', async (_event, fechas: string[]) => {
+    try {
+        if (!Array.isArray(fechas) || fechas.length === 0) return [];
+        return await Cita.find({ fecha: { $in: fechas }, estado: { $ne: 'cancelado' } }).lean();
+    } catch (error) {
+        console.error('Error getting citas by fechas:', error);
+        throw error;
+    }
+});
+
 ipcMain.handle('get-citas-by-fecha-clienteid', async (_event, fecha, clienteId) => {
     try {
         return await Cita.find({ fecha, clienteId, estado: { $ne: 'cancelado' } }).lean();
@@ -477,6 +490,16 @@ ipcMain.handle('get-gastos-by-fecha', async (_event, fecha) => {
         return await Gasto.find({ fecha }).lean();
     } catch (error) {
         console.error('Error getting gastos by fecha:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-gastos-by-fechas', async (_event, fechas: string[]) => {
+    try {
+        if (!Array.isArray(fechas) || fechas.length === 0) return [];
+        return await Gasto.find({ fecha: { $in: fechas } }).lean();
+    } catch (error) {
+        console.error('Error getting gastos by fechas:', error);
         throw error;
     }
 });

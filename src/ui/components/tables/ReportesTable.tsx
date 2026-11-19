@@ -10,10 +10,19 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import { agGridTheme } from "../../theme/agGridTheme";
-import { capitalizeFirstLetter } from "../../utils/utils";
+import { capitalizeFirstLetter, fechaSortKey } from "../../utils/utils";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
+
+// Las fechas vienen como DD-MM-YYYY; se ordenan como YYYY-MM-DD para que el
+// orden de la columna sea cronológico en reportes de semana/mes.
+const fechaCol = {
+  field: "fecha",
+  headerName: "Fecha",
+  comparator: (a: string, b: string) =>
+    fechaSortKey(a || "").localeCompare(fechaSortKey(b || "")),
+};
 
 const colDefServicios = [
   {
@@ -37,10 +46,7 @@ const colDefServicios = [
     field: "metodoDePago",
     headerName: "Método de Pago",
   },
-  {
-    field: "fecha",
-    headerName: "Fecha",
-  },
+  fechaCol,
   {
     field: "horaInicio",
     headerName: "Hora Inicio",
@@ -53,6 +59,7 @@ const colDefServicios = [
 
 const colDefProductos = [
       { field: "estilista", headerName: "Estilista", valueFormatter: (params: ValueFormatterParams) => capitalizeFirstLetter(params.value) },
+    { field: "nombreCliente", headerName: "Cliente" },
     { field: "nombre", headerName: "Nombre del producto" },
     { field: "precio", headerName: "Precio unitario" },
     { field: "cantidad", headerName: "Cantidad" },
@@ -61,6 +68,7 @@ const colDefProductos = [
       headerName: "Total",
       valueGetter: (params: ValueGetterParams) => params.data.precio * params.data.cantidad,
     },
+    fechaCol,
 
 ]
 
@@ -76,11 +84,7 @@ const colsData = [
     editable: true,
     valueFormatter: (params: ValueFormatterParams) => `$${parseFloat(params.value).toFixed(2)}`,
   },
-  {
-    field: "fecha",
-    headerName: "Fecha",
-    editable: false,
-  },
+  { ...fechaCol, editable: false },
   {
     field: "categoria",
     headerName: "Categoría",
@@ -115,7 +119,7 @@ const colDefPropinas = [
     headerName: "Método de Pago",
     valueFormatter: (params: ValueFormatterParams) => capitalizeFirstLetter(params.value || ""),
   },
-  { field: "fecha", headerName: "Fecha" },
+  fechaCol,
 ];
 
 type Props = {

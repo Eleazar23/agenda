@@ -36,6 +36,7 @@ contextBridge.exposeInMainWorld('api', {
   updateCita: (cita: unknown) => ipcRenderer.invoke('update-cita', cita),
   deleteCita: (id: number) => ipcRenderer.invoke('delete-cita', id),
   getCitasByFecha: (fecha: string) => ipcRenderer.invoke('get-citas-by-fecha', fecha),
+  getCitasByFechas: (fechas: string[]) => ipcRenderer.invoke('get-citas-by-fechas', fechas),
   getCitasByFechaClienteId: (fecha: string, clienteId: number) => ipcRenderer.invoke('get-citas-by-fecha-clienteid', fecha, clienteId),
   getCitaByFechaClienteId: (fecha: string, clienteId: number) => ipcRenderer.invoke('get-cita-by-fecha-clienteid', fecha, clienteId),
   getCitaById: (id: string) => ipcRenderer.invoke('get-cita-by-id', id),
@@ -43,6 +44,7 @@ contextBridge.exposeInMainWorld('api', {
 
   // Gastos
   getGastos: () => ipcRenderer.invoke('get-gastos'),
+  getGastosByFechas: (fechas: string[]) => ipcRenderer.invoke('get-gastos-by-fechas', fechas),
   getGastosByFecha: (fecha: string) => ipcRenderer.invoke('get-gastos-by-fecha', fecha),
   getGastosByCategoria: (categoria: string) => ipcRenderer.invoke('get-gastos-by-categoria', categoria),
   addGasto: (gasto: unknown) => ipcRenderer.invoke('add-gasto', gasto),

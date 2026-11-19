@@ -43,6 +43,7 @@ export interface IElectronAPI {
   updateCita: (cita: Cita) => Promise<Cita>;
   deleteCita: (id: string) => Promise<void>;
   getCitasByFecha: (fecha: string) => Promise<Cita[]>;
+  getCitasByFechas: (fechas: string[]) => Promise<Cita[]>;
   getCitasByFechaClienteId: (fecha: string, clienteId: number) => Promise<Cita[]>;
   getCitaByFechaClienteId: (fecha: string, clienteId: number) => Promise<Cita | null>;
   getCitaById: (id: string) => Promise<Cita | null>;
@@ -50,6 +51,7 @@ export interface IElectronAPI {
 
   // Gastos
   getGastos: () => Promise<Gasto[]>;
+  getGastosByFechas: (fechas: string[]) => Promise<Gasto[]>;
   getGastosByFecha: (fecha: string) => Promise<Gasto[]>;
   getGastosByCategoria: (categoria: string) => Promise<Gasto[]>;
   addGasto: (gasto: Omit<Gasto, 'id'>) => Promise<Gasto>;

@@ -318,6 +318,7 @@ export function createMockApi(): IElectronAPI {
       return delay(undefined);
     },
     getCitasByFecha: (fecha) => delay(citas.filter((c) => c.fecha === fecha)),
+    getCitasByFechas: (fechas) => delay(citas.filter((c) => fechas.includes(c.fecha))),
     getCitasByFechaClienteId: (fecha, clienteId) =>
       delay(citas.filter((c) => c.fecha === fecha && c.clienteId === clienteId)),
     getCitaByFechaClienteId: (fecha, clienteId) =>
@@ -334,6 +335,7 @@ export function createMockApi(): IElectronAPI {
 
     // Gastos
     getGastos: () => delay([...gastos]),
+    getGastosByFechas: (fechas) => delay(gastos.filter((g) => fechas.includes(g.fecha))),
     getGastosByFecha: (fecha) => delay(gastos.filter((g) => g.fecha === fecha)),
     getGastosByCategoria: (categoria) => delay(gastos.filter((g) => g.categoria === categoria)),
     addGasto: (gasto) => {

@@ -9,9 +9,22 @@ type Props = {
     ctxDispatch?: (inputName:string, value: string) => void;
     variant?: TextFieldVariants;
     size?: "small" | "medium";
+    label?: string;
+    name?: string;
+    error?: boolean;
+    helperText?: string;
 };
 
-function FechaInput({ ctxValue, ctxDispatch, variant = "filled", size }: Props) {
+function FechaInput({
+    ctxValue,
+    ctxDispatch,
+    variant = "filled",
+    size,
+    label = "Fecha",
+    name = "fecha",
+    error,
+    helperText,
+}: Props) {
     const [value, setValue] = React.useState(ctxValue || formattedDate);
 
     const handleDateChange = (newValue: string) => {
@@ -21,18 +34,20 @@ function FechaInput({ ctxValue, ctxDispatch, variant = "filled", size }: Props) 
 
     useEffect(() => {
         if (ctxDispatch) {
-            ctxDispatch("fecha", value);
+            ctxDispatch(name, value);
         }
     }, [value]);
 
   return (
     <TextField
       type="date"
-      name="fecha"
-      id="filled-basic"
-      label="Fecha"
+      name={name}
+      id={`fecha-input-${name}`}
+      label={label}
       variant={variant}
       size={size}
+      error={error}
+      helperText={helperText}
       value={formatDateToHTML(value)}
       onChange={(e) => handleDateChange(e.target.value)}
     />
