@@ -6,10 +6,10 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { Box, IconButton, Popover, Stack, Typography } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
 import { capitalizeFirstLetter } from "../../utils/utils";
+import EditBtn from "../buttons/EditBtn";
+import DeleteBtn from "../buttons/DeleteBtn";
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -50,20 +50,8 @@ function AccionesCellRenderer({
 
   return (
     <Stack direction="row" alignItems="center" height="100%">
-      <IconButton
-        size="small"
-        aria-label="Editar servicio"
-        onClick={() => onEditServicio?.(data)}
-      >
-        <EditIcon fontSize="inherit" />
-      </IconButton>
-      <IconButton
-        size="small"
-        aria-label="Eliminar servicio"
-        onClick={handleDeleteClick}
-      >
-        <DeleteIcon fontSize="inherit" />
-      </IconButton>
+      <EditBtn onClick={() => onEditServicio?.(data)} />
+      <DeleteBtn onClick={handleDeleteClick} />
       <Popover
         open={isPopoverOpen}
         anchorEl={anchorEl}

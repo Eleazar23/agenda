@@ -26,7 +26,7 @@ import {
   seSobreponeConOtroServicio,
 } from "../../../utils/utils";
 import { Cita } from "../../../types/Cita";
-import DeleteIcon from "@mui/icons-material/Delete";
+import DeleteBtn from "../../buttons/DeleteBtn";
 import { useAgendaContext } from "../../../contexts/AgendaContext";
 
 type ServicioFormProps = {
@@ -311,9 +311,7 @@ function ServicioForm({
           />
         </Grid>
         <Grid size={1} sx={{display:"flex", justifyContent:"center", alignItems:"center"}}>
-          <IconButton onClick={handleRemoveServiceClick}>
-            <DeleteIcon fontSize="inherit" />
-          </IconButton>
+          <DeleteBtn onClick={handleRemoveServiceClick} />
           <Popover
             id="remove-service-popover"
             open={isPopoverOpen}

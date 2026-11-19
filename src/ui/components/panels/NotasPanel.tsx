@@ -16,8 +16,8 @@ import {
   DialogContentText,
   DialogActions,
 } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
+import EditBtn from "../buttons/EditBtn";
 import DeleteBtn from "../buttons/DeleteBtn";
 import { useNotasCtx } from "../../contexts/NotasCtx";
 import NotaModal from "../modals/NotaModal";
@@ -80,14 +80,7 @@ const NotasPanel = () => {
               key={nota.id}
               secondaryAction={
                 <>
-                  <IconButton
-                    edge="end"
-                    size="small"
-                    aria-label="editar"
-                    onClick={() => handleEditNota(nota)}
-                  >
-                    <EditIcon fontSize="inherit" />
-                  </IconButton>
+                  <EditBtn onClick={() => handleEditNota(nota)} />
                   <DeleteBtn onClick={() => setNotaToDelete(nota)} />
                 </>
               }

@@ -1,9 +1,10 @@
 // import type { ICellRendererParams } from 'ag-grid-community';
+import type { MouseEvent } from "react";
 import { IconButton, Tooltip } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 
 type Props = {
-  onClick?: () => void;
+  onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
 };
 
 const DeleteBtn = ({ onClick }: Props) => {
