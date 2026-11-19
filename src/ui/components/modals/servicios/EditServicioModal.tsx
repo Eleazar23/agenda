@@ -1,14 +1,7 @@
 import React, { useState } from "react";
 import { Servicio } from "../../../types/Servicio";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Box,
-} from "@mui/material";
+import { TextField } from "@mui/material";
+import FormModalShell from "../FormModalShell";
 import { useServiciosCtx } from "../../../contexts/ServiciosContext";
 
 type Props = {
@@ -70,40 +63,37 @@ function EditServicioModal({ isOpen, onClose, initialData }: Props) {
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose} maxWidth="xs" fullWidth>
-      <DialogTitle>Editar Servicio</DialogTitle>
-      <DialogContent>
-        <Box display="flex" flexDirection="column" mt={1} gap={2}>
-          <TextField
-            label="Nombre"
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            fullWidth
-            required
-            error={!!errors.nombre}
-            helperText={errors.nombre}
-          />
-          <TextField
-            label="Precio"
-            type="number"
-            name="precio"
-            value={formData.precio}
-            onChange={handleChange}
-            fullWidth
-            required
-            error={!!errors.precio}
-            helperText={errors.precio}
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>Cancelar</Button>
-        <Button onClick={handleSave} variant="contained" color="primary">
-          Guardar
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <FormModalShell
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Editar Servicio"
+      onSubmit={handleSave}
+      maxWidth="xs"
+      fullWidth
+      dividers={false}
+    >
+      <TextField
+        label="Nombre"
+        name="nombre"
+        value={formData.nombre}
+        onChange={handleChange}
+        fullWidth
+        required
+        error={!!errors.nombre}
+        helperText={errors.nombre}
+      />
+      <TextField
+        label="Precio"
+        type="number"
+        name="precio"
+        value={formData.precio}
+        onChange={handleChange}
+        fullWidth
+        required
+        error={!!errors.precio}
+        helperText={errors.precio}
+      />
+    </FormModalShell>
   );
 }
 

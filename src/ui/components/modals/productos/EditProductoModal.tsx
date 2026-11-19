@@ -1,14 +1,7 @@
 import React, { useState } from "react";
 import { Producto } from "../../../types/Producto";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Box,
-} from "@mui/material";
+import { TextField, Box } from "@mui/material";
+import FormModalShell from "../FormModalShell";
 import { useProductosCtx } from "../../../contexts/ProductosCtx";
 import CantidadInput from "../../Inputs/CantidadInput";
 
@@ -95,82 +88,69 @@ function EditProductoModal({ isOpen, onClose, initialData }: Props) {
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose} maxWidth="xs" fullWidth>
-      <DialogTitle>Editar Producto</DialogTitle>
-      <DialogContent>
-        <Box display="flex" flexDirection="column" mt={1} gap={2}>
-          <Box display={"flex"} gap={2}>
-            <TextField
-              label="Nombre"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              fullWidth
-              required
-              error={!!errors.nombre}
-              helperText={errors.nombre}
-            />
-            <TextField
-              label="Marca"
-              name="marca"
-              value={formData.marca}
-              onChange={handleChange}
-              fullWidth
-              required
-              error={!!errors.marca}
-              helperText={errors.marca}
-            />
-          </Box>
-          <Box display={"flex"} gap={2}>
-            <TextField
-              label="Precio"
-              type="text"
-              inputMode="decimal"
-              name="precio"
-              value={formData.precio}
-              onChange={handlePrecioChange}
-              fullWidth
-              required
-              error={!!errors.precio}
-              helperText={errors.precio}
-            />
-            <CantidadInput
-              label="Stock"
-              name="stock"
-              ctxValue={formData.stock}
-              ctxOnChange={handleStockChange}
-            />
-            {/* <TextField
-              label="Stock"
-              name="stock"
-              type="number"
-              value={formData.stock}
-              onChange={handleChange}
-              fullWidth
-              error={!!errors.stock}
-              helperText={errors.stock}
-            /> */}
-          </Box>
-          <TextField
-            label="Descripción"
-            name="descripcion"
-            value={formData.descripcion}
-            onChange={handleChange}
-            fullWidth
-            multiline
-            rows={3}
-            error={!!errors.descripcion}
-            helperText={errors.descripcion}
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>Cancelar</Button>
-        <Button onClick={handleSave} variant="contained" color="primary">
-          Guardar
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <FormModalShell
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Editar Producto"
+      onSubmit={handleSave}
+      maxWidth="xs"
+      fullWidth
+      dividers={false}
+    >
+      <Box display={"flex"} gap={2}>
+        <TextField
+          label="Nombre"
+          name="nombre"
+          value={formData.nombre}
+          onChange={handleChange}
+          fullWidth
+          required
+          error={!!errors.nombre}
+          helperText={errors.nombre}
+        />
+        <TextField
+          label="Marca"
+          name="marca"
+          value={formData.marca}
+          onChange={handleChange}
+          fullWidth
+          required
+          error={!!errors.marca}
+          helperText={errors.marca}
+        />
+      </Box>
+      <Box display={"flex"} gap={2}>
+        <TextField
+          label="Precio"
+          type="text"
+          inputMode="decimal"
+          name="precio"
+          value={formData.precio}
+          onChange={handlePrecioChange}
+          fullWidth
+          required
+          error={!!errors.precio}
+          helperText={errors.precio}
+        />
+        <CantidadInput
+          label="Stock"
+          name="stock"
+          ctxValue={formData.stock}
+          ctxOnChange={handleStockChange}
+        />
+      </Box>
+      <TextField
+        label="Descripción"
+        name="descripcion"
+        value={formData.descripcion}
+        onChange={handleChange}
+        fullWidth
+        multiline
+        rows={3}
+        error={!!errors.descripcion}
+        helperText={errors.descripcion}
+      />
+    </FormModalShell>
   );
 }
 

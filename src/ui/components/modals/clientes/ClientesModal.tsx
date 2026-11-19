@@ -1,13 +1,6 @@
 import React, { useState } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Box,
-} from "@mui/material";
+import { TextField } from "@mui/material";
+import FormModalShell from "../FormModalShell";
 import { useClientesCtx } from "../../../contexts/ClientesCtx";
 import { getCurrentDate } from "../../../utils/utils";
 
@@ -105,58 +98,44 @@ export const ClientesModal: React.FC<ClientDialogProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Dialog onClose={handleClose} open={isOpen}>
-      <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-        Agregar Cliente
-      </DialogTitle>
-      <DialogContent dividers>
-        <Box
-          component="form"
-          onSubmit={handleSave}
-          sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
-        >
-          <TextField
-            type="text"
-            name="nombre"
-            placeholder="Nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-            error={!!errors.nombre}
-            helperText={errors.nombre}
-            fullWidth
-          />
-          <TextField
-            type="tel"
-            name="telefono"
-            placeholder="Teléfono (mínimo 10 dígitos)"
-            value={formData.telefono}
-            onChange={handleChange}
-            required
-            error={!!errors.telefono}
-            helperText={errors.telefono}
-            fullWidth
-          />
-          <TextField
-            type="email"
-            name="correo"
-            placeholder="Correo Electrónico"
-            value={formData.correo}
-            onChange={handleChange}
-            error={!!errors.correo}
-            helperText={errors.correo}
-            fullWidth
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-        <Button type="button" onClick={handleClose}>
-          Cancelar
-        </Button>
-        <Button type="submit" variant="contained" onClick={handleSave}>
-          Guardar
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <FormModalShell
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Agregar Cliente"
+      onSubmit={handleSave}
+    >
+      <TextField
+        type="text"
+        name="nombre"
+        placeholder="Nombre"
+        value={formData.nombre}
+        onChange={handleChange}
+        required
+        error={!!errors.nombre}
+        helperText={errors.nombre}
+        fullWidth
+      />
+      <TextField
+        type="tel"
+        name="telefono"
+        placeholder="Teléfono (mínimo 10 dígitos)"
+        value={formData.telefono}
+        onChange={handleChange}
+        required
+        error={!!errors.telefono}
+        helperText={errors.telefono}
+        fullWidth
+      />
+      <TextField
+        type="email"
+        name="correo"
+        placeholder="Correo Electrónico"
+        value={formData.correo}
+        onChange={handleChange}
+        error={!!errors.correo}
+        helperText={errors.correo}
+        fullWidth
+      />
+    </FormModalShell>
   );
 };

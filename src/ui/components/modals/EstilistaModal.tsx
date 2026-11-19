@@ -1,18 +1,13 @@
 import React, { useState } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
-  Button,
-  Box,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
   SelectChangeEvent,
 } from "@mui/material";
+import FormModalShell from "./FormModalShell";
 import PhoneInput from "../Inputs/PhoneInput";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
 
@@ -94,66 +89,42 @@ const EstilistaModal: React.FC<ClientDialogProps> = ({
     setFormData({ name: "", telefono: "", role: "estilista" });
   };
 
-  // if (!isOpen) return null;
-
   return (
-    <Dialog onClose={onClose} open={isOpen}>
-      <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-        Agregar Estilista
-      </DialogTitle>
-      <DialogContent dividers>
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
+    <FormModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Agregar Estilista"
+      onSubmit={handleSubmit}
+    >
+      <TextField
+        type="text"
+        name="name"
+        variant="outlined"
+        placeholder="Nombre"
+        value={formData.name}
+        onChange={handleChange}
+        required
+        error={isNameError}
+      />
+      <PhoneInput
+        variant="outlined"
+        valueContext={formData.telefono}
+        dispatchContext={handleChangePhone}
+        searchIcon={false}
+      />
+      <FormControl fullWidth>
+        <InputLabel>Rol</InputLabel>
+        <Select
+          name="role"
+          value={formData.role}
+          onChange={handleRoleChange}
+          label="Rol"
         >
-          <TextField
-            type="text"
-            name="name"
-            variant="outlined"
-            placeholder="Nombre"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            error={isNameError}
-          />
-          {/* <TextField
-            type="tel"
-            name="telefono"
-            placeholder="Teléfono"
-            value={formData.telefono}
-            onChange={handleChange}
-            required
-          /> */}
-          <PhoneInput
-            variant="outlined"
-            valueContext={formData.telefono}
-            dispatchContext={handleChangePhone}
-            searchIcon={false}
-          />
-          <FormControl fullWidth>
-            <InputLabel>Rol</InputLabel>
-            <Select
-              name="role"
-              value={formData.role}
-              onChange={handleRoleChange}
-              label="Rol"
-            >
-              <MenuItem value="estilista">Estilista</MenuItem>
-              <MenuItem value="vendedor">Vendedor</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-      </DialogContent>
-      <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-        <Button type="button" onClick={onClose}>
-          Cancelar
-        </Button>
-        <Button type="submit" variant="contained" onClick={handleSubmit}>
-          Guardar
-        </Button>
-      </DialogActions>
-    </Dialog>
+          <MenuItem value="estilista">Estilista</MenuItem>
+          <MenuItem value="vendedor">Vendedor</MenuItem>
+        </Select>
+      </FormControl>
+    </FormModalShell>
   );
 };
 export default EstilistaModal;

@@ -1,14 +1,6 @@
 import React, { useState } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Box,
-  FormHelperText,
-} from "@mui/material";
+import { TextField, Box, FormHelperText } from "@mui/material";
+import FormModalShell from "../FormModalShell";
 import PhoneInput from "../../Inputs/PhoneInput";
 import { useClientesCtx } from "../../../contexts/ClientesCtx";
 
@@ -94,61 +86,49 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
   };
 
   return (
-    <Dialog onClose={onClose} open={isOpen} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ m: 0, p: 2 }} id="edit-cliente-dialog-title">
-        Editar Cliente
-      </DialogTitle>
-      <DialogContent dividers>
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
-        >
-          <TextField
-            type="text"
-            name="nombre"
-            variant="outlined"
-            label="Nombre"
-            placeholder="Nombre del cliente"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-            error={isNombreError}
-            helperText={nombreErrorMsg}
-            fullWidth
-          />
-          <Box sx={{ position: "relative" }}>
-            <PhoneInput
-              variant="outlined"
-              valueContext={formData.telefono}
-              dispatchContext={handleChangePhone}
-              searchIcon={false}
-            />
-            {isPhoneError && (
-              <FormHelperText error>{phoneErrorMsg}</FormHelperText>
-            )}
-          </Box>
-          <TextField
-            type="email"
-            name="correo"
-            variant="outlined"
-            label="Correo Electrónico"
-            placeholder="correo@ejemplo.com"
-            value={formData.correo || ""}
-            onChange={handleChange}
-            fullWidth
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-        <Button type="button" onClick={onClose}>
-          Cancelar
-        </Button>
-        <Button type="submit" variant="contained" onClick={handleSubmit}>
-          Guardar
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <FormModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Editar Cliente"
+      onSubmit={handleSubmit}
+      maxWidth="sm"
+      fullWidth
+    >
+      <TextField
+        type="text"
+        name="nombre"
+        variant="outlined"
+        label="Nombre"
+        placeholder="Nombre del cliente"
+        value={formData.nombre}
+        onChange={handleChange}
+        required
+        error={isNombreError}
+        helperText={nombreErrorMsg}
+        fullWidth
+      />
+      <Box sx={{ position: "relative" }}>
+        <PhoneInput
+          variant="outlined"
+          valueContext={formData.telefono}
+          dispatchContext={handleChangePhone}
+          searchIcon={false}
+        />
+        {isPhoneError && (
+          <FormHelperText error>{phoneErrorMsg}</FormHelperText>
+        )}
+      </Box>
+      <TextField
+        type="email"
+        name="correo"
+        variant="outlined"
+        label="Correo Electrónico"
+        placeholder="correo@ejemplo.com"
+        value={formData.correo || ""}
+        onChange={handleChange}
+        fullWidth
+      />
+    </FormModalShell>
   );
 };
 

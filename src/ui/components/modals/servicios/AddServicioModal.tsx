@@ -1,14 +1,7 @@
 import React, { useState } from "react";
 import { Servicio } from "../../../types/Servicio";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Box,
-} from "@mui/material";
+import { TextField } from "@mui/material";
+import FormModalShell from "../FormModalShell";
 import PrecioInput from "../../Inputs/PrecioInput";
 import { useServiciosCtx } from "../../../contexts/ServiciosContext";
 
@@ -79,45 +72,31 @@ const AddServicioModal: React.FC<ServicioDialogProps> = ({
   };
 
   return (
-    <Dialog onClose={onClose} open={isOpen}>
-      <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-        Agregar Servicio
-      </DialogTitle>
-      <DialogContent dividers>
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
-        >
-          <TextField
-            type="text"
-            name="nombre"
-            label="Nombre"
-            variant="outlined"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-            error={!!errors.nombre}
-            helperText={errors.nombre}
-            fullWidth
-          />
-          <PrecioInput
-            error={!!errors.precio}
-            onChange={handleChange}
-            value={formData.precio}
-            variant="outlined"
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-        <Button type="button" onClick={onClose}>
-          Cancelar
-        </Button>
-        <Button type="submit" variant="contained" onClick={handleSubmit}>
-          Guardar
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <FormModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Agregar Servicio"
+      onSubmit={handleSubmit}
+    >
+      <TextField
+        type="text"
+        name="nombre"
+        label="Nombre"
+        variant="outlined"
+        value={formData.nombre}
+        onChange={handleChange}
+        required
+        error={!!errors.nombre}
+        helperText={errors.nombre}
+        fullWidth
+      />
+      <PrecioInput
+        error={!!errors.precio}
+        onChange={handleChange}
+        value={formData.precio}
+        variant="outlined"
+      />
+    </FormModalShell>
   );
 };
 

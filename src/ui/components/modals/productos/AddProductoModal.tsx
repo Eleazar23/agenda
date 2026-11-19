@@ -1,14 +1,7 @@
 import React, { useState } from "react";
 import {Producto} from "../../../types/Producto";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Box,
-} from "@mui/material";
+import { TextField, Box } from "@mui/material";
+import FormModalShell from "../FormModalShell";
 import PrecioInput from "../../Inputs/PrecioInput";
 import { useProductosCtx } from "../../../contexts/ProductosCtx";
 import CantidadInput from "../../Inputs/CantidadInput";
@@ -105,74 +98,58 @@ const AddProductoModal: React.FC<ClientDialogProps> = ({
     }
   };
 
-  // if (!isOpen) return null;
-
   return (
-    <Dialog onClose={onClose} open={isOpen}>
-      <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-        Agregar Producto
-      </DialogTitle>
-      <DialogContent dividers>
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
-        >
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <TextField
-              type="text"
-              name="nombre"
-              label="Nombre"
-              variant="outlined"
-              value={formData.nombre}
-              onChange={handleChange}
-              required
-              error={!!errors.nombre}
-            />
-            <TextField
-              type="text"
-              name="marca"
-              label="Marca"
-              variant="outlined"
-              value={formData.marca}
-              onChange={handleChange}
-              required
-              error={!!errors.marca}
-            />
-            <PrecioInput
-              error={!!errors.precio}
-              onChange={handleChange}
-              value={formData.precio}
-              variant="outlined"
-            />
-            <CantidadInput
-              label="Stock"
-              name="stock"
-              ctxValue={formData.stock}
-              ctxOnChange={handleStockChange}
-            />
-          </Box>
-          <TextField
-            type="text"
-            name="descripcion"
-            label="Descripción"
-            variant="outlined"
-            value={formData.descripcion}
-            onChange={handleChange}
-            multiline
-            rows={3}
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-        <Button type="button" onClick={onClose}>
-          Cancelar
-        </Button>
-        <Button type="submit" variant="contained" onClick={handleSubmit}>
-          Guardar
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <FormModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Agregar Producto"
+      onSubmit={handleSubmit}
+    >
+      <Box sx={{ display: "flex", gap: 2 }}>
+        <TextField
+          type="text"
+          name="nombre"
+          label="Nombre"
+          variant="outlined"
+          value={formData.nombre}
+          onChange={handleChange}
+          required
+          error={!!errors.nombre}
+        />
+        <TextField
+          type="text"
+          name="marca"
+          label="Marca"
+          variant="outlined"
+          value={formData.marca}
+          onChange={handleChange}
+          required
+          error={!!errors.marca}
+        />
+        <PrecioInput
+          error={!!errors.precio}
+          onChange={handleChange}
+          value={formData.precio}
+          variant="outlined"
+        />
+        <CantidadInput
+          label="Stock"
+          name="stock"
+          ctxValue={formData.stock}
+          ctxOnChange={handleStockChange}
+        />
+      </Box>
+      <TextField
+        type="text"
+        name="descripcion"
+        label="Descripción"
+        variant="outlined"
+        value={formData.descripcion}
+        onChange={handleChange}
+        multiline
+        rows={3}
+      />
+    </FormModalShell>
   );
 };
 export default AddProductoModal;
