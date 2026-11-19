@@ -1,14 +1,6 @@
 import React from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-  Box,
-} from "@mui/material";
-import WarningIcon from "@mui/icons-material/Warning";
+import { Typography } from "@mui/material";
+import ConfirmDeleteModal from "../ConfirmDeleteModal";
 import { useClientesCtx } from "../../../contexts/ClientesCtx";
 
 interface Cliente {
@@ -42,50 +34,23 @@ const ElimClienteModal: React.FC<ElimClienteModalProps> = ({
   if (!clienteData) return null;
 
   return (
-    <Dialog onClose={onClose} open={isOpen} maxWidth="xs" fullWidth>
-      <DialogTitle sx={{ m: 0, p: 2 }} id="elim-cliente-dialog-title">
-        Eliminar Cliente
-      </DialogTitle>
-      <DialogContent dividers>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 2,
-            py: 2,
-          }}
-        >
-          <WarningIcon sx={{ fontSize: 48, color: "warning.main" }} />
-          <Typography variant="body1" align="center">
-            ¿Estás seguro de que deseas eliminar al cliente?
-          </Typography>
-          <Typography
-            variant="subtitle1"
-            align="center"
-            sx={{ fontWeight: "bold", color: "text.primary" }}
-          >
+    <ConfirmDeleteModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Eliminar Cliente"
+      confirmQuestion="¿Estás seguro de que deseas eliminar al cliente?"
+      onConfirm={handleConfirmDelete}
+      itemSummary={
+        <>
+          <Typography variant="subtitle2" fontWeight="bold">
             {clienteData.nombre}
           </Typography>
-          <Typography variant="caption" align="center" color="text.secondary">
-            Esta acción no se puede deshacer.
+          <Typography variant="body2" color="text.secondary">
+            Teléfono: {clienteData.telefono}
           </Typography>
-        </Box>
-      </DialogContent>
-      <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-        <Button type="button" onClick={onClose}>
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          variant="contained"
-          color="error"
-          onClick={handleConfirmDelete}
-        >
-          Eliminar
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </>
+      }
+    />
   );
 };
 

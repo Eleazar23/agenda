@@ -1,42 +1,30 @@
-import React, { useState } from "react";
-import { Box } from "@mui/material";
-import EditBtn from "../buttons/EditBtn";
-import DeleteBtn from "../buttons/DeleteBtn";
+import EntityActionsCell from "./EntityActionsCell";
 import EditProductoModal from "../modals/productos/EditProductoModal";
 import ElimProductoModal from "../modals/productos/ElimProductoModal";
 import type { CustomCellRendererProps } from "ag-grid-react";
 import { Producto } from "../../types/Producto";
 
 function ProductosActionsCell(params: CustomCellRendererProps<Producto>) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isEliminar, setIsEliminar] = useState(false);
+  if (!params.data) return null;
+  const producto = params.data;
 
-  const handleEditClick = () => {
-    console.log("Edit producto button clicked", params);
-    setIsEditing(true);
-  };
-
-  const handleDeleteClick = () => {
-    console.log("Delete producto button clicked", params);
-    setIsEliminar(true);
-  };
   return (
-    <>
-      <Box display="flex" sx={{ width: "100%", height: "100%" }} gap={2}>
-        <EditBtn onClick={handleEditClick} />
-        <DeleteBtn onClick={handleDeleteClick} />
-      </Box>
-      <EditProductoModal
-        isOpen={isEditing}
-        onClose={() => setIsEditing(false)}
-        initialData={params.data}
-      />
-      <ElimProductoModal
-        isOpen={isEliminar}
-        onClose={() => setIsEliminar(false)}
-        productoData={params.data}
-      />
-    </>
+    <EntityActionsCell
+      renderEditModal={(isOpen, onClose) => (
+        <EditProductoModal
+          isOpen={isOpen}
+          onClose={onClose}
+          initialData={producto}
+        />
+      )}
+      renderDeleteModal={(isOpen, onClose) => (
+        <ElimProductoModal
+          isOpen={isOpen}
+          onClose={onClose}
+          productoData={producto}
+        />
+      )}
+    />
   );
 }
 

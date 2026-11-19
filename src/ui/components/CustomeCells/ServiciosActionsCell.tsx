@@ -1,43 +1,30 @@
-import React, { useState } from "react";
-import { Box } from "@mui/material";
-import EditBtn from "../buttons/EditBtn";
-import DeleteBtn from "../buttons/DeleteBtn";
+import EntityActionsCell from "./EntityActionsCell";
 import EditServicioModal from "../modals/servicios/EditServicioModal";
 import ElimServicioModal from "../modals/servicios/ElimServicioModal";
 import type { CustomCellRendererProps } from "ag-grid-react";
 import { Servicio } from "../../types/Servicio";
 
 function ServiciosActionsCell(params: CustomCellRendererProps<Servicio>) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isEliminar, setIsEliminar] = useState(false);
-
-  const handleEditClick = () => {
-    console.log("Edit servicio button clicked", params);
-    setIsEditing(true);
-  };
-
-  const handleDeleteClick = () => {
-    console.log("Delete servicio button clicked", params);
-    setIsEliminar(true);
-  };
+  if (!params.data) return null;
+  const servicio = params.data;
 
   return (
-    <>
-      <Box display="flex" sx={{ width: "100%", height: "100%" }} gap={2}>
-        <EditBtn onClick={handleEditClick} />
-        <DeleteBtn onClick={handleDeleteClick} />
-      </Box>
-      <EditServicioModal
-        isOpen={isEditing}
-        onClose={() => setIsEditing(false)}
-        initialData={params.data}
-      />
-      <ElimServicioModal
-        isOpen={isEliminar}
-        onClose={() => setIsEliminar(false)}
-        servicioData={params.data}
-      />
-    </>
+    <EntityActionsCell
+      renderEditModal={(isOpen, onClose) => (
+        <EditServicioModal
+          isOpen={isOpen}
+          onClose={onClose}
+          initialData={servicio}
+        />
+      )}
+      renderDeleteModal={(isOpen, onClose) => (
+        <ElimServicioModal
+          isOpen={isOpen}
+          onClose={onClose}
+          servicioData={servicio}
+        />
+      )}
+    />
   );
 }
 

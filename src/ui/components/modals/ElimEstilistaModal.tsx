@@ -1,10 +1,6 @@
 import * as React from "react";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
+import { Typography } from "@mui/material";
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
 import { capitalizeFirstLetter } from "../../utils/utils";
 
@@ -27,43 +23,28 @@ export default function ElimEstilistaModal({
 }: Props) {
   const { removeEstilista } = useEstilistasCtx();
 
-  const handleClose = () => {
-    onClose();
-  };
-
-  const handleAceptar = () => {
-    // Lógica para eliminar el estilista usando estilistaId
+  const handleConfirmDelete = () => {
     removeEstilista(estilistaData.id);
     onClose();
   };
 
   return (
-    <React.Fragment>
-      <Dialog
-        open={isOpen}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">
-          {`Estas seguro de eliminar este estilista?`}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            {`Nombre: ${capitalizeFirstLetter(estilistaData.name)} - Telefono: ${estilistaData.telefono}`}
-            <br />
-            <br />
-            Una vez eliminado, no podras recuperar la informacion de este
-            estilista.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancelar</Button>
-          <Button onClick={handleAceptar} autoFocus>
-            Aceptar
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </React.Fragment>
+    <ConfirmDeleteModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Eliminar Estilista"
+      confirmQuestion="¿Estás seguro de que deseas eliminar este estilista?"
+      onConfirm={handleConfirmDelete}
+      itemSummary={
+        <>
+          <Typography variant="subtitle2" fontWeight="bold">
+            {capitalizeFirstLetter(estilistaData.name)}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Teléfono: {estilistaData.telefono}
+          </Typography>
+        </>
+      }
+    />
   );
 }
