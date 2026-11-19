@@ -5,10 +5,12 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Chip,
   Divider,
   Grid,
   Typography,
 } from "@mui/material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PhoneInput from "../Inputs/PhoneInput";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import ClienteInput from "../Inputs/ClienteInput";
@@ -99,7 +101,21 @@ const ClienteForm = () => {
   return (
     <Grid size={12}>
       <Card variant="outlined">
-        <CardHeader title="Cliente" />
+        <CardHeader
+          title="Cliente"
+          action={
+            cita.clienteId ? (
+              <Chip
+                icon={<CheckCircleIcon />}
+                label="Cliente existente"
+                color="success"
+                variant="outlined"
+                size="small"
+                sx={{ mr: 2, mt: 1 }}
+              />
+            ) : null
+          }
+        />
         <Divider sx={{ margin: "0 1rem" }} />
         <CardContent>
           <Grid container gap={1} sx={{ width: "100%" }}>
