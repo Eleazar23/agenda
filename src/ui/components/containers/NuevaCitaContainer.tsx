@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Box, Button, Paper, Stack, Typography } from "@mui/material";
+import { Box, Paper, Stack, Typography } from "@mui/material";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import ClienteForm from "../forms/ClienteForm";
 import ServiciosCard from "../cards/ServiciosCard";
+import FormActionsRow from "../forms/FormActionsRow";
 
 const NuevaCitaContainer = () => {
   const { cita, handleCancelarCita, guardarCita, handleAlert } =
@@ -68,12 +69,12 @@ const NuevaCitaContainer = () => {
           <ClienteForm />
           <ServiciosCard />
           <Box sx={{ display: "flex", justifyContent: "flex-end", width: "100%", p:1}} gap={1}>
-            <Button variant="text" onClick={handleCancelar}>
-              Cancelar
-            </Button>
-            <Button variant="contained" onClick={handleGuardar} disabled={isSaving}>
-              Guardar
-            </Button>
+            <FormActionsRow
+              onCancel={handleCancelar}
+              onConfirm={handleGuardar}
+              confirmLabel="Guardar"
+              confirmDisabled={isSaving}
+            />
           </Box>
     </Stack>
   );

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   TextField,
-  Button,
   Autocomplete,
   Stack,
   FormControlLabel,
@@ -11,6 +10,7 @@ import {
 import { Nota } from "../../types/Nota";
 import { Estilista } from "../../types/Estilista";
 import FechaInput from "../Inputs/FechaInput";
+import FormActionsRow from "./FormActionsRow";
 
 type NotaFormData = Omit<Nota, "id"> & { id?: number };
 
@@ -126,17 +126,14 @@ const NotaForm = ({ onSubmit, onCancel, initialData, fechaDefault }: Props) => {
       />
 
       <Stack direction="row" spacing={2} justifyContent="flex-end">
-        <Button onClick={onCancel} variant="outlined" color="error">
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          disabled={loading}
-        >
-          {loading ? "Guardando..." : "Guardar"}
-        </Button>
+        <FormActionsRow
+          onCancel={onCancel}
+          cancelVariant="outlined"
+          cancelColor="error"
+          confirmType="submit"
+          confirmLabel={loading ? "Guardando..." : "Guardar"}
+          confirmDisabled={loading}
+        />
       </Stack>
     </Box>
   );

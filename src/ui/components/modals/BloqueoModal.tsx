@@ -5,7 +5,6 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Button,
   Box,
   Select,
   MenuItem,
@@ -15,6 +14,7 @@ import {
 } from "@mui/material";
 import { useAgendaContext } from "../../contexts/AgendaContext";
 import { addMinutesToHora, capitalizeFirstLetter, getHrsObj, getOfficeHours } from "../../utils/utils";
+import FormActionsRow from "../forms/FormActionsRow";
 
 type Props = {
   isOpen: boolean;
@@ -74,8 +74,8 @@ const BloqueoModal: React.FC<Props> = ({ isOpen, onClose }) => {
     setHoraFin(endOptions[0] || horaInicio);
   }, [horaInicio, endOptions]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!estilista) return;
     await addBloqueo(estilista, horaInicio, horaFin, motivo.trim() || "Comida");
     onClose();
@@ -142,12 +142,13 @@ const BloqueoModal: React.FC<Props> = ({ isOpen, onClose }) => {
         </Box>
       </DialogContent>
       <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-        <Button type="button" onClick={onClose}>
-          Cancelar
-        </Button>
-        <Button type="submit" variant="contained" onClick={handleSubmit} disabled={!estilista}>
-          Marcar descanso
-        </Button>
+        <FormActionsRow
+          onCancel={onClose}
+          confirmType="submit"
+          onConfirm={handleSubmit}
+          confirmLabel="Marcar descanso"
+          confirmDisabled={!estilista}
+        />
       </DialogActions>
     </Dialog>
   );

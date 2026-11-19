@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Button,
   Dialog,
   DialogActions,
   DialogContent,
@@ -12,6 +11,7 @@ import PropinasForm from "../forms/PropinasForm";
 import { Propina } from "../../types/Cita";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
 import { ProductoInCita } from "../../types/Producto";
+import FormActionsRow from "../forms/FormActionsRow";
 
 type Props = {
   open: boolean;
@@ -71,10 +71,11 @@ function PropinaModal({
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button variant="contained" onClick={handleAplicar}>
-          Aplicar
-        </Button>
+        <FormActionsRow
+          onCancel={onClose}
+          onConfirm={handleAplicar}
+          confirmLabel="Aplicar"
+        />
       </DialogActions>
     </Dialog>
   );

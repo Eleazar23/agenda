@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
+import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import type { CustomCellRendererProps } from "ag-grid-react";
 import { useAgendaContext } from "../../contexts/AgendaContext";
+import FormActionsRow from "../forms/FormActionsRow";
 
 const styles = {
   container: {
@@ -79,10 +80,12 @@ const BlockedCell = (params: CustomCellRendererProps) => {
             </Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setConfirmOpen(false)}>Cancelar</Button>
-            <Button color="error" variant="contained" onClick={handleConfirmDelete}>
-              Eliminar
-            </Button>
+            <FormActionsRow
+              onCancel={() => setConfirmOpen(false)}
+              onConfirm={handleConfirmDelete}
+              confirmLabel="Eliminar"
+              confirmColor="error"
+            />
           </DialogActions>
         </Dialog>
       ) : null}

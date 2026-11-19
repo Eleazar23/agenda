@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import {
   Box,
   TextField,
-  Button,
   Stack,
 } from "@mui/material";
 import { Gasto } from "../../types/Gasto";
 import FechaInput from "../Inputs/FechaInput";
 import MetodoPagoInput from "../Inputs/MetodoPagoInput";
+import FormActionsRow from "./FormActionsRow";
 
 type Props = {
   onSubmit: (gasto: Gasto) => Promise<void>;
@@ -165,17 +165,14 @@ const GastoForm = ({ onSubmit, onCancel, initialData }: Props) => {
       />
 
       <Stack direction="row" spacing={2} justifyContent="flex-end">
-        <Button onClick={onCancel} variant="outlined" color="error">
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          disabled={loading}
-        >
-          {loading ? "Guardando..." : "Guardar"}
-        </Button>
+        <FormActionsRow
+          onCancel={onCancel}
+          cancelVariant="outlined"
+          cancelColor="error"
+          confirmType="submit"
+          confirmLabel={loading ? "Guardando..." : "Guardar"}
+          confirmDisabled={loading}
+        />
       </Stack>
     </Box>
   );

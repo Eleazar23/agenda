@@ -14,6 +14,7 @@ import {
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
 import { capitalizeFirstLetter, formatDateFromHTML } from "../../utils/utils";
+import FormActionsRow from "../forms/FormActionsRow";
 
 interface Vacacion {
   inicio: string;
@@ -132,12 +133,11 @@ const VacacionesModal: React.FC<Props> = ({ isOpen, onClose, rowIndex, estilista
         </Box>
       </DialogContent>
       <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-        <Button type="button" onClick={onClose}>
-          Cancelar
-        </Button>
-        <Button type="button" variant="contained" onClick={handleGuardar}>
-          Guardar
-        </Button>
+        <FormActionsRow
+          onCancel={onClose}
+          onConfirm={handleGuardar}
+          confirmLabel="Guardar"
+        />
       </DialogActions>
     </Dialog>
   );
