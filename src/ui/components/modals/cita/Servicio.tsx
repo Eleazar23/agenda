@@ -4,7 +4,6 @@ import {
   Button,
   Chip,
   Divider,
-  Grid,
   IconButton,
   Popover,
   Stack,
@@ -17,8 +16,6 @@ import HoraFinInput from "../../Inputs/HoraFinInput";
 import ServiciosInput from "../../Inputs/ServiciosInput";
 import ProductsCar from "../../tables/ProductsCar";
 import AddProductForm from "../../forms/AddProductForm";
-import StatusCitaChip from "../../Inputs/StatusCitaChip";
-import MetodoPagoInput from "../../Inputs/MetodoPagoInput";
 import { Producto, ProductoInCita } from "../../../types/Producto";
 import useGlobalAlert from "../../GlobalAlert";
 import { ServicioAgendado } from "../../../types/ServicioAgendado";
@@ -253,115 +250,97 @@ function ServicioForm({
   }, [servicioForm]);
 
   return (
-    <Grid container spacing={2} gap={2} flexGrow={1}>
-      <Grid size={12}>
-        <Typography
-          variant="caption"
-          sx={{
-            letterSpacing: ".05em",
-            color: "text.secondary",
-            fontWeight: 700,
-          }}
-        >
-          SERVICIO
-        </Typography>
-      </Grid>
-      <Grid container size={12} spacing={2} flexGrow={1} alignItems="flex-end">
-        <Grid container size={6} spacing={1} flexGrow={1}>
-        <Grid size={4}>
-          <FieldLabel>Estilista</FieldLabel>
-          <EstilistaInput
-            ctxValue={servicioForm.estilista}
-            ctxDispatch={handleChange}
-            soloEstilistas
-            variant="outlined"
-            size="small"
-            hideLabel
-            sx={compactFieldSx}
-          />
-        </Grid>
-        <Grid size={5}>
-          <FieldLabel htmlFor="servicio-cita-input">Servicio</FieldLabel>
-          <ServiciosInput
-            id="servicio-cita-input"
-            value={servicioForm.servicio}
-            onChange={(newServicio) => {
-              handleChange("servicio", newServicio);
-            }}
-            variant="outlined"
-            size="small"
-            hideLabel
-            sx={compactFieldSx}
-          />
-        </Grid>
-        <Grid size={3}>
-          <FieldLabel>Precio</FieldLabel>
-          <Box
-            sx={{
-              height: COMPACT_FIELD_HEIGHT,
-              display: "flex",
-              alignItems: "center",
-              px: 0.25,
-            }}
-          >
-            <Typography fontWeight={700} sx={{ fontSize: 15 }}>
-              ${servicioForm.servicio?.precio}
-            </Typography>
-          </Box>
-        </Grid>
-        </Grid>
+    <Box sx={{ display: "flex", minHeight: 440 }}>
+      {/* Izquierda: servicio + notas */}
+      <Stack spacing={2.25} sx={{ flex: 1, minWidth: 0, p: 3 }}>
+        <SectionTitle>SERVICIO</SectionTitle>
+        <Stack spacing={1.5}>
+          <Stack direction="row" spacing={1.75} alignItems="flex-end">
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <FieldLabel>Estilista</FieldLabel>
+              <EstilistaInput
+                ctxValue={servicioForm.estilista}
+                ctxDispatch={handleChange}
+                soloEstilistas
+                variant="outlined"
+                size="small"
+                hideLabel
+                sx={compactFieldSx}
+              />
+            </Box>
+            <Box sx={{ flex: 1.3, minWidth: 0 }}>
+              <FieldLabel htmlFor="servicio-cita-input">Servicio</FieldLabel>
+              <ServiciosInput
+                id="servicio-cita-input"
+                value={servicioForm.servicio}
+                onChange={(newServicio) => {
+                  handleChange("servicio", newServicio);
+                }}
+                variant="outlined"
+                size="small"
+                hideLabel
+                sx={compactFieldSx}
+              />
+            </Box>
+            <Box sx={{ width: 80, flexShrink: 0 }}>
+              <FieldLabel>Precio</FieldLabel>
+              <Box
+                sx={{
+                  height: COMPACT_FIELD_HEIGHT,
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <Typography fontWeight={700} sx={{ fontSize: 15 }}>
+                  ${servicioForm.servicio?.precio}
+                </Typography>
+              </Box>
+            </Box>
+          </Stack>
 
-        <Grid container size={6} spacing={1} flexGrow={1}>
-        <Grid>
-          <FieldLabel htmlFor="hora-inicio-input">Hora inicio</FieldLabel>
-          <HoraFinInput
-            id="hora-inicio-input"
-            label="Hora Inicio"
-            hora={servicioForm.horaInicio}
-            readOnly={false}
-            onChange={handleHoraInicioChange}
-            variant="outlined"
-            size="small"
-            hideLabel
-            sx={compactFieldSx}
-          />
-        </Grid>
-        <Grid size={2}>
-          <FieldLabel htmlFor="hora-fin-input">Hora fin</FieldLabel>
-          <HoraFinInput
-            id="hora-fin-input"
-            label="Hora Fin"
-            hora={servicioForm.horaFin}
-            readOnly={false}
-            onChange={handleHoraFinChange}
-            variant="outlined"
-            size="small"
-            hideLabel
-            sx={compactFieldSx}
-          />
-        </Grid>
-        <Grid
-          size="auto"
-          sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: COMPACT_FIELD_HEIGHT }}
-        >
-          {servicioForm.duracion > 0 && (
-            <Chip
-              size="small"
-              label={`Duración: ${formatDuracion(servicioForm.duracion)}`}
-              sx={{ bgcolor: "action.hover", fontWeight: 600 }}
-            />
-          )}
-        </Grid>
-        <Grid
-          size="grow"
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: COMPACT_FIELD_HEIGHT,
-          }}
-        >
-          <DeleteBtn onClick={handleRemoveServiceClick} />
+          <Stack direction="row" spacing={1.75} alignItems="flex-end">
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <FieldLabel htmlFor="hora-inicio-input">Hora inicio</FieldLabel>
+              <HoraFinInput
+                id="hora-inicio-input"
+                label="Hora Inicio"
+                hora={servicioForm.horaInicio}
+                readOnly={false}
+                onChange={handleHoraInicioChange}
+                variant="outlined"
+                size="small"
+                hideLabel
+                sx={compactFieldSx}
+              />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <FieldLabel htmlFor="hora-fin-input">Hora fin</FieldLabel>
+              <HoraFinInput
+                id="hora-fin-input"
+                label="Hora Fin"
+                hora={servicioForm.horaFin}
+                readOnly={false}
+                onChange={handleHoraFinChange}
+                variant="outlined"
+                size="small"
+                hideLabel
+                sx={compactFieldSx}
+              />
+            </Box>
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1}
+              sx={{ height: COMPACT_FIELD_HEIGHT, flexShrink: 0 }}
+            >
+              {servicioForm.duracion > 0 && (
+                <Chip
+                  size="small"
+                  label={`Duración: ${formatDuracion(servicioForm.duracion)}`}
+                  sx={{ bgcolor: "action.hover", fontWeight: 600 }}
+                />
+              )}
+              <DeleteBtn onClick={handleRemoveServiceClick} />
           <Popover
             id="remove-service-popover"
             open={isPopoverOpen}
@@ -390,31 +369,50 @@ function ServicioForm({
               </IconButton>
             </Box>
           </Popover>
-          </Grid>
-        </Grid>
-      </Grid>
+            </Stack>
+          </Stack>
+        </Stack>
 
-      <Grid size={12} spacing={2} flexGrow={1}>
-        <Divider flexItem />
-      </Grid>
+        <Divider />
 
-      <Grid container size={12}>
-        <Grid
-          container
-          size={12}
-          alignItems="center"
-          justifyContent="space-between"
-        >
-          <Typography
-            variant="caption"
+        <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <FieldLabel htmlFor="notas-cita-input">Notas (opcional)</FieldLabel>
+          <TextField
+            id="notas-cita-input"
+            name="notas"
+            placeholder="Agregar una nota sobre esta cita…"
+            variant="outlined"
+            fullWidth
+            multiline
+            minRows={6}
+            value={citaForm.notas || ""}
+            onChange={(e) => handleCitaChange("notas", e.target.value)}
             sx={{
-              letterSpacing: ".05em",
-              color: "text.secondary",
-              fontWeight: 700,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+                bgcolor: "#fbfbfc",
+                fontSize: 14,
+                "& fieldset": { borderStyle: "dashed", borderColor: "#e3e5e8" },
+              },
             }}
-          >
-            PRODUCTOS
-          </Typography>
+          />
+        </Box>
+      </Stack>
+
+      {/* Derecha: productos */}
+      <Stack
+        spacing={1.5}
+        sx={{
+          width: 380,
+          flexShrink: 0,
+          boxSizing: "border-box",
+          p: 2.75,
+          bgcolor: "#f8f9fb",
+          borderLeft: "1px solid #edeef0",
+        }}
+      >
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <SectionTitle>PRODUCTOS</SectionTitle>
           {isAddingProducto ? (
             <Button
               size="small"
@@ -430,26 +428,22 @@ function ServicioForm({
               startIcon={<AddCircleOutlineIcon />}
               onClick={() => setIsAddingProducto(true)}
             >
-              Agregar producto
+              Agregar
             </Button>
           )}
-        </Grid>
+        </Stack>
 
-        {productos.length > 0 && (
-          <Grid container size={12} spacing={2} flexGrow={1}>
-            <Grid size={12}>
-              <ProductsCar
-                products={productos}
-                handleRemoveProducto={handleRemoveProducto}
-                handleCambiarCantidad={handleCambiarCantidad}
-                disabled={isGuardandoProductos}
-              />
-            </Grid>
-          </Grid>
-        )}
+        {isAddingProducto && <AddProductForm ctxAddProducto={handleAddProducto} />}
 
-        {productos.length === 0 && !isAddingProducto && (
-          <Grid size={12}>
+        {productos.length > 0 ? (
+          <ProductsCar
+            products={productos}
+            handleRemoveProducto={handleRemoveProducto}
+            handleCambiarCantidad={handleCambiarCantidad}
+            disabled={isGuardandoProductos}
+          />
+        ) : (
+          !isAddingProducto && (
             <Box
               sx={{
                 border: "1px dashed",
@@ -457,71 +451,28 @@ function ServicioForm({
                 borderRadius: 2,
                 p: 3,
                 textAlign: "center",
+                bgcolor: "background.paper",
               }}
             >
               <Typography variant="body2" color="text.secondary" fontStyle="italic">
                 Aún no se agregaron productos a esta cita.
               </Typography>
             </Box>
-          </Grid>
+          )
         )}
+      </Stack>
+    </Box>
+  );
+}
 
-        {isAddingProducto && (
-          <Grid size={12} sx={{ mt: 1 }}>
-            <AddProductForm ctxAddProducto={handleAddProducto} />
-          </Grid>
-        )}
-      </Grid>
-
-      <Grid size={12} spacing={2} flexGrow={1}>
-        <Divider flexItem />
-      </Grid>
-
-      <Grid container size={12} spacing={3}>
-        <Grid size={9}>
-          <FieldLabel htmlFor="notas-cita-input">Notas (opcional)</FieldLabel>
-          <TextField
-            id="notas-cita-input"
-            name="notas"
-            placeholder="Agregar una nota sobre esta cita…"
-            variant="outlined"
-            fullWidth
-            multiline
-            rows={5}
-            value={citaForm.notas || ""}
-            onChange={(e) => handleCitaChange("notas", e.target.value)}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 2,
-                bgcolor: "#fbfbfc",
-                fontSize: 14,
-                "& fieldset": { borderStyle: "dashed", borderColor: "#e3e5e8" },
-              },
-            }}
-          />
-        </Grid>
-        <Grid size={3}>
-          <Stack spacing={2.5}>
-            <StatusCitaChip
-              ctxDispatch={handleCitaChange}
-              ctxValue={citaForm.estado}
-            />
-            <Box>
-              <FieldLabel htmlFor="metodo-pago-input">Método de pago</FieldLabel>
-              <MetodoPagoInput
-                ctxDispatch={handleCitaChange}
-                ctxValue={citaForm.metodoDePago}
-                name="metodoDePago"
-                label=""
-                variant="outlined"
-                size="small"
-                sx={compactFieldSx}
-              />
-            </Box>
-          </Stack>
-        </Grid>
-      </Grid>
-    </Grid>
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <Typography
+      variant="caption"
+      sx={{ letterSpacing: ".05em", color: "text.secondary", fontWeight: 700 }}
+    >
+      {children}
+    </Typography>
   );
 }
 

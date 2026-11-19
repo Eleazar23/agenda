@@ -18,17 +18,6 @@ type Props = {
   disabled?: boolean;
 };
 
-const BORDER = "#edeef0";
-
-const COLUMNS = {
-  nombre: { flex: 2.2 },
-  estilista: { flex: 1 },
-  precio: { flex: 0.8, textAlign: "right" as const },
-  cantidad: { flex: 1.1, textAlign: "center" as const },
-  total: { flex: 0.9, textAlign: "right" as const },
-  acciones: { width: 36, flexShrink: 0 },
-};
-
 const stepBtnSx = {
   width: 22,
   height: 22,
@@ -54,61 +43,43 @@ function ProductsCar({
   );
 
   return (
-    <Box
-      sx={{ border: `1px solid ${BORDER}`, borderRadius: 2.5, overflow: "hidden" }}
-    >
-      <Stack
-        direction="row"
-        alignItems="center"
-        sx={{
-          px: 1.75,
-          py: 1.25,
-          bgcolor: "#f8f9fb",
-          fontSize: 11,
-          letterSpacing: ".03em",
-          color: "text.secondary",
-          fontWeight: 700,
-        }}
-      >
-        <Box sx={COLUMNS.nombre}>PRODUCTO</Box>
-        <Box sx={COLUMNS.estilista}>ESTILISTA</Box>
-        <Box sx={COLUMNS.precio}>PRECIO</Box>
-        <Box sx={COLUMNS.cantidad}>CANTIDAD</Box>
-        <Box sx={COLUMNS.total}>TOTAL</Box>
-        <Box sx={COLUMNS.acciones} />
-      </Stack>
-
-      <Box sx={{ maxHeight: 260, overflowY: "auto" }}>
+    <Stack spacing={1.25}>
+      <Stack spacing={1} sx={{ maxHeight: 320, overflowY: "auto", pr: 0.25 }}>
         {products.map((product) => {
           const cantidad = Number(product.cantidad);
+          const precio = Number(product.precio);
+          const detalle = [
+            product.estilista && capitalizeFirstLetter(product.estilista),
+            `${formatMoney(precio)} c/u`,
+          ]
+            .filter(Boolean)
+            .join(" · ");
+
           return (
             <Stack
               key={product.id}
               direction="row"
               alignItems="center"
-              sx={{ px: 1.75, py: 1.5, borderTop: `1px solid ${BORDER}` }}
+              spacing={1.25}
+              sx={{
+                px: 1.5,
+                py: 1.25,
+                bgcolor: "background.paper",
+                border: "1px solid #edeef0",
+                borderRadius: 2.5,
+              }}
             >
-              <Typography sx={{ ...COLUMNS.nombre, fontSize: 13.5, fontWeight: 500 }}>
-                {product.nombre}
-              </Typography>
-              <Typography
-                sx={{ ...COLUMNS.estilista, fontSize: 13, color: "text.secondary" }}
-              >
-                {capitalizeFirstLetter(product.estilista || "")}
-              </Typography>
-              <Typography
-                sx={{ ...COLUMNS.precio, fontSize: 13, color: "text.secondary" }}
-              >
-                {formatMoney(Number(product.precio))}
-              </Typography>
-              {/* Para dejarlo en 0 se usa la X de acciones */}
-              <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="center"
-                gap={1.25}
-                sx={COLUMNS.cantidad}
-              >
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 500 }}>
+                  {product.nombre}
+                </Typography>
+                <Typography noWrap sx={{ fontSize: 12, color: "text.secondary" }}>
+                  {detalle}
+                </Typography>
+              </Box>
+
+              {/* Para dejarlo en 0 se usa la X */}
+              <Stack direction="row" alignItems="center" spacing={0.75}>
                 <IconButton
                   aria-label="disminuir cantidad"
                   size="small"
@@ -133,42 +104,41 @@ function ProductsCar({
                   <AddIcon sx={{ fontSize: 14 }} />
                 </IconButton>
               </Stack>
-              <Typography sx={{ ...COLUMNS.total, fontSize: 13.5, fontWeight: 700 }}>
-                {formatMoney(Number(product.precio) * cantidad)}
+
+              <Typography
+                sx={{ width: 68, textAlign: "right", fontSize: 13.5, fontWeight: 700 }}
+              >
+                {formatMoney(precio * cantidad)}
               </Typography>
-              <Box sx={{ ...COLUMNS.acciones, display: "flex", justifyContent: "center" }}>
-                <IconButton
-                  aria-label="quitar producto"
-                  size="small"
-                  disabled={disabled}
-                  onClick={() => handleRemoveProducto(product.id)}
-                  sx={{ color: "#b9bdc4", "&:hover": { color: "error.main" } }}
-                >
-                  <ClearIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </Box>
+
+              <IconButton
+                aria-label="quitar producto"
+                size="small"
+                disabled={disabled}
+                onClick={() => handleRemoveProducto(product.id)}
+                sx={{ color: "#b9bdc4", "&:hover": { color: "error.main" } }}
+              >
+                <ClearIcon sx={{ fontSize: 16 }} />
+              </IconButton>
             </Stack>
           );
         })}
-      </Box>
+      </Stack>
 
       <Stack
         direction="row"
         alignItems="center"
-        justifyContent="flex-end"
-        gap={1.25}
-        sx={{ px: 1.75, py: 1.5, borderTop: `1px solid ${BORDER}`, bgcolor: "#f8f9fb" }}
+        justifyContent="space-between"
+        sx={{ pt: 1.25, borderTop: "1px solid #e3e5e8" }}
       >
-        <Typography
-          sx={{ fontSize: 12.5, fontWeight: 600, color: "text.secondary" }}
-        >
+        <Typography sx={{ fontSize: 12, fontWeight: 600, color: "text.secondary" }}>
           TOTAL PRODUCTOS
         </Typography>
         <Typography sx={{ fontSize: 15, fontWeight: 700 }}>
           {formatMoney(totalProductos)}
         </Typography>
       </Stack>
-    </Box>
+    </Stack>
   );
 }
 

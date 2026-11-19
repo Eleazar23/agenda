@@ -10,8 +10,8 @@ import { useAgendaContext } from "../../contexts/AgendaContext";
 import {
   Avatar,
   Box,
-  Chip,
   Divider,
+  Popover,
   Stack,
   TextField,
   ToggleButton,
@@ -19,7 +19,6 @@ import {
   Typography,
 } from "@mui/material";
 import {
-  capitalizeFirstLetter,
   formatDateFromHTML,
   formatDateToHTML,
   getOfficeHours,
@@ -39,9 +38,18 @@ import CambiosSinGuardarDialog from "./cita/CambiosSinGuardarDialog";
 import VolunteerActivismOutlinedIcon from "@mui/icons-material/VolunteerActivismOutlined";
 import BitacoraBtn from "../buttons/BitacoraBtn";
 import BitacoraModal from "./clientes/BitacoraModal";
-import { getEstadoCitaColor } from "../../utils/estadoCitaColors";
 import FieldLabel from "../Inputs/FieldLabel";
+import StatusCitaChip from "../Inputs/StatusCitaChip";
 import { compactFieldSx } from "../../utils/compactFieldSx";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import CreditCardOutlinedIcon from "@mui/icons-material/CreditCardOutlined";
+import SwapHorizOutlinedIcon from "@mui/icons-material/SwapHorizOutlined";
+
+const METODOS_DE_PAGO = [
+  { value: "efectivo", label: "Efectivo", Icon: PaymentsOutlinedIcon },
+  { value: "tarjeta", label: "Tarjeta", Icon: CreditCardOutlinedIcon },
+  { value: "transferencia", label: "Transferencia", Icon: SwapHorizOutlinedIcon },
+];
 
 type CitaModalProps = {
   fecha: string;
@@ -111,6 +119,10 @@ export default function CitaModal({
   const [isSaving, setIsSaving] = useState(false);
   const [isPropinaOpen, setIsPropinaOpen] = useState(false);
   const [isBitacoraOpen, setIsBitacoraOpen] = useState(false);
+  const [cobrarAnchorEl, setCobrarAnchorEl] = useState<HTMLElement | null>(
+    null,
+  );
+  const [metodoCobro, setMetodoCobro] = useState("efectivo");
   const [isConfirmCerrarOpen, setIsConfirmCerrarOpen] = useState(false);
   const [resolvedServicio, setResolvedServicio] =
     useState<ServicioAgendado>(servicio);
@@ -254,6 +266,21 @@ export default function CitaModal({
       0,
     );
   }, [citaForm, citas]);
+
+  const totalPropinasDelDia = propinasDelDia.reduce(
+    (acc, p) => acc + Number(p.monto || 0),
+    0,
+  );
+
+  const handleAbrirCobro = (e: React.MouseEvent<HTMLElement>) => {
+    setMetodoCobro(citaForm.metodoDePago || "efectivo");
+    setCobrarAnchorEl(e.currentTarget);
+  };
+
+  const handleConfirmarCobro = () => {
+    setCobrarAnchorEl(null);
+    handleGuardar({ estado: "pagado", metodoDePago: metodoCobro });
+  };
 
   const handleAlignmentChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -496,19 +523,23 @@ export default function CitaModal({
                 ? `Propina · $${totalPropinas.toFixed(2)}`
                 : "Propina"}
             </Button>
-            <Chip
+            <StatusCitaChip
+              hideLabel
               size="small"
-              label={capitalizeFirstLetter(citaForm.estado || "")}
-              sx={{
-                bgcolor: getEstadoCitaColor(citaForm.estado).bg,
-                color: getEstadoCitaColor(citaForm.estado).color,
-                fontWeight: 700,
-              }}
+              ctxValue={citaForm.estado}
+              ctxDispatch={(field, value) =>
+                setCitaForm((prev) => ({ ...prev, [field]: value }))
+              }
             />
           </Stack>
         </Box>
 
-        <DialogContent dividers>
+        {/* La vista Servicio maneja su propio padding (dos columnas). "&&"
+            gana en especificidad al padding del BootstrapDialog. */}
+        <DialogContent
+          dividers
+          sx={view === "servicio" ? { "&&": { p: 0 } } : undefined}
+        >
           {view === "servicio" ? (
             <ServicioForm
               key={resolvedServicio.cellID}
@@ -534,10 +565,11 @@ export default function CitaModal({
           <Button onClick={handleCancelar}>Cancelar</Button>
           {view === "total" ? (
             <Button
-              onClick={() => handleGuardar({ estado: "pagado" })}
+              onClick={handleAbrirCobro}
               variant="contained"
               color="success"
               disabled={isSaving}
+              aria-haspopup="dialog"
             >
               Cobrar ✓
             </Button>
@@ -553,6 +585,86 @@ export default function CitaModal({
           )}
         </DialogActions>
       </BootstrapDialog>
+      <Popover
+        open={!!cobrarAnchorEl}
+        anchorEl={cobrarAnchorEl}
+        onClose={() => setCobrarAnchorEl(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        transformOrigin={{ vertical: "bottom", horizontal: "right" }}
+        slotProps={{
+          paper: {
+            sx: { mt: -1.5, p: 2.25, width: 340, borderRadius: 3.5 },
+            role: "dialog",
+            "aria-label": "Método de pago",
+          },
+        }}
+      >
+        <Stack spacing={1.75}>
+          <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+            <Typography fontWeight={700}>¿Cómo pagó?</Typography>
+            <Typography variant="caption" color="text.secondary">
+              A cobrar{" "}
+              <Box component="b" sx={{ color: "text.primary", fontSize: 15 }}>
+                ${(totalACobrar + totalPropinasDelDia).toFixed(2)}
+              </Box>
+            </Typography>
+          </Stack>
+
+          <ToggleButtonGroup
+            exclusive
+            fullWidth
+            value={metodoCobro}
+            onChange={(_e, nuevo: string | null) => nuevo && setMetodoCobro(nuevo)}
+            aria-label="Método de pago"
+            sx={{
+              gap: 1,
+              "& .MuiToggleButtonGroup-grouped": {
+                border: "1px solid #e3e5e8",
+                borderRadius: "10px !important",
+                m: 0,
+              },
+            }}
+          >
+            {METODOS_DE_PAGO.map(({ value, label, Icon }) => (
+              <ToggleButton
+                key={value}
+                value={value}
+                sx={{
+                  flexDirection: "column",
+                  gap: 0.5,
+                  py: 1.25,
+                  textTransform: "none",
+                  fontWeight: 600,
+                  fontSize: 12.5,
+                  bgcolor: "#fafafa",
+                  "&.Mui-selected": {
+                    bgcolor: "#e7f1fe",
+                    color: "primary.dark",
+                    borderColor: "primary.main !important",
+                  },
+                }}
+              >
+                <Icon fontSize="small" />
+                {label}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+
+          <Stack direction="row" justifyContent="flex-end" spacing={1}>
+            <Button onClick={() => setCobrarAnchorEl(null)} color="inherit">
+              Volver
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleConfirmarCobro}
+              disabled={isSaving}
+            >
+              Confirmar cobro
+            </Button>
+          </Stack>
+        </Stack>
+      </Popover>
       <CambiosSinGuardarDialog
         open={isConfirmCerrarOpen}
         isSaving={isSaving}

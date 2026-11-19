@@ -11,9 +11,17 @@ type Props = {
   ctxValue?: string;
   ctxDispatch?: (inputName: string, value: string) => void;
   readOnly?: boolean;
+  hideLabel?: boolean;
+  size?: "small" | "medium";
 };
 
-export default function StatusCitaChip({ ctxValue, ctxDispatch, readOnly }: Props) {
+export default function StatusCitaChip({
+  ctxValue,
+  ctxDispatch,
+  readOnly,
+  hideLabel,
+  size,
+}: Props) {
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const value = ctxValue || statusCitaOptions[0].value;
   const { color, bg } = getEstadoCitaColor(value);
@@ -33,8 +41,10 @@ export default function StatusCitaChip({ ctxValue, ctxDispatch, readOnly }: Prop
 
   return (
     <Box>
-      <FieldLabel>Estado de la cita</FieldLabel>
+      {!hideLabel && <FieldLabel>Estado de la cita</FieldLabel>}
       <Chip
+        size={size}
+        aria-label={`Estado de la cita: ${current?.label || value}`}
         onClick={handleOpen}
         icon={<FiberManualRecordIcon sx={{ fontSize: "8px !important", color: `${color} !important` }} />}
         deleteIcon={<ExpandMoreIcon />}

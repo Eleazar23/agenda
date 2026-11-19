@@ -102,9 +102,16 @@ function AddProductForm({ ctxAddProducto }: Props) {
     : "0.00";
 
   return (
-    <Box sx={{ width: "100%" }}>
-      <Stack direction="row" alignItems="flex-end" gap={2.25}>
-        <Box sx={{ flex: 1.8, minWidth: 0 }}>
+    <Stack
+      spacing={1.5}
+      sx={{
+        p: 1.5,
+        bgcolor: "background.paper",
+        border: "1px solid #d6e4f7",
+        borderRadius: 2.5,
+      }}
+    >
+        <Box>
           <FieldLabel>Producto</FieldLabel>
           <ProductInput
             value={formData.producto}
@@ -116,7 +123,8 @@ function AddProductForm({ ctxAddProducto }: Props) {
           />
         </Box>
 
-        <Box>
+        <Stack direction="row" alignItems="flex-end" spacing={1.25}>
+        <Box sx={{ flexShrink: 0 }}>
           <FieldLabel>Cantidad</FieldLabel>
           <Stack
             direction="row"
@@ -162,11 +170,7 @@ function AddProductForm({ ctxAddProducto }: Props) {
           </Stack>
         </Box>
 
-        <Box
-          sx={{ width: "1px", height: 46, bgcolor: "#e3e5e8", flexShrink: 0 }}
-        />
-
-        <Box sx={{ width: 200, flexShrink: 0 }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
           <FieldLabel>Para (estilista)</FieldLabel>
           <EstilistaInput
             ctxValue={formData?.estilista || ""}
@@ -178,27 +182,16 @@ function AddProductForm({ ctxAddProducto }: Props) {
             sx={compactFieldSx}
           />
         </Box>
-
-        <Box sx={{ flex: 1 }} />
-
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleAddProducto}
-          disabled={isGuardando || !hayProducto || !formData.estilista}
-          sx={{
-            height: FIELD_HEIGHT,
-            px: 2.5,
-            borderRadius: 2,
-            flexShrink: 0,
-          }}
-        >
-          Agregar
-        </Button>
-      </Stack>
+        </Stack>
 
       {hayProducto && (
-        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mt: 1.5 }}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          columnGap={1}
+          rowGap={0.5}
+          flexWrap="wrap"
+        >
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12.5 }}>
             Precio unitario{" "}
             <Box component="b" sx={{ color: "text.primary" }}>
@@ -221,7 +214,17 @@ function AddProductForm({ ctxAddProducto }: Props) {
           </Typography>
         </Stack>
       )}
-    </Box>
+
+      <Button
+        variant="contained"
+        startIcon={<AddIcon />}
+        onClick={handleAddProducto}
+        disabled={isGuardando || !hayProducto || !formData.estilista}
+        sx={{ alignSelf: "flex-end", height: 36, px: 2, borderRadius: 2 }}
+      >
+        Agregar
+      </Button>
+    </Stack>
   );
 }
 
