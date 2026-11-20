@@ -6,9 +6,10 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { agGridTheme } from "../../theme/agGridTheme";
+import { AG_GRID_LOCALE_ES } from "../../theme/agGridLocaleEs";
 import { Box, IconButton, Popover, Stack, Typography } from "@mui/material";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
-import { capitalizeFirstLetter } from "../../utils/utils";
+import { capitalizeFirstLetter, formatMoney } from "../../utils/utils";
 import EditBtn from "../buttons/EditBtn";
 import DeleteBtn from "../buttons/DeleteBtn";
 // Register all Community features
@@ -88,7 +89,11 @@ function TotalServiciosTbl({
         valueFormatter: (params) => capitalizeFirstLetter(params.value),
       },
       { field: "servicio.nombre", headerName: "Nombre del servicio" },
-      { field: "servicio.precio", headerName: "Precio" },
+      {
+        field: "servicio.precio",
+        headerName: "Precio",
+        valueFormatter: (params) => formatMoney(params.value),
+      },
       { field: "horaInicio", headerName: "Hora de inicio" },
       { field: "horaFin", headerName: "Hora de fin" },
       {
@@ -110,7 +115,12 @@ function TotalServiciosTbl({
 
   return (
     <div style={{ height: 250 }}>
-      <AgGridReact theme={agGridTheme} rowData={servicios} columnDefs={colDefs} />
+      <AgGridReact
+        theme={agGridTheme}
+        localeText={AG_GRID_LOCALE_ES}
+        rowData={servicios}
+        columnDefs={colDefs}
+      />
     </div>
   );
 }

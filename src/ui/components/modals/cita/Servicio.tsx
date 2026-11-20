@@ -21,6 +21,7 @@ import useGlobalAlert from "../../GlobalAlert";
 import { ServicioAgendado } from "../../../types/ServicioAgendado";
 import {
   formatDuracion,
+  formatMoney,
   getDuracion,
   getOccupiedRows,
   seSobreponeConOtroServicio,
@@ -292,7 +293,7 @@ function ServicioForm({
                 }}
               >
                 <Typography fontWeight={700} sx={{ fontSize: 15 }}>
-                  ${servicioForm.servicio?.precio}
+                  {formatMoney(servicioForm.servicio?.precio ?? 0)}
                 </Typography>
               </Box>
             </Box>

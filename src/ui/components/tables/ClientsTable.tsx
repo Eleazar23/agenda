@@ -8,6 +8,7 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import { agGridTheme } from "../../theme/agGridTheme";
+import { AG_GRID_LOCALE_ES } from "../../theme/agGridLocaleEs";
 import ClientesActionsCell from "../CustomeCells/ClientesActionsCell";
 import { useClientesCtx } from "../../contexts/ClientesCtx";
 import { useFilteredRowData } from "../../hooks/useFilteredRowData";
@@ -67,6 +68,7 @@ const ClientsTables = ({ searchTerm }: Props) => {
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
         theme={agGridTheme}
+        localeText={AG_GRID_LOCALE_ES}
         rowData={filteredData}
         columnDefs={colDefs}
         defaultColDef={defaultColDef}

@@ -24,7 +24,7 @@ const vacacionSchema = new Schema<IVacacion>(
 
 const estilistaSchema = new Schema<IEstilista>({
   id: { type: Number, required: true, unique: true },
-  name: { type: String, required: true },
+  name: { type: String, required: true, trim: true },
   telefono: { type: String, required: true },
   displayName: { type: String, required: false },
   role: { type: String, required: true, default: 'estilista' },

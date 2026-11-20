@@ -10,7 +10,7 @@ export interface ICliente {
 
 const clienteSchema = new Schema<ICliente>({
   id: { type: Number, required: true, unique: true },
-  nombre: { type: String, required: true },
+  nombre: { type: String, required: true, trim: true },
   telefono: { type: String, required: true },
   correo: { type: String},
   lastVisit: { type: String},

@@ -170,6 +170,20 @@ export const getOfficeHours = () => {
 
 }
 
+// Formatea un monto de dinero con separador de miles y símbolo de peso, p.
+// ej. 1000 -> "$1,000", 1234.5 -> "$1,234.50". Los decimales solo se
+// muestran cuando el monto no es un número entero.
+export function formatMoney(amount: number | string): string {
+  const value = Number(amount) || 0;
+  const hasDecimales = Math.round(value * 100) % 100 !== 0;
+  return value.toLocaleString("es-MX", {
+    style: "currency",
+    currency: "MXN",
+    minimumFractionDigits: hasDecimales ? 2 : 0,
+    maximumFractionDigits: 2,
+  });
+}
+
 export function toTitleString(str: string) {
   const words = str.split(" ");
   const titleCasedWords = words.map(

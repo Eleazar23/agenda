@@ -22,6 +22,7 @@ import EstilistaFilter from "../Inputs/EstilistaFilter";
 import {
   capitalizeFirstLetter,
   fechaSortKey,
+  formatMoney,
   getCurrentDate,
   getReporteRango,
   REPORTE_MAX_DIAS,
@@ -452,7 +453,7 @@ const Reportes = () => {
                 Servicios
               </Typography>
               <Typography variant="h5" align="center">
-                {`$${totalServicios.toFixed(2)}`}
+                {formatMoney(totalServicios)}
               </Typography>
             </Stack>
           </ToggleButton>
@@ -464,7 +465,7 @@ const Reportes = () => {
               <Typography
                 variant="h5"
                 align="center"
-              >{`$${totalProductos.toFixed(2)}`}</Typography>
+              >{formatMoney(totalProductos)}</Typography>
             </Stack>
           </ToggleButton>
           <ToggleButton value="gastos">
@@ -473,7 +474,7 @@ const Reportes = () => {
                 Gastos
               </Typography>
               <Typography variant="h5" align="center">
-                {`$${totalGastos.toFixed(2)}`}
+                {formatMoney(totalGastos)}
               </Typography>
             </Stack>
           </ToggleButton>
@@ -483,7 +484,7 @@ const Reportes = () => {
                 Propinas
               </Typography>
               <Typography variant="h5" align="center">
-                {`$${totalPropinas.toFixed(2)}`}
+                {formatMoney(totalPropinas)}
               </Typography>
             </Stack>
           </ToggleButton>
@@ -499,7 +500,7 @@ const Reportes = () => {
               key={estilista}
               color="secondary"
               variant="outlined"
-              label={`${capitalizeFirstLetter(estilista)} $${monto.toFixed(2)}`}
+              label={`${capitalizeFirstLetter(estilista)} ${formatMoney(monto)}`}
             />
           ))}
         </Grid>
@@ -553,9 +554,9 @@ const Reportes = () => {
       <Grid container size={12}>
         <Paper sx={styles.paper}>
           <Box component="div" sx={styles.footer}>
-            <Typography variant="h5" color="secondary.main">{`Propinas: $${totalPropinas.toFixed(2)}`}</Typography>
-            <Typography variant="h5">{`Gastos: $${totalGastos.toFixed(2)}`}</Typography>
-            <Typography variant="h5">{`Total: $${totalGeneral.toFixed(2)}`}</Typography>
+            <Typography variant="h5" color="secondary.main">{`Propinas: ${formatMoney(totalPropinas)}`}</Typography>
+            <Typography variant="h5">{`Gastos: ${formatMoney(totalGastos)}`}</Typography>
+            <Typography variant="h5">{`Total: ${formatMoney(totalGeneral)}`}</Typography>
           </Box>
         </Paper>
       </Grid>

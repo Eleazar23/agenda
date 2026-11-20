@@ -18,7 +18,7 @@ import { Propina } from "../../types/Cita";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
 import { ProductoInCita } from "../../types/Producto";
 import { useAgendaContext } from "../../contexts/AgendaContext";
-import { capitalizeFirstLetter } from "../../utils/utils";
+import { capitalizeFirstLetter, formatMoney } from "../../utils/utils";
 import MetodoPagoInput from "../Inputs/MetodoPagoInput";
 
 type Props = {
@@ -33,8 +33,6 @@ type Props = {
 const PORCENTAJES = [10, 15, 20];
 
 const redondear = (monto: number) => Math.round(monto * 100) / 100;
-
-const formatMonto = (monto: number) => `$${monto.toFixed(2)}`;
 
 // Captura de propinas de una cita. Hay una fila por cada estilista que
 // participó (servicios o productos) más las que se agreguen a mano para
@@ -225,7 +223,7 @@ function PropinasForm({
             </Typography>
             <Typography variant="caption" color="text.secondary">
               {fila.participo
-                ? `Subtotal ${formatMonto(fila.subtotal)}`
+                ? `Subtotal ${formatMoney(fila.subtotal)}`
                 : "Sin servicios en la cita"}
             </Typography>
           </Box>
@@ -294,13 +292,13 @@ function PropinasForm({
       <Divider />
       <Stack alignItems="flex-end" spacing={0.25}>
         <Typography variant="body1">
-          Total cita: {formatMonto(totalCita)}
+          Total cita: {formatMoney(totalCita)}
         </Typography>
         <Typography variant="body1" color="secondary.main">
-          Propinas: + {formatMonto(totalPropinas)}
+          Propinas: + {formatMoney(totalPropinas)}
         </Typography>
         <Typography variant="h6" fontWeight="bold">
-          Total a cobrar: {formatMonto(totalCita + totalPropinas)}
+          Total a cobrar: {formatMoney(totalCita + totalPropinas)}
         </Typography>
       </Stack>
     </Stack>

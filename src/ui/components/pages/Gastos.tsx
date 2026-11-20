@@ -9,6 +9,7 @@ import DownloadForOfflineIcon from "@mui/icons-material/DownloadForOffline";
 import SearchInput from "../Inputs/SearchInput";
 import CrudPageLayout from "./CrudPageLayout";
 import PageActionBar from "./PageActionBar";
+import { formatMoney } from "../../utils/utils";
 
 const STYLES = {
   paper: {
@@ -101,7 +102,7 @@ const Gastos = () => {
         footer={
           <Paper sx={STYLES.paper}>
             <Box component="div" sx={STYLES.footer}>
-              <Typography variant="h6">{`Total: $${totalGastos.toFixed(2)}`}</Typography>
+              <Typography variant="h6">{`Total: ${formatMoney(totalGastos)}`}</Typography>
             </Box>
           </Paper>
         }

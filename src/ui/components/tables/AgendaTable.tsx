@@ -8,6 +8,7 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import { agGridTheme } from "../../theme/agGridTheme";
+import { AG_GRID_LOCALE_ES } from "../../theme/agGridLocaleEs";
 import { useTheme } from "@mui/material/styles";
 import { getHrs, celdaEstaBloqueada } from "../../utils/utils";
 import CutomeCellRenderer from "../CustomeCells/CutomeCellRenderer";
@@ -394,6 +395,7 @@ const AgendaTable = () => {
         columnDefs={colDefs}
         defaultColDef={defaultColdef}
         theme={myTheme}
+        localeText={AG_GRID_LOCALE_ES}
         enableCellSpan={true}
         rowHeight={48}
         headerHeight={36}

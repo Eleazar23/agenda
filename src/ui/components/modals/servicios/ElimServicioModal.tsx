@@ -2,6 +2,7 @@ import { Typography } from "@mui/material";
 import ConfirmDeleteModal from "../ConfirmDeleteModal";
 import { useServiciosCtx } from "../../../contexts/ServiciosContext";
 import { Servicio } from "../../../types/Servicio";
+import { formatMoney } from "../../../utils/utils";
 
 type Props = {
   isOpen: boolean;
@@ -33,7 +34,7 @@ function ElimServicioModal({ isOpen, onClose, servicioData }: Props) {
               {servicioData.nombre}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Precio: ${servicioData.precio}
+              Precio: {formatMoney(servicioData.precio)}
             </Typography>
           </>
         )

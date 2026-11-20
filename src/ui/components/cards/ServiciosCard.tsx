@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, Chip, Divider, Stack } from "@mui/materi
 import ContentCutIcon from "@mui/icons-material/ContentCut";
 import ServiciosForm from "../forms/ServiciosForm";
 import { useAgendaContext } from "../../contexts/AgendaContext";
+import { formatMoney } from "../../utils/utils";
 
 type Props = {
   showErrors?: boolean;
@@ -33,7 +34,7 @@ const ServiciosCard = ({ showErrors }: Props) => {
         action={
           subtotal > 0 ? (
             <Chip
-              label={`Subtotal: $${subtotal}`}
+              label={`Subtotal: ${formatMoney(subtotal)}`}
               color="primary"
               variant="outlined"
               size="small"

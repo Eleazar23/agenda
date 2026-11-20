@@ -8,8 +8,9 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { agGridTheme } from "../../theme/agGridTheme";
+import { AG_GRID_LOCALE_ES } from "../../theme/agGridLocaleEs";
 import { ProductoInCita } from "../../types/Producto";
-import { capitalizeFirstLetter } from "../../utils/utils";
+import { capitalizeFirstLetter, formatMoney } from "../../utils/utils";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -21,18 +22,28 @@ function TotalProductosTbl({ productos }: Props) {
   const [colDefs] = React.useState<ColDef<ProductoInCita>[]>([
     { field: "estilista", headerName: "Estilista", valueFormatter: (params: ValueFormatterParams<ProductoInCita>) => capitalizeFirstLetter(params.value) },
     { field: "nombre", headerName: "Nombre del producto" },
-    { field: "precio", headerName: "Precio unitario" },
+    {
+      field: "precio",
+      headerName: "Precio unitario",
+      valueFormatter: (params: ValueFormatterParams<ProductoInCita>) => formatMoney(params.value),
+    },
     { field: "cantidad", headerName: "Cantidad" },
     {
       field: "total",
       headerName: "Total",
       valueGetter: (params: ValueGetterParams<ProductoInCita>) =>
         params.data ? params.data.precio * params.data.cantidad : 0,
+      valueFormatter: (params: ValueFormatterParams<ProductoInCita>) => formatMoney(params.value),
     },
   ]);
   return (
     <div style={{ height: 250 }}>
-      <AgGridReact theme={agGridTheme} rowData={productos} columnDefs={colDefs} />
+      <AgGridReact
+        theme={agGridTheme}
+        localeText={AG_GRID_LOCALE_ES}
+        rowData={productos}
+        columnDefs={colDefs}
+      />
     </div>
   );
 }

@@ -78,19 +78,21 @@ const NotasPanel = () => {
           {dataTable.map((nota) => (
             <ListItem
               key={nota.id}
+              alignItems="flex-start"
               secondaryAction={
-                <>
+                <Stack direction="row">
                   <EditBtn onClick={() => handleEditNota(nota)} />
                   <DeleteBtn onClick={() => setNotaToDelete(nota)} />
-                </>
+                </Stack>
               }
               disablePadding
-              sx={{ py: 0.5 }}
+              sx={{ py: 0.5, pr: 9 }}
             >
               <Checkbox
                 edge="start"
                 checked={nota.estado}
                 onChange={() => toggleNotaEstado(nota)}
+                sx={{ mt: -0.25 }}
               />
               <ListItemText
                 primary={nota.nota}
@@ -98,6 +100,7 @@ const NotasPanel = () => {
                 sx={{
                   textDecoration: nota.estado ? "line-through" : "none",
                   color: nota.estado ? "text.secondary" : "text.primary",
+                  wordBreak: "break-word",
                 }}
               />
             </ListItem>

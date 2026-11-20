@@ -2,7 +2,7 @@ import { Box, IconButton, Stack, Typography } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
-import { capitalizeFirstLetter } from "../../utils/utils";
+import { capitalizeFirstLetter, formatMoney } from "../../utils/utils";
 
 type Props = {
   products: {
@@ -26,8 +26,6 @@ const stepBtnSx = {
   color: "#5b6069",
   "&:hover": { bgcolor: "#e9ebee" },
 };
-
-const formatMoney = (value: number) => `$${value.toFixed(2)}`;
 
 function ProductsCar({
   products,

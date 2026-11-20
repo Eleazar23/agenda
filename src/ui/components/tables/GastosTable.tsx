@@ -10,10 +10,12 @@ import {
 } from "ag-grid-community";
 import { AgGridReact, CustomCellRendererProps } from "ag-grid-react";
 import { agGridTheme } from "../../theme/agGridTheme";
+import { AG_GRID_LOCALE_ES } from "../../theme/agGridLocaleEs";
 import GastoActionsCell from "../CustomeCells/GastoActionsCell";
 import { useGastosCtx } from "../../contexts/GastosCtx";
 import { Gasto } from "../../types/Gasto";
 import { useFilteredRowData } from "../../hooks/useFilteredRowData";
+import { formatMoney } from "../../utils/utils";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -29,7 +31,7 @@ const colsData: ColDef<Gasto>[] = [
     headerName: "Monto",
     editable: true,
     valueFormatter: (params: ValueFormatterParams<Gasto>) =>
-      `$${parseFloat(params.value).toFixed(2)}`,
+      formatMoney(params.value),
   },
   {
     field: "fecha",
@@ -131,6 +133,7 @@ const GastosTable = ({
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
         theme={agGridTheme}
+        localeText={AG_GRID_LOCALE_ES}
         rowData={filteredData}
         gridOptions={gridOptions}
         columnDefs={colDefs.map((col) => {

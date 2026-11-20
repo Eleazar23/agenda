@@ -17,6 +17,7 @@ import React, { useState } from "react";
 import VolunteerActivismOutlinedIcon from "@mui/icons-material/VolunteerActivismOutlined";
 import {
   capitalizeFirstLetter,
+  formatMoney,
   getHrsObj,
   toTitleString,
 } from "../../utils/utils";
@@ -116,7 +117,7 @@ const CitaCell = (params: CustomCellRendererProps) => {
   const propinas = citaDeCelda?.propinas || [];
   const totalPropinas = propinas.reduce((acc, p) => acc + Number(p.monto), 0);
   const detallePropinas = propinas
-    .map((p) => `${capitalizeFirstLetter(p.estilista)} $${p.monto}`)
+    .map((p) => `${capitalizeFirstLetter(p.estilista)} ${formatMoney(p.monto)}`)
     .join(", ");
 
   const colors =
@@ -140,14 +141,14 @@ const CitaCell = (params: CustomCellRendererProps) => {
               {toTitleString(value.nombreCliente)}
             </Typography>
             <Typography variant="body2">
-              {`${servicio?.servicio.nombre} - $${servicio?.servicio.precio}`}
+              {`${servicio?.servicio.nombre} - ${formatMoney(servicio?.servicio.precio ?? 0)}`}
             </Typography>
             <Typography variant="body2">
               {`${formatHora12(servicio?.horaInicio ?? "")} - ${formatHora12(servicio?.horaFin ?? "")}`}
             </Typography>
             {totalPropinas > 0 && (
               <Typography variant="body2">
-                {`Propina: $${totalPropinas} (${detallePropinas})`}
+                {`Propina: ${formatMoney(totalPropinas)} (${detallePropinas})`}
               </Typography>
             )}
           </Stack>

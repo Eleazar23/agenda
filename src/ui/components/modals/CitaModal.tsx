@@ -21,6 +21,7 @@ import {
 import {
   formatDateFromHTML,
   formatDateToHTML,
+  formatMoney,
   getOfficeHours,
 } from "../../utils/utils";
 import { Cita } from "../../types/Cita";
@@ -506,7 +507,7 @@ export default function CitaModal({
               TOTAL CITA
             </Typography>
             <Typography variant="subtitle1" fontWeight={700}>
-              ${totalACobrar.toFixed(2)}
+              {formatMoney(totalACobrar)}
             </Typography>
           </Stack>
 
@@ -520,7 +521,7 @@ export default function CitaModal({
               color="secondary"
             >
               {totalPropinas > 0
-                ? `Propina · $${totalPropinas.toFixed(2)}`
+                ? `Propina · ${formatMoney(totalPropinas)}`
                 : "Propina"}
             </Button>
             <StatusCitaChip
@@ -605,7 +606,7 @@ export default function CitaModal({
             <Typography variant="caption" color="text.secondary">
               A cobrar{" "}
               <Box component="b" sx={{ color: "text.primary", fontSize: 15 }}>
-                ${(totalACobrar + totalPropinasDelDia).toFixed(2)}
+                {formatMoney(totalACobrar + totalPropinasDelDia)}
               </Box>
             </Typography>
           </Stack>

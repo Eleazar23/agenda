@@ -8,9 +8,11 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import { agGridTheme } from "../../theme/agGridTheme";
+import { AG_GRID_LOCALE_ES } from "../../theme/agGridLocaleEs";
 import ProductosActionsCell from "../CustomeCells/ProductosActionsCell";
 import { useProductosCtx } from "../../contexts/ProductosCtx";
 import { useFilteredRowData } from "../../hooks/useFilteredRowData";
+import { formatMoney } from "../../utils/utils";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -41,6 +43,7 @@ const colsData = [
     field: "precio",
     headerName: "Precio",
     cellDataType: "text",
+    valueFormatter: (params: { value: number }) => formatMoney(params.value),
     },
     {
     field: "descripcion",
@@ -83,6 +86,7 @@ const ProductsTable = ({ searchTerm }: Props) => {
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
         theme={agGridTheme}
+        localeText={AG_GRID_LOCALE_ES}
         rowData={filteredData}
         columnDefs={colDefs}
         defaultColDef={defaultColDef}

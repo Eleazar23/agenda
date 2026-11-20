@@ -16,6 +16,7 @@
     "seed:reportes": "tsc --project src/electron/tsconfig.json && node dist-electron/seedReportes.js",
     "migrate:clienteid": "tsc --project src/electron/tsconfig.json && node dist-electron/migrateClienteId.js",
     "migrate:citaids": "tsc --project src/electron/tsconfig.json && node dist-electron/migrateCitaIds.js",
+    "migrate:trimnombres": "tsc --project src/electron/tsconfig.json && node dist-electron/migrateTrimNombres.js",
     "predist:win": "npm run test:e2e",
     "dist:win": "electron-builder --win --x64",
     "test:e2e": "npm run build && playwright test"

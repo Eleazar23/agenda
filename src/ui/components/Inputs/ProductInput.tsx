@@ -3,6 +3,7 @@ import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import { Box, SxProps, Theme } from "@mui/material";
 import { Producto } from "../../types/Producto";
+import { formatMoney } from "../../utils/utils";
 
 type Props = {
   serviceIndex?: number;
@@ -86,7 +87,7 @@ export default function ProductInput({
         const { key, ...optionProps } = props;
         return (
           <Box component="li" key={`${option.id}-${option.nombre}`} {...optionProps}>
-            {`${option.nombre} - $${option.precio} | Stock: ${option.stock}`}
+            {`${option.nombre} - ${formatMoney(option.precio)} | Stock: ${option.stock}`}
           </Box>
         );
       }}

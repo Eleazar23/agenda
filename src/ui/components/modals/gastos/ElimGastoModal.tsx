@@ -2,6 +2,7 @@ import { Typography } from "@mui/material";
 import ConfirmDeleteModal from "../ConfirmDeleteModal";
 import { Gasto } from "../../../types/Gasto";
 import { useGastosCtx } from "../../../contexts/GastosCtx";
+import { formatMoney } from "../../../utils/utils";
 
 interface ElimGastoProps {
   gastoData?: Gasto;
@@ -33,7 +34,7 @@ function ElimGastoModal({ gastoData, open, onClose }: ElimGastoProps) {
               {gastoData.proveedorNombre}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Monto: ${gastoData.monto}
+              Monto: {formatMoney(gastoData.monto)}
             </Typography>
           </>
         )

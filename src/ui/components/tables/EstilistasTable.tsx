@@ -7,6 +7,7 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import { agGridTheme } from "../../theme/agGridTheme";
+import { AG_GRID_LOCALE_ES } from "../../theme/agGridLocaleEs";
 import EstilistasActionsCell from "../CustomeCells/EstilistasActionsCell";
 import VacacionesCell from "../CustomeCells/VacacionesCell";
 import { useEstilistasCtx } from "../../contexts/EstilistaContext";
@@ -72,6 +73,7 @@ const EstilistasTable = ({ searchTerm }: Props) => {
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
         theme={agGridTheme}
+        localeText={AG_GRID_LOCALE_ES}
         rowData={filteredData}
         columnDefs={colsData}
         defaultColDef={defaultColDef}

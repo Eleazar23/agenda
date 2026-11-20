@@ -10,6 +10,7 @@ import {
   COMPACT_FIELD_HEIGHT as FIELD_HEIGHT,
   compactFieldSx,
 } from "../../utils/compactFieldSx";
+import { formatMoney } from "../../utils/utils";
 
 type Props = {
   ctxAddProducto: ({
@@ -97,9 +98,9 @@ function AddProductForm({ ctxAddProducto }: Props) {
     }
   };
 
-  const subtotal = hayProducto
-    ? (Number(formData.producto.precio) * formData.cantidad).toFixed(2)
-    : "0.00";
+  const subtotal = formatMoney(
+    hayProducto ? Number(formData.producto.precio) * formData.cantidad : 0,
+  );
 
   return (
     <Stack
@@ -195,7 +196,7 @@ function AddProductForm({ ctxAddProducto }: Props) {
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12.5 }}>
             Precio unitario{" "}
             <Box component="b" sx={{ color: "text.primary" }}>
-              ${Number(formData.producto.precio).toFixed(2)}
+              {formatMoney(formData.producto.precio)}
             </Box>
           </Typography>
           <Dot />
@@ -209,7 +210,7 @@ function AddProductForm({ ctxAddProducto }: Props) {
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12.5 }}>
             Subtotal{" "}
             <Box component="b" sx={{ color: "success.main" }}>
-              ${subtotal}
+              {subtotal}
             </Box>
           </Typography>
         </Stack>

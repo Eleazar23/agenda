@@ -5,8 +5,9 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { agGridTheme } from "../../theme/agGridTheme";
+import { AG_GRID_LOCALE_ES } from "../../theme/agGridLocaleEs";
 import { Propina } from "../../types/Cita";
-import { capitalizeFirstLetter } from "../../utils/utils";
+import { capitalizeFirstLetter, formatMoney } from "../../utils/utils";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -23,7 +24,7 @@ const colDefs: ColDef<Propina>[] = [
   {
     field: "monto",
     headerName: "Monto",
-    valueFormatter: (params) => `$${Number(params.value).toFixed(2)}`,
+    valueFormatter: (params) => formatMoney(params.value),
   },
   {
     field: "metodoDePago",
@@ -35,7 +36,12 @@ const colDefs: ColDef<Propina>[] = [
 function TotalPropinasTbl({ propinas }: Props) {
   return (
     <div style={{ height: 150 }}>
-      <AgGridReact theme={agGridTheme} rowData={propinas} columnDefs={colDefs} />
+      <AgGridReact
+        theme={agGridTheme}
+        localeText={AG_GRID_LOCALE_ES}
+        rowData={propinas}
+        columnDefs={colDefs}
+      />
     </div>
   );
 }

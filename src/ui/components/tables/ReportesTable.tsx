@@ -10,7 +10,8 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import { agGridTheme } from "../../theme/agGridTheme";
-import { capitalizeFirstLetter, fechaSortKey } from "../../utils/utils";
+import { AG_GRID_LOCALE_ES } from "../../theme/agGridLocaleEs";
+import { capitalizeFirstLetter, fechaSortKey, formatMoney } from "../../utils/utils";
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -41,6 +42,7 @@ const colDefServicios = [
   {
     field: "servicio.precio",
     headerName: "Costo",
+    valueFormatter: (params: ValueFormatterParams) => formatMoney(params.value),
   },
   {
     field: "metodoDePago",
@@ -61,12 +63,17 @@ const colDefProductos = [
       { field: "estilista", headerName: "Estilista", valueFormatter: (params: ValueFormatterParams) => capitalizeFirstLetter(params.value) },
     { field: "nombreCliente", headerName: "Cliente" },
     { field: "nombre", headerName: "Nombre del producto" },
-    { field: "precio", headerName: "Precio unitario" },
+    {
+      field: "precio",
+      headerName: "Precio unitario",
+      valueFormatter: (params: ValueFormatterParams) => formatMoney(params.value),
+    },
     { field: "cantidad", headerName: "Cantidad" },
     {
       field: "total",
       headerName: "Total",
       valueGetter: (params: ValueGetterParams) => params.data.precio * params.data.cantidad,
+      valueFormatter: (params: ValueFormatterParams) => formatMoney(params.value),
     },
     fechaCol,
 
@@ -82,7 +89,7 @@ const colsData = [
     field: "monto",
     headerName: "Monto",
     editable: true,
-    valueFormatter: (params: ValueFormatterParams) => `$${parseFloat(params.value).toFixed(2)}`,
+    valueFormatter: (params: ValueFormatterParams) => formatMoney(params.value),
   },
   { ...fechaCol, editable: false },
   {
@@ -112,7 +119,7 @@ const colDefPropinas = [
   {
     field: "monto",
     headerName: "Monto",
-    valueFormatter: (params: ValueFormatterParams) => `$${Number(params.value).toFixed(2)}`,
+    valueFormatter: (params: ValueFormatterParams) => formatMoney(params.value),
   },
   {
     field: "metodoDePago",
@@ -187,6 +194,7 @@ const ReportesTable = ({
     <div style={{ height: "100%", width: "100%" }}>
       <AgGridReact
         theme={agGridTheme}
+        localeText={AG_GRID_LOCALE_ES}
         ref={gridRef}
         rowData={reportesData}
         columnDefs={colDef}

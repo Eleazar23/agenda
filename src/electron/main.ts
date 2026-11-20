@@ -12,6 +12,7 @@ import { Nota } from './models/Nota.js';
 import { Feriado } from './models/Feriado.js';
 import { Bloqueo } from './models/Bloqueo.js';
 import { Counter } from './models/Counter.js';
+import { normalizarNombres } from './normalizeNombres.js';
 
 // Prevent a second instance of the app from running
 const gotTheLock = app.requestSingleInstanceLock();
@@ -26,8 +27,21 @@ const __dirname = path.dirname(__filename);
 const __dbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/agenda';
 
 // Connect to MongoDB using Mongoose
-mongoose.connect(__dbUri).then(() => {
+mongoose.connect(__dbUri).then(async () => {
     console.log(`Connected to MongoDB (${__dbUri})`);
+
+    // Corrige una sola vez por arranque los nombres guardados con espacios de
+    // más (de antes de que los esquemas tuvieran trim: true), para que el
+    // ordenamiento alfabético quede correcto.
+    try {
+        const resultados = await normalizarNombres(true);
+        const total = resultados.reduce((acc, r) => acc + r.corregidos.length, 0);
+        if (total > 0) {
+            console.log(`Normalización de nombres: ${total} documento(s) corregidos (espacios de más eliminados).`);
+        }
+    } catch (err) {
+        console.error('Error normalizando nombres al arrancar:', err);
+    }
 }).catch((err: unknown) => {
     console.error('Failed to connect to MongoDB', err);
 });
@@ -103,7 +117,7 @@ async function addWithAutoId<T extends { id: number }>(
 // ========== Clientes IPC Handlers ==========
 ipcMain.handle('get-clientes', async () => {
     try {
-        return await Cliente.find().lean();
+        return await Cliente.find().collation({ locale: 'es', strength: 1 }).sort({ nombre: 1 }).lean();
     } catch (error) {
         console.error('Error getting clientes:', error);
         throw error;
@@ -172,7 +186,7 @@ ipcMain.handle('delete-cliente', async (_event, id) => {
 // ========== Estilistas IPC Handlers ==========
 ipcMain.handle('get-estilistas', async () => {
     try {
-        return await Estilista.find().lean();
+        return await Estilista.find().collation({ locale: 'es', strength: 1 }).sort({ name: 1 }).lean();
     } catch (error) {
         console.error('Error getting estilistas:', error);
         throw error;
@@ -281,7 +295,7 @@ ipcMain.handle('delete-servicio', async (_event, id) => {
 // ========== Productos IPC Handlers ==========
 ipcMain.handle('get-productos', async () => {
     try {
-        return await Producto.find().lean();
+        return await Producto.find().collation({ locale: 'es', strength: 1 }).sort({ nombre: 1 }).lean();
     } catch (error) {
         console.error('Error getting productos:', error);
         throw error;

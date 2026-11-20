@@ -10,6 +10,7 @@ import {
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import { agGridTheme } from "../../theme/agGridTheme";
+import { AG_GRID_LOCALE_ES } from "../../theme/agGridLocaleEs";
 import { Box } from "@mui/material";
 import { capitalizeFirstLetter } from "../../utils/utils";
 
@@ -78,6 +79,7 @@ function ReportesProductosTbl({
     <Box component="div" style={{ width: "100%", height: "100%" }}>
       <AgGridReact
         theme={agGridTheme}
+        localeText={AG_GRID_LOCALE_ES}
         ref={gridRef}
         rowData={serviciosData}
         columnDefs={colDef}

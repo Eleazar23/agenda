@@ -6,6 +6,7 @@ import TotalPropinasTbl from "./TotalPropinasTbl";
 import { useEffect, useMemo, useState } from "react";
 import { ServicioAgendado } from "../../types/ServicioAgendado";
 import { ProductoInCita } from "../../types/Producto";
+import { formatMoney } from "../../utils/utils";
 
 type Props = {
   cita: Cita | null;
@@ -90,7 +91,7 @@ function TotalCitaTbl({
         <Grid size={12}>
           <Typography variant="h6" fontWeight="bold">
             {totalServicios !== undefined
-              ? `Servicios | Total: $${totalServicios}`
+              ? `Servicios | Total: ${formatMoney(totalServicios)}`
               : "Servicios | Total: $0.00"}
           </Typography>
         </Grid>
@@ -106,7 +107,7 @@ function TotalCitaTbl({
         <Grid size={12}>
           <Typography variant="h6" fontWeight="bold">
             {totalProductos !== undefined
-              ? `Productos | Total: $${totalProductos}`
+              ? `Productos | Total: ${formatMoney(totalProductos)}`
               : "Productos | Total: $0.00"}
           </Typography>
         </Grid>
@@ -117,7 +118,7 @@ function TotalCitaTbl({
       <Grid container size={12}>
         <Grid size={12}>
           <Typography variant="h6" fontWeight="bold">
-            {`Propinas | Total: $${totalPropinas}`}
+            {`Propinas | Total: ${formatMoney(totalPropinas)}`}
           </Typography>
         </Grid>
         <Grid size={12}>
@@ -133,13 +134,13 @@ function TotalCitaTbl({
       <Grid container size={12}>
         <Grid size={12} justifyItems="flex-end">
           <Typography variant="body1">
-            Total cita: ${totalServicios + totalProductos}
+            Total cita: {formatMoney(totalServicios + totalProductos)}
           </Typography>
           <Typography variant="body1" color="secondary.main">
-            Propinas: + ${totalPropinas}
+            Propinas: + {formatMoney(totalPropinas)}
           </Typography>
           <Typography variant="h6" fontWeight="bold">
-            Total a cobrar: ${totalServicios + totalProductos + totalPropinas}
+            Total a cobrar: {formatMoney(totalServicios + totalProductos + totalPropinas)}
           </Typography>
         </Grid>
       </Grid>

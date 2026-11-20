@@ -2,6 +2,7 @@ import { Typography } from "@mui/material";
 import ConfirmDeleteModal from "../ConfirmDeleteModal";
 import { useProductosCtx } from "../../../contexts/ProductosCtx";
 import { Producto } from "../../../types/Producto";
+import { formatMoney } from "../../../utils/utils";
 
 type Props = {
   isOpen: boolean;
@@ -36,7 +37,7 @@ function ElimProductoModal({ isOpen, onClose, productoData }: Props) {
               Marca: {productoData.marca}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Precio: ${productoData.precio}
+              Precio: {formatMoney(productoData.precio)}
             </Typography>
             {productoData.stock !== undefined && (
               <Typography variant="body2" color="text.secondary">
